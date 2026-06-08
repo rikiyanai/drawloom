@@ -1,5 +1,8 @@
 import { FaceLandmarker, FilesetResolver, type FaceLandmarkerResult } from "@mediapipe/tasks-vision";
 
+// Keep in sync with the @mediapipe/tasks-vision version in package.json.
+const MEDIAPIPE_VERSION = "0.10.35";
+
 let landmarker: FaceLandmarker | null = null;
 let initPromise: Promise<FaceLandmarker> | null = null;
 
@@ -8,7 +11,7 @@ async function init(): Promise<FaceLandmarker> {
   if (initPromise) return initPromise;
   initPromise = (async () => {
     const fileset = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm"
+      `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
     );
     const lm = await FaceLandmarker.createFromOptions(fileset, {
       baseOptions: {
@@ -23,7 +26,10 @@ async function init(): Promise<FaceLandmarker> {
     });
     landmarker = lm;
     return lm;
-  })();
+  })().catch((err) => {
+    initPromise = null;
+    throw err;
+  });
   return initPromise;
 }
 
@@ -39,11 +45,17 @@ export type PoseResult = {
 } | null;
 
 function matrixToYPR(m: number[]): HeadAngles {
-  const r00 = m[0], r01 = m[4], r02 = m[8];
-  const r10 = m[1], r11 = m[5], r12 = m[9];
-  const r20 = m[2], r21 = m[6], r22 = m[10];
+  // Column-major 4x4. We only need rotation entries.
+  const r00 = m[0];
+  const r02 = m[8];
+  const r10 = m[1];
+  const r11 = m[5];
+  const r12 = m[9];
+  const r20 = m[2];
+  const r22 = m[10];
   const pitch = Math.asin(-r12);
-  let yaw: number, roll: number;
+  let yaw: number;
+  let roll: number;
   if (Math.abs(r12) < 0.9999) {
     yaw = Math.atan2(r02, r22);
     roll = Math.atan2(r10, r11);

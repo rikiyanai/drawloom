@@ -48,5 +48,8 @@ export const useStudio = create<StudioState>((set) => ({
       },
     })),
   reset: () =>
-    set({ image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null, overlays: initialOverlays }),
+    set((s) => {
+      if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
+      return { image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null, overlays: initialOverlays };
+    }),
 }));

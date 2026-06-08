@@ -4,7 +4,7 @@ import { useStudio } from "@/lib/store";
 import { detectPose } from "@/lib/pose/detect";
 
 export function UploadDropzone() {
-  const { setImage, setPose, setStatus, status } = useStudio();
+  const { setImage, setPose, setStatus, status, imageUrl } = useStudio();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
@@ -12,12 +12,18 @@ export function UploadDropzone() {
       setStatus("loading");
       const url = URL.createObjectURL(file);
       const img = new Image();
-      img.crossOrigin = "anonymous";
       img.src = url;
-      await new Promise<void>((res, rej) => {
-        img.onload = () => res();
-        img.onerror = () => rej(new Error("Could not load image"));
-      });
+      try {
+        await new Promise<void>((res, rej) => {
+          img.onload = () => res();
+          img.onerror = () => rej(new Error("Could not load image"));
+        });
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        setStatus("error", err instanceof Error ? err.message : "Image load failed");
+        return;
+      }
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
       setImage(img, url);
       try {
         const pose = await detectPose(img);
@@ -26,7 +32,7 @@ export function UploadDropzone() {
         setStatus("error", err instanceof Error ? err.message : "Detection failed");
       }
     },
-    [setImage, setPose, setStatus]
+    [setImage, setPose, setStatus, imageUrl]
   );
 
   const onDrop = (e: React.DragEvent) => {
