@@ -4,11 +4,12 @@ import { UploadDropzone } from "./UploadDropzone";
 import { CanvasStage } from "./CanvasStage";
 import { WebcamStage } from "./WebcamStage";
 import { OverlayPanel } from "./OverlayPanel";
+import { SkullPanel } from "./SkullPanel";
 import { useStudio } from "@/lib/store";
 import { installConsoleFilter } from "@/lib/console-filter";
 
 export function Studio() {
-  const { image, reset, status, errorMsg, mode, setMode } = useStudio();
+  const { image, reset, status, errorMsg, mode, setMode, layout, setLayout } = useStudio();
 
   // Mute MediaPipe/TFLite INFO lines that ride on console.error and trip
   // Next's error overlay — must run before any detection call.
@@ -35,7 +36,7 @@ export function Studio() {
         <h1 className="text-lg font-semibold">
           drawloom <span className="text-zinc-500 font-normal text-sm">— form-first drawing overlays</span>
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex rounded-md border border-zinc-700 overflow-hidden text-xs">
             <button
               onClick={() => setMode("upload")}
@@ -48,6 +49,22 @@ export function Studio() {
               className={`px-3 py-1.5 ${mode === "webcam" ? "bg-cyan-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
             >
               webcam (live)
+            </button>
+          </div>
+          <div className="flex rounded-md border border-zinc-700 overflow-hidden text-xs">
+            <button
+              onClick={() => setLayout("single")}
+              className={`px-3 py-1.5 ${layout === "single" ? "bg-cyan-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              title="Single view"
+            >
+              single
+            </button>
+            <button
+              onClick={() => setLayout("split")}
+              className={`px-3 py-1.5 ${layout === "split" ? "bg-cyan-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              title="Side-by-side: your view + a skull at the same head angle"
+            >
+              split + skull
             </button>
           </div>
           {(image || mode === "webcam") && (
@@ -63,7 +80,27 @@ export function Studio() {
 
       <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <section className="min-w-0">
-          {mode === "webcam" ? (
+          {layout === "split" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="min-w-0">
+                {mode === "webcam" ? (
+                  <WebcamStage />
+                ) : !image ? (
+                  <div className="max-w-xl mx-auto pt-16">
+                    <UploadDropzone />
+                    {errorMsg && status === "error" && (
+                      <p className="text-center mt-4 text-rose-400 text-sm">{errorMsg}</p>
+                    )}
+                  </div>
+                ) : (
+                  <CanvasStage />
+                )}
+              </div>
+              <div className="min-w-0">
+                <SkullPanel />
+              </div>
+            </div>
+          ) : mode === "webcam" ? (
             <WebcamStage />
           ) : !image ? (
             <div className="max-w-xl mx-auto pt-16">

@@ -9,6 +9,7 @@ type OverlayState = {
 };
 
 export type SourceMode = "upload" | "webcam";
+export type LayoutMode = "single" | "split";
 
 export type ViewFilters = {
   grayscale: boolean;
@@ -18,6 +19,7 @@ export type ViewFilters = {
 
 type StudioState = {
   mode: SourceMode;
+  layout: LayoutMode;
   image: HTMLImageElement | null;
   imageUrl: string | null;
   pose: PoseResult;
@@ -26,6 +28,7 @@ type StudioState = {
   overlays: Record<string, OverlayState>;
   viewFilters: ViewFilters;
   setMode: (m: SourceMode) => void;
+  setLayout: (l: LayoutMode) => void;
   setImage: (img: HTMLImageElement, url: string) => void;
   setStatus: (s: StudioState["status"], msg?: string) => void;
   setPose: (p: PoseResult) => void;
@@ -48,6 +51,7 @@ const initialViewFilters: ViewFilters = { grayscale: false, bgBlur: false, bgBlu
 
 export const useStudio = create<StudioState>((set) => ({
   mode: "upload",
+  layout: "single",
   image: null,
   imageUrl: null,
   pose: null,
@@ -60,6 +64,7 @@ export const useStudio = create<StudioState>((set) => ({
       if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
       return { mode, image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null };
     }),
+  setLayout: (layout) => set({ layout }),
   setImage: (img, url) => set({ image: img, imageUrl: url, pose: null, status: "detecting", errorMsg: null }),
   setStatus: (status, msg) => set({ status, errorMsg: msg ?? null }),
   setPose: (pose) => set({ pose, status: pose ? "ready" : "no-face" }),
