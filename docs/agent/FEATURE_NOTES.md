@@ -17,7 +17,7 @@ Status legend: `LOGGED` (captured) · `PLANNED` (approach drafted) · `IN_PROGRE
 ### FR-001 — Jawline accuracy · LANDED (commit `0be2848`)
 Jaw line redrawn as a single smooth quadratic-bezier chain anchored to ear (234, 454) → jaw angles → mid-jaw → chin, replacing the FACE_OVAL lower-half segments that bulged at the angle and undershot the chin in 3/4 view. Used across Skeleton and Feature-Lines overlays via `drawJawLine` in `src/lib/pose/landmarks.ts`.
 
-### FR-002 — Skull view as an actual skull · LANDED (commits `7dc4a5a`, pending `HEAD`)
+### FR-002 — Skull view as an actual skull · LANDED (commits `7dc4a5a`, `368274e`)
 Procedural three.js skull built from primitives is the fallback. `mountSkullScene` now probes `/skull.glb` (and an optional `window.__DRAWLOOM_SKULL_URL`) at startup; on a successful fetch the GLB is loaded via `GLTFLoader`, normalized to the same view-volume as the procedural skull (centered, longest dimension ≈ 2.0), and hot-swapped into the pivot. The rotation API and selfie-mirror math are unchanged across both code paths.
 **How to attach a real skull:** drop a CC-BY/CC0 `.glb` at `public/skull.glb` and it auto-loads on next render. No code changes needed.
 
@@ -39,7 +39,7 @@ Grayscale toggle in the new `view filters` panel above the overlay list. Impleme
 ### FR-008 — Background blur · LANDED (commit `e6f953e`)
 MediaPipe `ImageSegmenter` with `selfie_segmenter.tflite` produces a person mask each frame; the WebcamStage composites a blurred background (via `ctx.filter = "blur(Npx)"`) with the sharp person region cut back in. Blur amount is exposed as a slider in the `view filters` panel.
 
-### FR-009 — Reilly rhythms matched to Khang Ta sheet · LANDED (commits `43c74cb`, pending `HEAD`)
+### FR-009 — Reilly rhythms matched to Khang Ta sheet · LANDED (commits `43c74cb`, `368274e`)
 `loomis-reilly.ts` rewritten to three canonical shapes from the Khang Ta reference: the eye-cheek "C" (left and right, 4-anchor bezier), the central vertical lozenge (brow → chin almond through nose & mouth column), and the jaw ovoid (ear-to-ear ellipse tilted by detected roll). Optional proportion labels overlay horizontal reference lines at `top · hair · brow · eye · nose · chin · sternal notch`. The sternal-notch line uses MediaPipe Pose Landmarker (`src/lib/pose/body.ts`) — gated behind a new `view filters → Body pose` toggle since the model adds ~5MB. Notch position is computed as the shoulder-midpoint shifted up by 10% of shoulder width; line is suppressed if the body model accidentally picks up the head (notch landing above chin).
 
 ---
@@ -50,4 +50,4 @@ MediaPipe `ImageSegmenter` with `selfie_segmenter.tflite` produces a person mask
 
 ---
 
-*Status snapshot 2026-06-09: all 9 items LANDED. Commit refs: `0be2848`, `7dc4a5a` (×3), `70fdf1d`, `4c4f037`, `e6f953e` (×2), `43c74cb`, plus pending body-pose + GLB-loader commit at `HEAD`.*
+*Status snapshot 2026-06-09: all 9 items LANDED. Commit refs: `0be2848`, `7dc4a5a` (×3), `70fdf1d`, `4c4f037`, `e6f953e` (×2), `43c74cb`, `368274e` (body pose + GLB loader).*
