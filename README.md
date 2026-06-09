@@ -6,6 +6,8 @@ The inverse of [viva-reference-angle](https://github.com/watusiii/viva-reference
 
 Everything runs in the browser — no backend, no upload, your image never leaves your machine.
 
+![Drawloom pre-alpha demo](demo.gif)
+
 ## Overlay roster (v1)
 
 | Overlay | Category | Status |
