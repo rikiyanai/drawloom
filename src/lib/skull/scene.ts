@@ -132,8 +132,13 @@ function applyBoneMaterial(obj: THREE.Object3D): void {
 }
 
 /**
- * Center + scale a loaded GLB so it occupies roughly the same view-volume the
- * procedural skull does (longest dimension ~= 2.0 units, centered on origin).
+ * Center + scale a loaded GLB so it occupies the same vertical view-volume the
+ * procedural skull does (height = 2.0 units, centered on origin). We
+ * normalize by size.y instead of max(size) because glTF convention is +Y up,
+ * and several anatomical meshes (notably the Khronos ScatteringSkull) have
+ * front-to-back depth > top-to-bottom height — normalizing by the longest
+ * axis (depth) would shrink the skull's apparent height to ~56% of the
+ * viewport. Matching height keeps the skull at face scale.
  */
 function normalizeSkullMesh(obj: THREE.Object3D): THREE.Group {
   applyBoneMaterial(obj);
@@ -144,8 +149,8 @@ function normalizeSkullMesh(obj: THREE.Object3D): THREE.Group {
   const center = new THREE.Vector3();
   box.getSize(size);
   box.getCenter(center);
-  const longest = Math.max(size.x, size.y, size.z) || 1;
-  const scale = 2.0 / longest;
+  const target = size.y > 0.001 ? size.y : Math.max(size.x, size.y, size.z, 1);
+  const scale = 2.0 / target;
   obj.position.sub(center).multiplyScalar(scale);
   obj.scale.setScalar(scale);
   return group;
