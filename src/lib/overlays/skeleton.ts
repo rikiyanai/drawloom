@@ -36,6 +36,10 @@ export const skeletonOverlay: Overlay = {
     const size = Math.max(40, Math.round(pose.bbox.size * sizeMul));
     ensureOffscreenSize(size, size);
 
+    // Force a synchronous render so the next drawImage picks up the current
+    // rotation, not the previous RAF frame.
+    off.scene.renderNow();
+
     const x = pose.bbox.cx - size / 2;
     const y = pose.bbox.cy - size / 2;
 

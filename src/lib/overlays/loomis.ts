@@ -62,6 +62,10 @@ export const loomisOverlay: Overlay = {
     const size = Math.max(40, Math.round(pose.bbox.size * sizeMul));
     ensureLoomisSize(size, size);
 
+    // Force a synchronous render so the next drawImage picks up the current
+    // rotation/visibility/color, not the previous RAF frame.
+    off.scene.renderNow();
+
     const x = pose.bbox.cx - size / 2;
     const y = pose.bbox.cy - size / 2;
 

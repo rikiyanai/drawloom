@@ -31,6 +31,14 @@ export type LoomisScene = {
   setRotation: (matrix: number[]) => void;
   setVisibility: (opts: LoomisVisibility) => void;
   setColor: (hex: number) => void;
+  /**
+   * Synchronously render into the canvas. The overlay calls this between
+   * its setRotation/setVisibility/setColor and the drawImage blit — without
+   * it, drawImage picks up the previous RAF tick's frame, which manifests
+   * as stale geometry in upload mode (where the overlay only re-runs on
+   * state change, not every frame).
+   */
+  renderNow: () => void;
   resize: (w: number, h: number) => void;
   dispose: () => void;
 };
@@ -170,6 +178,10 @@ export function mountLoomisScene(canvas: HTMLCanvasElement): LoomisScene {
     },
     setColor(hex: number) {
       lineMat.color.setHex(hex);
+    },
+    renderNow() {
+      if (disposed) return;
+      renderer.render(scene, camera);
     },
     resize(w: number, h: number) {
       renderer.setSize(w, h, false);

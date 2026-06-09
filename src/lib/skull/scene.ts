@@ -188,6 +188,14 @@ async function loadSkullGLB(url: string): Promise<THREE.Group | null> {
 
 export type SkullScene = {
   setRotation: (matrix: number[]) => void;
+  /**
+   * Synchronously render the current scene state into the canvas. Callers
+   * that immediately drawImage the canvas (overlay → 2D ctx blits) MUST
+   * call this after setRotation — otherwise drawImage picks up the
+   * previous frame because the internal RAF hasn't ticked yet. In upload
+   * mode this caused stale geometry to stick until a state change.
+   */
+  renderNow: () => void;
   resize: (w: number, h: number) => void;
   dispose: () => void;
 };
@@ -274,6 +282,10 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
       e.y = -e.y;
       e.z = -e.z;
       pivot.quaternion.setFromEuler(e);
+    },
+    renderNow() {
+      if (disposed) return;
+      renderer.render(scene, camera);
     },
     resize(w: number, h: number) {
       renderer.setSize(w, h, false);
