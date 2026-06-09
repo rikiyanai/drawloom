@@ -6,6 +6,7 @@ import { horizonOverlay } from "./horizon";
 import { edgesOverlay } from "./edges";
 import { proportionOverlay } from "./proportion";
 import { featureLinesOverlay } from "./feature-lines";
+import { meshWireframeOverlay } from "./mesh-wireframe";
 import { skeletonOverlay } from "./skeleton";
 import type { Overlay } from "./types";
 
@@ -14,6 +15,7 @@ export const OVERLAYS: Overlay[] = [
   loomisReillyOverlay,
   loomisOverlay,
   skeletonOverlay,
+  meshWireframeOverlay,
   featureLinesOverlay,
   proportionOverlay,
   horizonOverlay,
