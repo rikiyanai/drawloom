@@ -1,41 +1,45 @@
 import type { Overlay } from "./types";
 import {
   FACE_OVAL,
+  LEFT_EYE,
+  RIGHT_EYE,
+  NOSE_BRIDGE,
+  NOSE_BOTTOM,
   LEFT_EAR,
   RIGHT_EAR,
   CHIN,
   TOP_OF_FOREHEAD,
+  LEFT_PUPIL,
+  RIGHT_PUPIL,
   indicesToPts,
   smoothRingPath,
   type Pt,
 } from "../pose/landmarks";
 
-// Detailed skull underlay: cranium, orbits, zygomatic arches, nasal aperture,
-// maxilla, mandible angle. Anchored to MediaPipe landmarks. Approximate by
-// design — this is a study aid for understanding the form beneath the face,
-// not a medical-grade reconstruction.
+// Detailed skull underlay: cranium, eye orbits, nasal aperture, zygomatic
+// arches, mandible. Anchored to MediaPipe landmarks. Approximate by design —
+// this is a study aid for understanding the form beneath the face, not a
+// medical-grade reconstruction.
+//
+// Strategy: derive each bone region by EXPANDING soft-tissue landmarks outward
+// from a relevant center (orbits expand from eye contour, nasal aperture
+// derived from nose bridge + bottom). Pure index-picking produced misshapen
+// rings; this expansion approach gives reliable bone-like shapes.
 
-// Eye-socket (orbit) ring — expanded outward from eye landmarks since the
-// actual bony orbit is larger than the visible eyelid opening.
-const LEFT_ORBIT = [156, 70, 63, 105, 66, 107, 55, 193, 245, 188, 174, 198, 209, 49, 131];
-const RIGHT_ORBIT = [383, 300, 293, 334, 296, 336, 285, 417, 465, 412, 399, 420, 429, 279, 360];
+function expandRing(pts: Pt[], pivot: Pt, factor: number): Pt[] {
+  return pts.map((p) => ({
+    x: pivot.x + (p.x - pivot.x) * factor,
+    y: pivot.y + (p.y - pivot.y) * factor,
+  }));
+}
 
-// Nasal aperture (pyriform opening) — heart-shaped opening of the skull at the nose
-const NASAL_APERTURE = [193, 245, 188, 174, 217, 198, 209, 49, 131, 134, 51, 5, 281, 363, 360, 279, 429, 420, 399, 412, 465, 417];
+function centroid(pts: Pt[]): Pt {
+  let x = 0, y = 0;
+  for (const p of pts) { x += p.x; y += p.y; }
+  return { x: x / pts.length, y: y / pts.length };
+}
 
-// Zygomatic arch — bony arch from temple area forward to cheekbone
-const ZYGO_ARCH_LEFT = [54, 21, 162, 127, 234, 93, 132, 215, 138, 192, 213, 147, 123, 50];
-const ZYGO_ARCH_RIGHT = [284, 251, 389, 356, 454, 323, 361, 435, 367, 416, 433, 376, 352, 280];
-
-// Mandible (jaw bone) — explicit jaw chain
-const MANDIBLE = [234, 93, 132, 58, 172, 136, 150, 149, 176, 148, 152,
-                  377, 400, 378, 379, 365, 397, 288, 361, 323, 454];
-
-// Mandible ramus + angle — the vertical part of the jaw bone behind the molars
-const MANDIBLE_RAMUS_LEFT = [234, 93, 132, 215];
-const MANDIBLE_RAMUS_RIGHT = [454, 323, 361, 435];
-
-function strokePath(ctx: CanvasRenderingContext2D, pts: Pt[], close: boolean) {
+function strokePoly(ctx: CanvasRenderingContext2D, pts: Pt[], close: boolean) {
   if (pts.length < 2) return;
   ctx.beginPath();
   ctx.moveTo(pts[0].x, pts[0].y);
@@ -44,12 +48,16 @@ function strokePath(ctx: CanvasRenderingContext2D, pts: Pt[], close: boolean) {
   ctx.stroke();
 }
 
+// MANDIBLE — explicit jaw chain from face oval
+const MANDIBLE = [234, 93, 132, 58, 172, 136, 150, 149, 176, 148, 152,
+                  377, 400, 378, 379, 365, 397, 288, 361, 323, 454];
+
 export const skeletonOverlay: Overlay = {
   id: "skeleton",
   name: "Skeleton underlay (skull)",
   category: "anatomy",
   description:
-    "Detailed skull bones beneath the skin: cranium, eye orbits, nasal aperture, zygomatic arch, mandible. Approximated from MediaPipe landmark groups.",
+    "Detailed skull bones beneath the skin: cranium, eye orbits, nasal aperture, zygomatic arches, mandible. Approximated from MediaPipe landmark groups.",
   requiresFace: true,
   params: [
     { key: "cranium", label: "Cranium / face oval", type: "toggle", default: true },
@@ -58,97 +66,160 @@ export const skeletonOverlay: Overlay = {
     { key: "zygo", label: "Zygomatic arch", type: "toggle", default: true },
     { key: "mandible", label: "Mandible", type: "toggle", default: true },
     { key: "fill", label: "Bone tint fill", type: "toggle", default: false },
-    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.8 },
+    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.85 },
   ],
   render({ ctx, pose, params }) {
     if (!pose) return;
     const lms = pose.landmarks;
-    const opacity = (params.opacity as number) ?? 0.8;
+    const opacity = (params.opacity as number) ?? 0.85;
     const fill = (params.fill as boolean) ?? false;
     const top = lms[TOP_OF_FOREHEAD];
     const chin = lms[CHIN];
     const leftEar = lms[LEFT_EAR];
     const rightEar = lms[RIGHT_EAR];
+    const leftPupil = lms[LEFT_PUPIL];
+    const rightPupil = lms[RIGHT_PUPIL];
+
+    const boneStroke = "#fafaf9";
+    const boneFill = "rgba(250, 250, 249, 0.12)";
 
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = 2;
+    ctx.shadowColor = "rgba(0,0,0,0.7)";
+    ctx.shadowBlur = 3;
 
-    const boneStroke = "#fafaf9";
-    const boneFill = "rgba(250, 250, 249, 0.10)";
-
-    // Cranium — face oval upper half emphasized
+    // Cranium — smooth face oval ring
     if ((params.cranium as boolean) ?? true) {
       const pts = indicesToPts(FACE_OVAL, lms);
-      smoothRingPath(ctx, pts);
-      if (fill) {
-        ctx.fillStyle = boneFill;
-        ctx.fill();
+      if (pts.length > 6) {
+        smoothRingPath(ctx, pts);
+        if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
+        ctx.strokeStyle = boneStroke;
+        ctx.lineWidth = 2;
+        ctx.stroke();
       }
-      ctx.strokeStyle = boneStroke;
-      ctx.lineWidth = 2;
-      ctx.stroke();
 
-      // Brow ridge (frontal bone) — across landmark 9 / 10
-      if (top && leftEar && rightEar) {
-        const browY = top.y + (chin ? (chin.y - top.y) * 0.32 : 50);
+      // Brow ridge (frontal bone arch over both eyes)
+      if (top && chin && leftEar && rightEar) {
+        const browY = leftPupil && rightPupil
+          ? (leftPupil.y + rightPupil.y) / 2 - Math.hypot(rightEar.x - leftEar.x, rightEar.y - leftEar.y) * 0.07
+          : top.y + (chin.y - top.y) * 0.3;
         ctx.beginPath();
-        ctx.moveTo(leftEar.x + (top.x - leftEar.x) * 0.2, browY);
-        ctx.quadraticCurveTo(top.x, browY - 6, rightEar.x - (rightEar.x - top.x) * 0.2, browY);
+        ctx.moveTo(leftEar.x + (top.x - leftEar.x) * 0.25, browY);
+        ctx.quadraticCurveTo(top.x, browY - 8, rightEar.x - (rightEar.x - top.x) * 0.25, browY);
         ctx.strokeStyle = boneStroke;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
     }
 
-    // Orbits
+    // Eye orbits — EXPAND the eye contour outward to approximate the bony orbit
     if ((params.orbits as boolean) ?? true) {
-      ctx.strokeStyle = boneStroke;
-      ctx.lineWidth = 1.5;
-      const leftOrbit = indicesToPts(LEFT_ORBIT, lms);
-      const rightOrbit = indicesToPts(RIGHT_ORBIT, lms);
-      if (leftOrbit.length > 4) {
-        smoothRingPath(ctx, leftOrbit);
+      const leftEye = indicesToPts(LEFT_EYE, lms);
+      const rightEye = indicesToPts(RIGHT_EYE, lms);
+      if (leftEye.length > 4) {
+        const c = centroid(leftEye);
+        const orbit = expandRing(leftEye, c, 1.65);
+        smoothRingPath(ctx, orbit);
         if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
+        ctx.strokeStyle = boneStroke;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
-      if (rightOrbit.length > 4) {
-        smoothRingPath(ctx, rightOrbit);
+      if (rightEye.length > 4) {
+        const c = centroid(rightEye);
+        const orbit = expandRing(rightEye, c, 1.65);
+        smoothRingPath(ctx, orbit);
         if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
+        ctx.strokeStyle = boneStroke;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
       }
     }
 
-    // Nasal aperture
+    // Nasal aperture — pyriform opening. Derive from nose bridge + nose bottom,
+    // expanded sideways and slightly down. Heart-shape opening.
     if ((params.nasal as boolean) ?? true) {
-      const pts = indicesToPts(NASAL_APERTURE, lms);
-      if (pts.length > 5) {
-        smoothRingPath(ctx, pts);
+      const bridge = indicesToPts(NOSE_BRIDGE, lms);
+      const bottom = indicesToPts(NOSE_BOTTOM, lms);
+      if (bridge.length > 2 && bottom.length > 4) {
+        const apex = bridge[0]; // landmark 168 — top of nose bridge
+        const c = centroid([...bridge, ...bottom]);
+        // Build aperture ring: top apex, expand bottom landmarks outward
+        const widened = expandRing(bottom, c, 1.25);
+        const ring: Pt[] = [
+          apex,
+          ...widened.slice(0, Math.floor(widened.length / 2)),
+          widened[Math.floor(widened.length / 2)],
+          ...widened.slice(Math.floor(widened.length / 2)).reverse(),
+        ];
+        smoothRingPath(ctx, widened);
         if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
         ctx.strokeStyle = boneStroke;
         ctx.lineWidth = 1.3;
         ctx.stroke();
+        // V-shaped opening from apex
+        ctx.beginPath();
+        ctx.moveTo(widened[0].x, widened[0].y);
+        ctx.lineTo(apex.x, apex.y);
+        ctx.lineTo(widened[widened.length - 1].x, widened[widened.length - 1].y);
+        ctx.stroke();
+        void ring;
       }
     }
 
-    // Zygomatic arches (cheekbones)
-    if ((params.zygo as boolean) ?? true) {
+    // Zygomatic arch — explicit arc from temple to cheekbone on each side
+    if (((params.zygo as boolean) ?? true) && top && leftEar && rightEar) {
+      // Anchors: ear top (temple) and a cheekbone point under the eye
+      // Use landmark 50/280 area for cheekbone, fall back to interpolation
+      const leftCheekBone = lms[50] ?? lms[123] ?? { x: (leftEar.x + (top?.x ?? 0)) / 2, y: leftEar.y };
+      const rightCheekBone = lms[280] ?? lms[352] ?? { x: (rightEar.x + (top?.x ?? 0)) / 2, y: rightEar.y };
       ctx.strokeStyle = boneStroke;
-      ctx.lineWidth = 1.4;
-      strokePath(ctx, indicesToPts(ZYGO_ARCH_LEFT, lms), false);
-      strokePath(ctx, indicesToPts(ZYGO_ARCH_RIGHT, lms), false);
+      ctx.lineWidth = 1.6;
+      // Left arch: sweep up and forward from ear to cheekbone
+      ctx.beginPath();
+      ctx.moveTo(leftEar.x, leftEar.y - 6);
+      ctx.quadraticCurveTo(
+        (leftEar.x + leftCheekBone.x) / 2,
+        Math.min(leftEar.y, leftCheekBone.y) - 14,
+        leftCheekBone.x,
+        leftCheekBone.y
+      );
+      ctx.stroke();
+      // Right arch
+      ctx.beginPath();
+      ctx.moveTo(rightEar.x, rightEar.y - 6);
+      ctx.quadraticCurveTo(
+        (rightEar.x + rightCheekBone.x) / 2,
+        Math.min(rightEar.y, rightCheekBone.y) - 14,
+        rightCheekBone.x,
+        rightCheekBone.y
+      );
+      ctx.stroke();
     }
 
-    // Mandible — jaw bone with ramus emphasis at the angle
+    // Mandible (jaw bone) — explicit jaw chain + ramus segments going up to the ear
     if ((params.mandible as boolean) ?? true) {
+      const jawPts = indicesToPts(MANDIBLE, lms);
       ctx.strokeStyle = boneStroke;
       ctx.lineWidth = 1.8;
-      strokePath(ctx, indicesToPts(MANDIBLE, lms), false);
-      ctx.lineWidth = 1.4;
-      strokePath(ctx, indicesToPts(MANDIBLE_RAMUS_LEFT, lms), false);
-      strokePath(ctx, indicesToPts(MANDIBLE_RAMUS_RIGHT, lms), false);
+      strokePoly(ctx, jawPts, false);
+
+      // Ramus — vertical segment from jaw angle up to ear on each side
+      if (leftEar && rightEar && jawPts.length > 4) {
+        const leftAngle = jawPts[2]; // approx jaw angle on left side
+        const rightAngle = jawPts[jawPts.length - 3]; // jaw angle on right side
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(leftEar.x, leftEar.y);
+        ctx.lineTo(leftAngle.x, leftAngle.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(rightEar.x, rightEar.y);
+        ctx.lineTo(rightAngle.x, rightAngle.y);
+        ctx.stroke();
+      }
     }
 
     ctx.restore();
