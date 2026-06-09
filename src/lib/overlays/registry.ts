@@ -1,4 +1,5 @@
 import { loomisOverlay } from "./loomis";
+import { ovoidOverlay } from "./ovoid";
 import { notanOverlay } from "./notan";
 import { horizonOverlay } from "./horizon";
 import { edgesOverlay } from "./edges";
@@ -7,6 +8,7 @@ import { anatomyOverlay } from "./anatomy";
 import type { Overlay } from "./types";
 
 export const OVERLAYS: Overlay[] = [
+  ovoidOverlay,
   loomisOverlay,
   anatomyOverlay,
   proportionOverlay,
