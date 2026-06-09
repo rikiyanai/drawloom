@@ -13,6 +13,7 @@ import {
   RIGHT_PUPIL,
   indicesToPts,
   smoothRingPath,
+  drawJawLine,
   type Pt,
 } from "../pose/landmarks";
 
@@ -217,28 +218,16 @@ export const skeletonOverlay: Overlay = {
       ctx.stroke();
     }
 
-    // Mandible (jaw bone) — explicit jaw chain + ramus segments going up to the ear
+    // Mandible (jaw bone) — single smooth bezier sweep from ear to ear via
+    // the chin, using the shared drawJawLine helper. Dropped the previous
+    // ear->jaw-angle ramus segments since they read as random straight
+    // lines crossing the cheek rather than anatomical structure.
     if ((params.mandible as boolean) ?? true) {
-      const jawPts = indicesToPts(MANDIBLE, lms);
       ctx.strokeStyle = boneStroke;
       ctx.lineWidth = 1.8;
-      strokePoly(ctx, jawPts, false);
-
-      // Ramus — vertical segment from jaw angle up to ear on each side
-      if (leftEar && rightEar && jawPts.length > 4) {
-        const leftAngle = jawPts[2]; // approx jaw angle on left side
-        const rightAngle = jawPts[jawPts.length - 3]; // jaw angle on right side
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.moveTo(leftEar.x, leftEar.y);
-        ctx.lineTo(leftAngle.x, leftAngle.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(rightEar.x, rightEar.y);
-        ctx.lineTo(rightAngle.x, rightAngle.y);
-        ctx.stroke();
-      }
+      drawJawLine(ctx, lms);
     }
+    void MANDIBLE; // legacy chain kept for reference but no longer rendered
 
     ctx.restore();
   },

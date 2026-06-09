@@ -75,3 +75,29 @@ export function indicesToPts(idxs: number[], lms: Pt[]): Pt[] {
   }
   return out;
 }
+
+/**
+ * Draw a smooth jaw silhouette as a single quadratic-bezier chain from
+ * left ear -> down the left jaw -> chin -> up the right jaw -> right ear.
+ * Uses the FACE_OVAL lower-half indices but renders them as a continuous
+ * smoothed curve rather than a jagged polyline.
+ */
+const JAW_LINE_INDICES = [
+  234, 93, 132, 58, 172, 136, 150, 149, 176, 148, 152,
+  377, 400, 378, 379, 365, 397, 288, 361, 323, 454,
+];
+
+export function drawJawLine(ctx: CanvasRenderingContext2D, lms: Pt[]): void {
+  const pts = indicesToPts(JAW_LINE_INDICES, lms);
+  if (pts.length < 3) return;
+  const mid = (a: Pt, b: Pt) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const m = mid(pts[i], pts[i + 1]);
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, m.x, m.y);
+  }
+  const last = pts[pts.length - 1];
+  ctx.lineTo(last.x, last.y);
+  ctx.stroke();
+}

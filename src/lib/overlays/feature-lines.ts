@@ -14,6 +14,7 @@ import {
   TOP_OF_FOREHEAD,
   NOSE_TIP,
   indicesToPts,
+  drawJawLine,
   type Pt,
 } from "../pose/landmarks";
 
@@ -91,6 +92,7 @@ export const featureLinesOverlay: Overlay = {
     { key: "noseGull", label: "Nose underside gullwing", type: "toggle", default: true },
     { key: "cupidBow", label: "Cupid's bow gullwing", type: "toggle", default: true },
     { key: "lipLine", label: "Lip line (mouth opening)", type: "toggle", default: true },
+    { key: "jawLine", label: "Jaw line (ear → chin → ear)", type: "toggle", default: false },
     { key: "mouthVerts", label: "Mouth corner verticals", type: "toggle", default: false },
     { key: "browHoriz", label: "Brow horizontal", type: "toggle", default: false },
     { key: "pupilHoriz", label: "Pupil horizontal", type: "toggle", default: false },
@@ -201,6 +203,12 @@ export const featureLinesOverlay: Overlay = {
 
     if ((params.noseGull as boolean) ?? true) {
       smoothOpenCurve(ctx, indicesToPts(NOSE_GULLWING, lms));
+    }
+
+    if ((params.jawLine as boolean) ?? false) {
+      ctx.strokeStyle = sliverColor;
+      ctx.lineWidth = lineWidth + 0.4;
+      drawJawLine(ctx, lms);
     }
 
     if (((params.lipLine as boolean) ?? true) && lips.length > 8) {
