@@ -5,7 +5,7 @@ import { notanOverlay } from "./notan";
 import { horizonOverlay } from "./horizon";
 import { edgesOverlay } from "./edges";
 import { proportionOverlay } from "./proportion";
-import { anatomyOverlay } from "./anatomy";
+import { featureLinesOverlay } from "./feature-lines";
 import { skeletonOverlay } from "./skeleton";
 import type { Overlay } from "./types";
 
@@ -14,7 +14,7 @@ export const OVERLAYS: Overlay[] = [
   loomisReillyOverlay,
   loomisOverlay,
   skeletonOverlay,
-  anatomyOverlay,
+  featureLinesOverlay,
   proportionOverlay,
   horizonOverlay,
   notanOverlay,

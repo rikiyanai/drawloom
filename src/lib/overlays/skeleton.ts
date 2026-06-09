@@ -65,8 +65,9 @@ export const skeletonOverlay: Overlay = {
     { key: "nasal", label: "Nasal aperture", type: "toggle", default: true },
     { key: "zygo", label: "Zygomatic arch", type: "toggle", default: true },
     { key: "mandible", label: "Mandible", type: "toggle", default: true },
+    { key: "darkSockets", label: "Dark orbit sockets", type: "toggle", default: true },
     { key: "fill", label: "Bone tint fill", type: "toggle", default: false },
-    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.85 },
+    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.55 },
   ],
   render({ ctx, pose, params }) {
     if (!pose) return;
@@ -114,58 +115,75 @@ export const skeletonOverlay: Overlay = {
       }
     }
 
-    // Eye orbits — EXPAND the eye contour outward to approximate the bony orbit
+    // Eye orbits — expand eye contour outward; orbits are MUCH larger than
+    // the visible eyelid opening (especially vertically, going above the brow).
     if ((params.orbits as boolean) ?? true) {
       const leftEye = indicesToPts(LEFT_EYE, lms);
       const rightEye = indicesToPts(RIGHT_EYE, lms);
-      if (leftEye.length > 4) {
-        const c = centroid(leftEye);
-        const orbit = expandRing(leftEye, c, 1.65);
+      const dark = (params.darkSockets as boolean) ?? true;
+      for (const eyePts of [leftEye, rightEye]) {
+        if (eyePts.length <= 4) continue;
+        const c = centroid(eyePts);
+        // Asymmetric expansion: more vertical than horizontal so the orbit reads
+        // as a bony socket (taller than the lid opening).
+        const orbit = eyePts.map((p) => ({
+          x: c.x + (p.x - c.x) * 1.75,
+          y: c.y + (p.y - c.y) * 2.1,
+        }));
         smoothRingPath(ctx, orbit);
-        if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
+        if (dark) {
+          // Dark shadow inside the socket — simulates the recessed cavity
+          ctx.fillStyle = "rgba(0,0,0,0.45)";
+          ctx.fill();
+        } else if (fill) {
+          ctx.fillStyle = boneFill;
+          ctx.fill();
+        }
         ctx.strokeStyle = boneStroke;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-      if (rightEye.length > 4) {
-        const c = centroid(rightEye);
-        const orbit = expandRing(rightEye, c, 1.65);
-        smoothRingPath(ctx, orbit);
-        if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
-        ctx.strokeStyle = boneStroke;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
       }
     }
 
-    // Nasal aperture — pyriform opening. Derive from nose bridge + nose bottom,
-    // expanded sideways and slightly down. Heart-shape opening.
+    // Nasal aperture — triangular/heart-shaped pyriform opening of the skull.
+    // Apex at upper bridge, two nostril-edge anchors at bottom, slight dip in middle.
     if ((params.nasal as boolean) ?? true) {
       const bridge = indicesToPts(NOSE_BRIDGE, lms);
       const bottom = indicesToPts(NOSE_BOTTOM, lms);
-      if (bridge.length > 2 && bottom.length > 4) {
-        const apex = bridge[0]; // landmark 168 — top of nose bridge
-        const c = centroid([...bridge, ...bottom]);
-        // Build aperture ring: top apex, expand bottom landmarks outward
-        const widened = expandRing(bottom, c, 1.25);
-        const ring: Pt[] = [
-          apex,
-          ...widened.slice(0, Math.floor(widened.length / 2)),
-          widened[Math.floor(widened.length / 2)],
-          ...widened.slice(Math.floor(widened.length / 2)).reverse(),
-        ];
-        smoothRingPath(ctx, widened);
-        if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
-        ctx.strokeStyle = boneStroke;
-        ctx.lineWidth = 1.3;
-        ctx.stroke();
-        // V-shaped opening from apex
+      const leftNostril = lms[219] ?? bottom[0];
+      const rightNostril = lms[439] ?? bottom[bottom.length - 1];
+      const noseSeptumLow = lms[2]; // base of nose between nostrils
+      if (bridge.length > 1 && leftNostril && rightNostril && noseSeptumLow) {
+        const apex = bridge[1] ?? bridge[0]; // a bit below the very top for a real aperture
         ctx.beginPath();
-        ctx.moveTo(widened[0].x, widened[0].y);
-        ctx.lineTo(apex.x, apex.y);
-        ctx.lineTo(widened[widened.length - 1].x, widened[widened.length - 1].y);
+        ctx.moveTo(apex.x, apex.y);
+        // Down to left nostril edge
+        ctx.quadraticCurveTo(
+          apex.x - (apex.x - leftNostril.x) * 0.3,
+          (apex.y + leftNostril.y) / 2,
+          leftNostril.x,
+          leftNostril.y
+        );
+        // Bottom dip across the septum
+        ctx.quadraticCurveTo(
+          noseSeptumLow.x,
+          noseSeptumLow.y + 4,
+          rightNostril.x,
+          rightNostril.y
+        );
+        // Up to apex
+        ctx.quadraticCurveTo(
+          apex.x + (rightNostril.x - apex.x) * 0.3,
+          (apex.y + rightNostril.y) / 2,
+          apex.x,
+          apex.y
+        );
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = boneFill; ctx.fill(); }
+        else { ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.fill(); }
+        ctx.strokeStyle = boneStroke;
+        ctx.lineWidth = 1.4;
         ctx.stroke();
-        void ring;
       }
     }
 

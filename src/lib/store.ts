@@ -29,9 +29,9 @@ type StudioState = {
 
 const initialOverlays: Record<string, OverlayState> = {};
 for (const o of OVERLAYS) {
-  // Defaults: ovoid + anatomy on so user sees something immediately when face is detected
+  // Defaults: ovoid + feature-lines on so user sees something useful immediately
   initialOverlays[o.id] = {
-    enabled: o.id === "ovoid" || o.id === "anatomy",
+    enabled: o.id === "ovoid" || o.id === "feature-lines",
     params: defaultParams(o),
   };
 }
