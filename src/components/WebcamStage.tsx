@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useStudio, type ViewFilters } from "@/lib/store";
 import { detectPoseForVideo, warmupVideo, type PoseResult } from "@/lib/pose/detect";
 import { segmentVideo, warmupSegmenter } from "@/lib/pose/segmenter";
+import { detectBodyForVideo, warmupBody, type BodyPoseResult } from "@/lib/pose/body";
 import { OVERLAYS } from "@/lib/overlays/registry";
 
 const MAX_W = 1100;
@@ -21,11 +22,19 @@ export function WebcamStage() {
   const [running, setRunning] = useState(false);
   const overlays = useStudio((s) => s.overlays);
   const setPose = useStudio((s) => s.setPose);
+  const setBodyPose = useStudio((s) => s.setBodyPose);
   const viewFilters = useStudio((s) => s.viewFilters);
   const overlaysRef = useRef(overlays);
   overlaysRef.current = overlays;
   const filtersRef = useRef<ViewFilters>(viewFilters);
   filtersRef.current = viewFilters;
+  // Body PoseLandmarker: lazy-warmup the first time bodyPose flips on.
+  const bodyWarmedRef = useRef(false);
+  // Last body-detect timestamp + last body-store push (mirrors face throttling).
+  const lastBodyTimestampRef = useRef<number>(-1);
+  const lastBodyStorePushRef = useRef<number>(0);
+  const lastBodyTruthyRef = useRef<boolean>(false);
+  const bodyRef = useRef<BodyPoseResult>(null);
   // Offscreen scratch canvases for blur + mask compositing — avoid re-allocating per frame.
   const blurCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -234,6 +243,44 @@ export function WebcamStage() {
           .catch((e) => console.warn("detect failed", e));
       }
 
+      // Body PoseLandmarker — optional, only when bodyPose toggle is on.
+      if (filters.bodyPose) {
+        if (!bodyWarmedRef.current) {
+          bodyWarmedRef.current = true;
+          warmupBody().catch(() => {});
+        }
+        // PoseLandmarker requires strictly-monotonic timestamps per running mode;
+        // we keep our own marker so a face-detect re-use of `ts` doesn't collide.
+        if (ts !== lastBodyTimestampRef.current) {
+          lastBodyTimestampRef.current = ts;
+          detectBodyForVideo(video, ts)
+            .then((body) => {
+              if (!body) {
+                bodyRef.current = null;
+                return;
+              }
+              const sx = w / vw;
+              const sy = h / vh;
+              const mirrored: BodyPoseResult = {
+                ...body,
+                landmarks: body.landmarks.map((p) => ({
+                  x: (vw - p.x) * sx,
+                  y: p.y * sy,
+                  z: p.z * sx,
+                  visibility: p.visibility,
+                })),
+                imageWidth: w,
+                imageHeight: h,
+              };
+              bodyRef.current = mirrored;
+            })
+            .catch((e) => console.warn("body detect failed", e));
+        }
+      } else if (bodyRef.current) {
+        // Toggle just turned off — drop the cached body pose.
+        bodyRef.current = null;
+      }
+
       // Render overlays using the most recent pose
       const pose = poseRef.current;
       for (const overlay of OVERLAYS) {
@@ -245,6 +292,7 @@ export function WebcamStage() {
             ctx,
             image: canvas as unknown as HTMLImageElement,
             pose,
+            bodyPose: bodyRef.current,
             width: w,
             height: h,
             params: state.params,
@@ -264,6 +312,17 @@ export function WebcamStage() {
         lastStorePushRef.current = now;
         lastPoseTruthyRef.current = isTruthy;
         setPose(pose);
+      }
+
+      // Mirror the same throttle/transition logic for body pose.
+      const body = bodyRef.current;
+      const bodyTruthy = !!body;
+      const bodyTransitioned = lastBodyTruthyRef.current !== bodyTruthy;
+      const bodyDue = now - lastBodyStorePushRef.current > 250;
+      if (bodyTransitioned || bodyDue) {
+        lastBodyStorePushRef.current = now;
+        lastBodyTruthyRef.current = bodyTruthy;
+        setBodyPose(body);
       }
 
       rafRef.current = requestAnimationFrame(loop);

@@ -62,6 +62,19 @@ export function OverlayPanel() {
             />
           </div>
         )}
+        <label className="flex items-center justify-between text-sm cursor-pointer">
+          <span>
+            Body pose <span className="text-zinc-500 text-xs">(adds sternal-notch line, ~5MB model)</span>
+            {mode === "upload" && <span className="text-zinc-500 text-xs"> · webcam only</span>}
+          </span>
+          <input
+            type="checkbox"
+            disabled={mode === "upload"}
+            checked={viewFilters.bodyPose}
+            onChange={(e) => setViewFilter("bodyPose", e.target.checked)}
+            className="h-4 w-4 accent-cyan-500"
+          />
+        </label>
       </div>
       {OVERLAYS.map((o) => {
         const state = overlays[o.id];

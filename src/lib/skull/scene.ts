@@ -1,13 +1,17 @@
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// Procedural skull built from three.js primitives. Recognizable as a skull
-// while we wait on a real CC-BY GLB asset; once that lands we swap loadGLB()
-// in for createProceduralSkull(). Same external API.
+// Skull is loaded via the following priority:
+//   1. /skull.glb in public/ (drop a CC-BY/CC0 mesh there and it auto-uses).
+//   2. window.__DRAWLOOM_SKULL_URL if set (lets the host page point us at any
+//      hosted GLB without code changes).
+//   3. Procedural fallback built from three.js primitives.
 //
-// Cranium = squashed sphere, eye sockets = recessed dark spheres, nasal
-// aperture = small triangular hole, mandible + jaw angle = boxes, cheekbones
-// = side spheres. Lit with a key light from upper-front-left + dim fill so
-// the form reads as 3D and the recessed features cast dark accents.
+// The procedural fallback stays recognizable as a skull (cranium sphere,
+// recessed dark socket spheres, cone nasal aperture, maxilla/mandible boxes,
+// cheekbone & jaw-angle masses). Lit with a key light from upper-front-left
+// plus dim fill so the form reads as 3D and recessed features cast dark
+// accents.
 
 function createProceduralSkull(): THREE.Group {
   const group = new THREE.Group();
@@ -104,6 +108,55 @@ function createProceduralSkull(): THREE.Group {
   return group;
 }
 
+/**
+ * Center + scale a loaded GLB so it occupies roughly the same view-volume the
+ * procedural skull does (longest dimension ~= 2.0 units, centered on origin).
+ */
+function normalizeSkullMesh(obj: THREE.Object3D): THREE.Group {
+  const group = new THREE.Group();
+  group.add(obj);
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  const longest = Math.max(size.x, size.y, size.z) || 1;
+  const scale = 2.0 / longest;
+  obj.position.sub(center).multiplyScalar(scale);
+  obj.scale.setScalar(scale);
+  return group;
+}
+
+async function loadSkullGLB(url: string): Promise<THREE.Group | null> {
+  // Cheap probe before bringing in the GLTFLoader — avoids noisy 404s in the
+  // console if the user hasn't dropped a skull.glb in public/.
+  try {
+    const probe = await fetch(url, { method: "HEAD", cache: "no-store" });
+    if (!probe.ok) return null;
+  } catch {
+    return null;
+  }
+  const loader = new GLTFLoader();
+  return new Promise((resolve) => {
+    loader.load(
+      url,
+      (gltf) => {
+        try {
+          resolve(normalizeSkullMesh(gltf.scene));
+        } catch (e) {
+          console.warn("[skull] failed to normalize loaded GLB", e);
+          resolve(null);
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn("[skull] GLTFLoader rejected", url, err);
+        resolve(null);
+      }
+    );
+  });
+}
+
 export type SkullScene = {
   setRotation: (matrix: number[]) => void;
   resize: (w: number, h: number) => void;
@@ -131,17 +184,44 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
   rim.position.set(0, 1, -3);
   scene.add(rim);
 
-  const skull = createProceduralSkull();
-  scene.add(skull);
-
   // Pivot group so we can apply the MediaPipe matrix directly to it without
-  // disturbing the skull's local offset.
+  // disturbing the skull's local offset. Start with the procedural skull and
+  // hot-swap if a GLB asset becomes available.
   const pivot = new THREE.Group();
-  scene.remove(skull);
-  pivot.add(skull);
+  let current: THREE.Group = createProceduralSkull();
+  pivot.add(current);
   scene.add(pivot);
 
   let disposed = false;
+
+  // Try the GLB sources in priority order. If none load, the procedural skull
+  // stays in place — no user-visible failure.
+  (async () => {
+    const candidates = [
+      "/skull.glb",
+      ...(typeof window !== "undefined" && (window as unknown as { __DRAWLOOM_SKULL_URL?: string }).__DRAWLOOM_SKULL_URL
+        ? [(window as unknown as { __DRAWLOOM_SKULL_URL?: string }).__DRAWLOOM_SKULL_URL as string]
+        : []),
+    ];
+    for (const url of candidates) {
+      const loaded = await loadSkullGLB(url);
+      if (disposed) return;
+      if (loaded) {
+        pivot.remove(current);
+        current.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.geometry?.dispose();
+            const mat = node.material;
+            if (Array.isArray(mat)) mat.forEach((m) => m.dispose?.());
+            else mat?.dispose?.();
+          }
+        });
+        current = loaded;
+        pivot.add(current);
+        return;
+      }
+    }
+  })().catch((e) => console.warn("[skull] GLB swap pipeline error", e));
 
   function render() {
     if (disposed) return;

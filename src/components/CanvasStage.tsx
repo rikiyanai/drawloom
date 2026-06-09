@@ -41,7 +41,7 @@ export function CanvasStage() {
       if (!state?.enabled) continue;
       if (overlay.requiresFace && !scaledPose) continue;
       try {
-        overlay.render({ ctx, image, pose: scaledPose, width: w, height: h, params: state.params });
+        overlay.render({ ctx, image, pose: scaledPose, bodyPose: null, width: w, height: h, params: state.params });
       } catch (e) {
         console.warn(`overlay ${overlay.id} failed`, e);
       }

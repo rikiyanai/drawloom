@@ -27,8 +27,10 @@ import {
 //      the lower-face mass.
 //
 // Optional proportion-label horizontals (top / hair / brow / eye / nose /
-// chin) match the labelled stack on the Khang Ta sheet. Sternal notch is
-// omitted — needs body pose, not face landmarks.
+// chin / sternal notch) match the labelled stack on the Khang Ta sheet.
+// Sternal-notch line only appears when the user has enabled body pose
+// (MediaPipe Pose Landmarker) and shoulders are visible — it draws at the
+// midpoint between the left/right shoulder landmarks.
 
 function lerp(a: Pt, b: Pt, t: number): Pt {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
@@ -64,7 +66,7 @@ export const loomisReillyOverlay: Overlay = {
     { key: "propLabels", label: "Proportion labels", type: "toggle", default: false },
     { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.8 },
   ],
-  render({ ctx, pose, params }) {
+  render({ ctx, pose, bodyPose, params }) {
     if (!pose) return;
     const lms = pose.landmarks;
     const top = lms[TOP_OF_FOREHEAD];
@@ -163,6 +165,29 @@ export const loomisReillyOverlay: Overlay = {
       labelLine(ctx, eyeY, xL, xR, "eye");
       labelLine(ctx, noseBaseY, xL, xR, "nose");
       labelLine(ctx, chin.y, xL, xR, "chin");
+
+      // Sternal-notch line — only when MediaPipe Pose Landmarker is active
+      // and both shoulders are reasonably visible (visibility >= 0.5).
+      if (bodyPose && bodyPose.landmarks.length >= 13) {
+        const lShoulder = bodyPose.landmarks[11];
+        const rShoulder = bodyPose.landmarks[12];
+        if (lShoulder && rShoulder && lShoulder.visibility >= 0.5 && rShoulder.visibility >= 0.5) {
+          // Sternal notch sits just above the shoulder midpoint, ~10% of
+          // shoulder-width upward (toward the throat).
+          const sCx = (lShoulder.x + rShoulder.x) / 2;
+          const sCy = (lShoulder.y + rShoulder.y) / 2;
+          const shoulderWidth = Math.hypot(rShoulder.x - lShoulder.x, rShoulder.y - lShoulder.y);
+          const notchY = sCy - shoulderWidth * 0.1;
+          // Only draw if the notch is actually below the chin — otherwise
+          // the body model has picked up the head and would draw garbage.
+          if (notchY > chin.y) {
+            const sxL = Math.min(lShoulder.x, rShoulder.x) - 10;
+            const sxR = Math.max(lShoulder.x, rShoulder.x) + 10;
+            labelLine(ctx, notchY, sxL, sxR, "sternal notch");
+          }
+        }
+      }
+
       ctx.setLineDash([]);
     }
 

@@ -1,9 +1,11 @@
 import type { PoseResult } from "../pose/detect";
+import type { BodyPoseResult } from "../pose/body";
 
 export type OverlayContext = {
   ctx: CanvasRenderingContext2D;
   image: HTMLImageElement;
   pose: PoseResult;
+  bodyPose?: BodyPoseResult;
   width: number;
   height: number;
   params: Record<string, number | boolean>;

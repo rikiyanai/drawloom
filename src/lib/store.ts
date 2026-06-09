@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import type { PoseResult } from "./pose/detect";
+import type { BodyPoseResult } from "./pose/body";
 import { OVERLAYS, defaultParams } from "./overlays/registry";
 
 type OverlayState = {
@@ -15,6 +16,7 @@ export type ViewFilters = {
   grayscale: boolean;
   bgBlur: boolean;
   bgBlurAmount: number; // px
+  bodyPose: boolean; // enable MediaPipe Pose Landmarker (~5MB extra)
 };
 
 type StudioState = {
@@ -23,6 +25,7 @@ type StudioState = {
   image: HTMLImageElement | null;
   imageUrl: string | null;
   pose: PoseResult;
+  bodyPose: BodyPoseResult;
   status: "idle" | "loading" | "detecting" | "ready" | "no-face" | "error";
   errorMsg: string | null;
   overlays: Record<string, OverlayState>;
@@ -32,6 +35,7 @@ type StudioState = {
   setImage: (img: HTMLImageElement, url: string) => void;
   setStatus: (s: StudioState["status"], msg?: string) => void;
   setPose: (p: PoseResult) => void;
+  setBodyPose: (p: BodyPoseResult) => void;
   toggleOverlay: (id: string) => void;
   setOverlayParam: (id: string, key: string, value: number | boolean) => void;
   setViewFilter: <K extends keyof ViewFilters>(key: K, value: ViewFilters[K]) => void;
@@ -47,7 +51,7 @@ for (const o of OVERLAYS) {
   };
 }
 
-const initialViewFilters: ViewFilters = { grayscale: false, bgBlur: false, bgBlurAmount: 18 };
+const initialViewFilters: ViewFilters = { grayscale: false, bgBlur: false, bgBlurAmount: 18, bodyPose: false };
 
 export const useStudio = create<StudioState>((set) => ({
   mode: "upload",
@@ -55,6 +59,7 @@ export const useStudio = create<StudioState>((set) => ({
   image: null,
   imageUrl: null,
   pose: null,
+  bodyPose: null,
   status: "idle",
   errorMsg: null,
   overlays: initialOverlays,
@@ -62,12 +67,13 @@ export const useStudio = create<StudioState>((set) => ({
   setMode: (mode) =>
     set((s) => {
       if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
-      return { mode, image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null };
+      return { mode, image: null, imageUrl: null, pose: null, bodyPose: null, status: "idle", errorMsg: null };
     }),
   setLayout: (layout) => set({ layout }),
-  setImage: (img, url) => set({ image: img, imageUrl: url, pose: null, status: "detecting", errorMsg: null }),
+  setImage: (img, url) => set({ image: img, imageUrl: url, pose: null, bodyPose: null, status: "detecting", errorMsg: null }),
   setStatus: (status, msg) => set({ status, errorMsg: msg ?? null }),
   setPose: (pose) => set({ pose, status: pose ? "ready" : "no-face" }),
+  setBodyPose: (bodyPose) => set({ bodyPose }),
   toggleOverlay: (id) =>
     set((s) => ({ overlays: { ...s.overlays, [id]: { ...s.overlays[id], enabled: !s.overlays[id].enabled } } })),
   setOverlayParam: (id, key, value) =>
@@ -86,6 +92,7 @@ export const useStudio = create<StudioState>((set) => ({
         image: null,
         imageUrl: null,
         pose: null,
+        bodyPose: null,
         status: "idle",
         errorMsg: null,
         overlays: initialOverlays,
