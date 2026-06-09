@@ -13,6 +13,8 @@ export function WebcamStage() {
   const rafRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number>(-1);
   const poseRef = useRef<PoseResult>(null);
+  const lastStorePushRef = useRef<number>(0);
+  const lastPoseTruthyRef = useRef<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const overlays = useStudio((s) => s.overlays);
@@ -139,11 +141,19 @@ export function WebcamStage() {
         }
       }
 
-      // Push pose into the store occasionally so the angles HUD updates
-      if (pose && Math.floor(ts / 250) !== Math.floor(lastTimestampRef.current / 250)) {
+      // Push pose into the store so the toggle panel un-disables face-required
+      // overlays and the yaw/pitch/roll HUD updates. Throttle to 4x/sec to
+      // avoid hammering React, but always push the FIRST detection immediately
+      // and always push on truthy<->falsy transitions so disabled state flips.
+      const now = performance.now();
+      const wasTruthy = lastPoseTruthyRef.current;
+      const isTruthy = !!pose;
+      const transitioned = wasTruthy !== isTruthy;
+      const dueForUpdate = now - lastStorePushRef.current > 250;
+      if (transitioned || dueForUpdate) {
+        lastStorePushRef.current = now;
+        lastPoseTruthyRef.current = isTruthy;
         setPose(pose);
-      } else if (!pose) {
-        // ensure store reflects no-face occasionally
       }
 
       rafRef.current = requestAnimationFrame(loop);
