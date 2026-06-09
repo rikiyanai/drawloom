@@ -1,192 +1,73 @@
 import type { Overlay } from "./types";
-import {
-  TOP_OF_FOREHEAD,
-  CHIN,
-  LEFT_EAR,
-  RIGHT_EAR,
-  LEFT_PUPIL,
-  RIGHT_PUPIL,
-  NOSE_TIP,
-} from "../pose/landmarks";
+import { getOffscreenLoomis, ensureLoomisSize } from "../loomis/offscreen";
 
-// Loomis head construction.
+// Projected 3D Loomis construction.
 //
-// Classical Loomis: a sphere for the cranium, with side-plane cuts where the
-// temples are flattened, and a jaw block extending downward from the brow
-// line to the chin. Rotated by the detected yaw / pitch / roll.
-//
-// We anchor every dimension to actual landmarks (ear-to-ear distance for the
-// sphere, forehead-to-chin for vertical extent, brow line for the great-circle)
-// rather than the rough bbox so the construction lines stay glued to the face
-// at any angle.
+// Replaces the prior 2D ellipse approximation entirely. The renderer in
+// src/lib/loomis/scene.ts holds real 3D primitives (sphere silhouette,
+// median + brow + eye great-circles, two side-plane disks at the correct
+// cut-plane offset, jaw quad, neck) which are rotated by MediaPipe's
+// head pose matrix and projected through a perspective camera. We then
+// blit the offscreen canvas into the 2D overlay context at the face bbox.
+
+// 0x22d3ee = cyan-400 (Tailwind), default ink color.
+const COLOR_PRESETS: Record<string, number> = {
+  cyan: 0x22d3ee,
+  white: 0xffffff,
+  black: 0x111111,
+  amber: 0xfbbf24,
+};
+
 export const loomisOverlay: Overlay = {
   id: "loomis",
   name: "Loomis head",
   category: "construction",
-  description: "Cranium sphere + side-plane cut + brow great-circle + jaw block, rotated by the detected head angle.",
+  description:
+    "Projected 3D Loomis construction: cranium silhouette, two temporal side-plane disks at the cut plane (not the silhouette), median + brow + eye great-circles, jaw block, neck. Rotates with detected head pose.",
   requiresFace: true,
   params: [
-    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.85 },
-    { key: "lineWidth", label: "Line width", type: "slider", min: 1, max: 5, step: 0.5, default: 2 },
-    { key: "showJaw", label: "Jaw block", type: "toggle", default: true },
+    { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.9 },
     { key: "showBrow", label: "Brow great-circle", type: "toggle", default: true },
-    { key: "showSideCut", label: "Side-plane cut", type: "toggle", default: true },
-    { key: "showCenterline", label: "Centerline", type: "toggle", default: true },
+    { key: "showEye", label: "Eye great-circle", type: "toggle", default: true },
+    { key: "showMedian", label: "Median great-circle", type: "toggle", default: true },
+    { key: "showSide", label: "Side-plane disks", type: "toggle", default: true },
+    { key: "showJaw", label: "Jaw block", type: "toggle", default: true },
+    { key: "showNeck", label: "Neck", type: "toggle", default: false },
+    { key: "sizeMultiplier", label: "Size × face bbox", type: "slider", min: 0.6, max: 2.0, step: 0.05, default: 1.25 },
+    // Color preset cycle: 0=cyan 1=white 2=black 3=amber.
+    { key: "colorPreset", label: "Color (0=cyan 1=white 2=black 3=amber)", type: "slider", min: 0, max: 3, step: 1, default: 0 },
   ],
   render({ ctx, pose, params }) {
-    if (!pose) return;
-    const lms = pose.landmarks;
-    const top = lms[TOP_OF_FOREHEAD];
-    const chin = lms[CHIN];
-    const leftEar = lms[LEFT_EAR];
-    const rightEar = lms[RIGHT_EAR];
-    const leftPupil = lms[LEFT_PUPIL];
-    const rightPupil = lms[RIGHT_PUPIL];
-    const noseTip = lms[NOSE_TIP];
-    if (!top || !chin || !leftEar || !rightEar) return;
+    if (!pose || pose.matrix.length < 16) return;
+    const off = getOffscreenLoomis();
+    if (!off) return;
 
-    const opacity = (params.opacity as number) ?? 0.85;
-    const lineWidth = (params.lineWidth as number) ?? 2;
-    const showJaw = (params.showJaw as boolean) ?? true;
-    const showBrow = (params.showBrow as boolean) ?? true;
-    const showSideCut = (params.showSideCut as boolean) ?? true;
-    const showCenter = (params.showCenterline as boolean) ?? true;
+    off.scene.setVisibility({
+      brow: (params.showBrow as boolean) ?? true,
+      eye: (params.showEye as boolean) ?? true,
+      median: (params.showMedian as boolean) ?? true,
+      side: (params.showSide as boolean) ?? true,
+      jaw: (params.showJaw as boolean) ?? true,
+      neck: (params.showNeck as boolean) ?? false,
+    });
 
-    // Sphere center = midpoint between the ears (sits at the cranium centroid).
-    const sphereCx = (leftEar.x + rightEar.x) / 2;
-    const sphereCy = (leftEar.y + rightEar.y) / 2;
+    const presetIdx = Math.round((params.colorPreset as number) ?? 0);
+    const presetKey = ["cyan", "white", "black", "amber"][presetIdx] ?? "cyan";
+    off.scene.setColor(COLOR_PRESETS[presetKey]);
 
-    // Radius from forehead-top to ear-midpoint (vertical) — gives a sphere that
-    // actually wraps the cranium without overflowing into the jaw.
-    const verticalRadius = Math.hypot(top.x - sphereCx, top.y - sphereCy);
-    const earToEar = Math.hypot(rightEar.x - leftEar.x, rightEar.y - leftEar.y);
-    const radius = Math.max(verticalRadius, earToEar / 2);
+    off.scene.setRotation(pose.matrix);
 
-    const { yaw, pitch, roll } = pose.angles;
-    const yawRad = (yaw * Math.PI) / 180;
-    const pitchRad = (pitch * Math.PI) / 180;
-    const rollRad = (roll * Math.PI) / 180;
+    const opacity = (params.opacity as number) ?? 0.9;
+    const sizeMul = (params.sizeMultiplier as number) ?? 1.25;
+    const size = Math.max(40, Math.round(pose.bbox.size * sizeMul));
+    ensureLoomisSize(size, size);
+
+    const x = pose.bbox.cx - size / 2;
+    const y = pose.bbox.cy - size / 2;
 
     ctx.save();
     ctx.globalAlpha = opacity;
-    ctx.strokeStyle = "#22d3ee";
-    ctx.lineWidth = lineWidth;
-    ctx.lineJoin = "round";
-
-    ctx.translate(sphereCx, sphereCy);
-    ctx.rotate(rollRad);
-
-    // Sphere outline
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Side-plane cuts — TWO mirrored disks, one per temple.
-    // Classic Loomis: the cranium sphere has flat circular cuts on both
-    // sides where the temporal planes flatten. Both disks render
-    // simultaneously; yaw foreshortens whichever side is turning away.
-    if (showSideCut) {
-      // Disk anchor in local sphere coords: ±cos(yaw) horizontal, on equator.
-      // The disk PLANE is perpendicular to the head's left-right axis, so in
-      // the projected 2D view the disk is a vertical ellipse whose horizontal
-      // half-axis = radius * |sin(yaw)| (becomes a line at yaw=0, full circle at yaw=90).
-      // Vertical half-axis = radius * cosineSquish for the disk's natural height (~0.78r).
-      const diskMajor = radius * 0.78;
-      // Per-side projected horizontal half-width = how foreshortened the disk
-      // appears. At yaw=0 (full face) both disks read as edge-on slivers; as
-      // yaw increases, the disk on the camera-facing side widens.
-      const visibleSide = Math.abs(Math.sin(yawRad));
-      const farSide = Math.max(0.08, visibleSide * 0.35); // far side is always somewhat occluded
-      const nearSide = Math.max(0.08, visibleSide);
-      // Disk center offsets from sphere center along the temple axis.
-      const cosY = Math.cos(yawRad);
-      const leftCenterX = -radius * cosY;
-      const rightCenterX = radius * cosY;
-      // Left disk
-      ctx.beginPath();
-      ctx.ellipse(
-        leftCenterX,
-        0,
-        radius * (yaw < 0 ? nearSide : farSide),
-        diskMajor,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-      // Right disk
-      ctx.beginPath();
-      ctx.ellipse(
-        rightCenterX,
-        0,
-        radius * (yaw > 0 ? nearSide : farSide),
-        diskMajor,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-    }
-
-    // Brow great-circle — horizontal ellipse through the brow line, tilted by pitch.
-    if (showBrow) {
-      // Place at pupil height (offset from sphere center)
-      let browY = 0;
-      if (leftPupil && rightPupil) {
-        const browMidY = (leftPupil.y + rightPupil.y) / 2;
-        // Translate browMidY into local (post-translate, post-rotate) coordinates.
-        // Roll is small enough that y-only approximation is acceptable here.
-        browY = browMidY - sphereCy;
-      } else {
-        browY = -radius * Math.sin(pitchRad) * 0.35;
-      }
-      ctx.beginPath();
-      ctx.ellipse(
-        0,
-        browY,
-        radius * Math.max(0.4, Math.cos(yawRad)),
-        radius * 0.18,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-    }
-
-    // Centerline — vertical line through the face center, offset by yaw.
-    if (showCenter) {
-      const ctrX = radius * Math.sin(yawRad) * 0.95;
-      ctx.beginPath();
-      ctx.moveTo(ctrX, -radius);
-      // Extend down past the sphere to roughly chin level
-      ctx.lineTo(ctrX, (chin.y - sphereCy));
-      ctx.stroke();
-    }
-
+    ctx.drawImage(off.canvas, x, y, size, size);
     ctx.restore();
-
-    // Jaw block — drawn in image space (not the rotated frame) using the
-    // actual chin + mouth landmarks. Loomis shows the jaw as a triangular
-    // wedge from the brow line down to the chin.
-    if (showJaw && noseTip) {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = "#22d3ee";
-      ctx.lineWidth = lineWidth;
-
-      const browY = leftPupil && rightPupil
-        ? (leftPupil.y + rightPupil.y) / 2 - earToEar * 0.05
-        : sphereCy;
-      const jawHalfWidth = earToEar * 0.42;
-      const jawTopL = { x: chin.x - jawHalfWidth, y: browY };
-      const jawTopR = { x: chin.x + jawHalfWidth, y: browY };
-
-      ctx.beginPath();
-      ctx.moveTo(jawTopL.x, jawTopL.y);
-      ctx.quadraticCurveTo(chin.x - jawHalfWidth * 0.5, chin.y - earToEar * 0.05, chin.x, chin.y);
-      ctx.quadraticCurveTo(chin.x + jawHalfWidth * 0.5, chin.y - earToEar * 0.05, jawTopR.x, jawTopR.y);
-      ctx.stroke();
-      ctx.restore();
-    }
   },
 };

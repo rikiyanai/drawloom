@@ -50,13 +50,12 @@ function labelLine(
 
 export const loomisReillyOverlay: Overlay = {
   id: "loomis-reilly",
-  name: "Loomis + Reilly construction",
+  name: "Reilly rhythms",
   category: "construction",
   description:
-    "Loomis volumetric cranium + Reilly rhythm shapes (left/right eye-cheek C, central feature lozenge, jaw ovoid) modeled on the Khang Ta 'Rhythms of the Head' reference sheet.",
+    "Reilly rhythm shapes (left/right eye-cheek C, central feature lozenge, jaw ovoid) modeled on the Khang Ta 'Rhythms of the Head' reference sheet. For the Loomis cranium + side disks + great-circles, enable the dedicated 'Loomis head' overlay — it owns that geometry as a projected 3D construction.",
   requiresFace: true,
   params: [
-    { key: "loomis", label: "Loomis sphere + cut", type: "toggle", default: true },
     { key: "centerline", label: "Centerline", type: "toggle", default: true },
     { key: "eyeCheekC", label: "Eye-cheek C (left + right)", type: "toggle", default: true },
     { key: "featureLozenge", label: "Central feature lozenge", type: "toggle", default: true },
@@ -79,70 +78,20 @@ export const loomisReillyOverlay: Overlay = {
     if (!top || !chin || !leftEar || !rightEar) return;
 
     const opacity = (params.opacity as number) ?? 0.8;
-    const showLoomis = (params.loomis as boolean) ?? true;
     const showCenter = (params.centerline as boolean) ?? true;
     const showEyeCheekC = (params.eyeCheekC as boolean) ?? true;
     const showLozenge = (params.featureLozenge as boolean) ?? true;
     const showJawOvoid = (params.jawOvoid as boolean) ?? true;
     const showPropLabels = (params.propLabels as boolean) ?? false;
 
-    const cx = (leftEar.x + rightEar.x) / 2;
-    const cy = (leftEar.y + rightEar.y) / 2;
     const halfWidth = Math.hypot(rightEar.x - leftEar.x, rightEar.y - leftEar.y) / 2;
     const totalHeight = chin.y - top.y;
-    const radius = totalHeight * 0.42;
-    const { yaw, pitch, roll } = pose.angles;
-    const yawRad = (yaw * Math.PI) / 180;
-    const pitchRad = (pitch * Math.PI) / 180;
+    const { roll } = pose.angles;
     const rollRad = (roll * Math.PI) / 180;
 
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.lineWidth = 1.5;
-
-    // -------- LOOMIS sphere block --------
-    if (showLoomis) {
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(rollRad);
-      ctx.strokeStyle = "#22d3ee";
-
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // TWO mirrored side-plane disks (classic Loomis). Same projection math
-      // as src/lib/overlays/loomis.ts:showSideCut — both visible at once,
-      // foreshortened by yaw.
-      const diskMajor = radius * 0.78;
-      const visibleSide = Math.abs(Math.sin(yawRad));
-      const farSide = Math.max(0.08, visibleSide * 0.35);
-      const nearSide = Math.max(0.08, visibleSide);
-      const cosY = Math.cos(yawRad);
-      const leftCenterX = -radius * cosY;
-      const rightCenterX = radius * cosY;
-      ctx.beginPath();
-      ctx.ellipse(leftCenterX, 0, radius * (yaw < 0 ? nearSide : farSide), diskMajor, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(rightCenterX, 0, radius * (yaw > 0 ? nearSide : farSide), diskMajor, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Brow great-circle (kept).
-      ctx.beginPath();
-      ctx.ellipse(0, radius * Math.sin(pitchRad) * 0.35, radius * Math.cos(yawRad), radius * 0.2, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Jaw stub.
-      const jawY = radius * 0.85;
-      const jawW = radius * 0.6;
-      ctx.beginPath();
-      ctx.moveTo(-jawW, jawY * 0.4);
-      ctx.quadraticCurveTo(0, jawY * 1.7, jawW, jawY * 0.4);
-      ctx.stroke();
-
-      ctx.restore();
-    }
 
     // -------- Centerline (true central contour, not a 3-point polyline) --------
     if (showCenter) {
