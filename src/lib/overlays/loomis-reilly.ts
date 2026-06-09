@@ -113,20 +113,34 @@ export const loomisReillyOverlay: Overlay = {
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.stroke();
 
-      const cutOffset = radius * Math.sin(yawRad) * 0.7;
+      // TWO mirrored side-plane disks (classic Loomis). Same projection math
+      // as src/lib/overlays/loomis.ts:showSideCut — both visible at once,
+      // foreshortened by yaw.
+      const diskMajor = radius * 0.78;
+      const visibleSide = Math.abs(Math.sin(yawRad));
+      const farSide = Math.max(0.08, visibleSide * 0.35);
+      const nearSide = Math.max(0.08, visibleSide);
+      const cosY = Math.cos(yawRad);
+      const leftCenterX = -radius * cosY;
+      const rightCenterX = radius * cosY;
       ctx.beginPath();
-      ctx.ellipse(cutOffset, 0, radius * 0.2, radius * Math.cos(yawRad) * 0.95, 0, 0, Math.PI * 2);
+      ctx.ellipse(leftCenterX, 0, radius * (yaw < 0 ? nearSide : farSide), diskMajor, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(rightCenterX, 0, radius * (yaw > 0 ? nearSide : farSide), diskMajor, 0, 0, Math.PI * 2);
       ctx.stroke();
 
+      // Brow great-circle (kept).
       ctx.beginPath();
       ctx.ellipse(0, radius * Math.sin(pitchRad) * 0.35, radius * Math.cos(yawRad), radius * 0.2, 0, 0, Math.PI * 2);
       ctx.stroke();
 
+      // Jaw stub.
       const jawY = radius * 0.85;
       const jawW = radius * 0.6;
       ctx.beginPath();
-      ctx.moveTo(-jawW + cutOffset, jawY * 0.4);
-      ctx.quadraticCurveTo(cutOffset, jawY * 1.7, jawW + cutOffset, jawY * 0.4);
+      ctx.moveTo(-jawW, jawY * 0.4);
+      ctx.quadraticCurveTo(0, jawY * 1.7, jawW, jawY * 0.4);
       ctx.stroke();
 
       ctx.restore();

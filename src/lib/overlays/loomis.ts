@@ -81,14 +81,50 @@ export const loomisOverlay: Overlay = {
     ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Side-plane cut — the flat oval where Loomis flattens the temple.
-    // The cut offsets horizontally with yaw (showing more on the visible side).
+    // Side-plane cuts — TWO mirrored disks, one per temple.
+    // Classic Loomis: the cranium sphere has flat circular cuts on both
+    // sides where the temporal planes flatten. Both disks render
+    // simultaneously; yaw foreshortens whichever side is turning away.
     if (showSideCut) {
-      const cutOffset = radius * Math.sin(yawRad) * 0.75;
-      const cutMinor = radius * 0.22;
-      const cutMajor = radius * Math.max(0.55, Math.cos(yawRad)) * 0.95;
+      // Disk anchor in local sphere coords: ±cos(yaw) horizontal, on equator.
+      // The disk PLANE is perpendicular to the head's left-right axis, so in
+      // the projected 2D view the disk is a vertical ellipse whose horizontal
+      // half-axis = radius * |sin(yaw)| (becomes a line at yaw=0, full circle at yaw=90).
+      // Vertical half-axis = radius * cosineSquish for the disk's natural height (~0.78r).
+      const diskMajor = radius * 0.78;
+      // Per-side projected horizontal half-width = how foreshortened the disk
+      // appears. At yaw=0 (full face) both disks read as edge-on slivers; as
+      // yaw increases, the disk on the camera-facing side widens.
+      const visibleSide = Math.abs(Math.sin(yawRad));
+      const farSide = Math.max(0.08, visibleSide * 0.35); // far side is always somewhat occluded
+      const nearSide = Math.max(0.08, visibleSide);
+      // Disk center offsets from sphere center along the temple axis.
+      const cosY = Math.cos(yawRad);
+      const leftCenterX = -radius * cosY;
+      const rightCenterX = radius * cosY;
+      // Left disk
       ctx.beginPath();
-      ctx.ellipse(cutOffset, 0, cutMinor, cutMajor, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        leftCenterX,
+        0,
+        radius * (yaw < 0 ? nearSide : farSide),
+        diskMajor,
+        0,
+        0,
+        Math.PI * 2
+      );
+      ctx.stroke();
+      // Right disk
+      ctx.beginPath();
+      ctx.ellipse(
+        rightCenterX,
+        0,
+        radius * (yaw > 0 ? nearSide : farSide),
+        diskMajor,
+        0,
+        0,
+        Math.PI * 2
+      );
       ctx.stroke();
     }
 
