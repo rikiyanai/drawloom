@@ -132,17 +132,32 @@ export const loomisReillyOverlay: Overlay = {
       ctx.restore();
     }
 
-    // -------- Centerline + proportion labels --------
-    if (showCenter && noseTip) {
-      ctx.strokeStyle = "#06b6d4";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(top.x, top.y);
-      ctx.lineTo(noseTip.x, noseTip.y);
-      ctx.lineTo(chin.x, chin.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
+    // -------- Centerline (true central contour, not a 3-point polyline) --------
+    if (showCenter) {
+      // Trace the actual midline landmarks so the centerline curves through
+      // the brow/nose/lip ridge instead of cutting straight from top->tip->chin.
+      const CENTERLINE_IDXS = [10, 151, 9, 168, 6, 197, 195, 1, 19, 164, 0, 17, 200, 152];
+      const pts = CENTERLINE_IDXS.map((i) => lms[i]).filter(Boolean) as { x: number; y: number }[];
+      if (pts.length >= 3) {
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] ?? pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] ?? p2;
+          const c1x = p1.x + (p2.x - p0.x) / 6;
+          const c1y = p1.y + (p2.y - p0.y) / 6;
+          const c2x = p2.x - (p3.x - p1.x) / 6;
+          const c2y = p2.y - (p3.y - p1.y) / 6;
+          ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
 
     if (showPropLabels && leftPupil && rightPupil && noseTip) {

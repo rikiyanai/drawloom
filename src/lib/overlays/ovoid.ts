@@ -6,10 +6,10 @@ import { FACE_OVAL, indicesToPts, smoothRingPath } from "../pose/landmarks";
 // which produced a visible seam and did not follow the real outline.
 export const ovoidOverlay: Overlay = {
   id: "ovoid",
-  name: "Ovoid silhouette (a.k.a. doveline)",
+  name: "Ovoid silhouette",
   category: "construction",
   description:
-    "Egg-shape outline of the whole face, traced from the actual face-perimeter landmarks.",
+    "Egg-shape outline of the whole face perimeter, traced from the face-oval landmarks. (Not the doveline — see the Doveline overlay for the central rhythm contour.)",
   requiresFace: true,
   params: [
     { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.85 },
