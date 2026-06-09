@@ -109,10 +109,34 @@ function createProceduralSkull(): THREE.Group {
 }
 
 /**
+ * Replace every mesh's material with an opaque bone-colored MeshStandardMaterial.
+ * Critical for the Khronos ScatteringSkull, whose default material uses
+ * subsurface scattering (KHR_materials_volume) and renders like frosted glass —
+ * geometrically accurate, but useless as a drawing reference. Applies to any
+ * future GLB the user drops in, so the skull always reads as opaque bone.
+ */
+function applyBoneMaterial(obj: THREE.Object3D): void {
+  const boneMat = new THREE.MeshStandardMaterial({
+    color: 0xf5ecd9,
+    roughness: 0.7,
+    metalness: 0.02,
+  });
+  obj.traverse((node) => {
+    if (node instanceof THREE.Mesh) {
+      const prev = node.material;
+      if (Array.isArray(prev)) prev.forEach((m) => m.dispose?.());
+      else prev?.dispose?.();
+      node.material = boneMat;
+    }
+  });
+}
+
+/**
  * Center + scale a loaded GLB so it occupies roughly the same view-volume the
  * procedural skull does (longest dimension ~= 2.0 units, centered on origin).
  */
 function normalizeSkullMesh(obj: THREE.Object3D): THREE.Group {
+  applyBoneMaterial(obj);
   const group = new THREE.Group();
   group.add(obj);
   const box = new THREE.Box3().setFromObject(obj);
