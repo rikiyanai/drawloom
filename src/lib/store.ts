@@ -8,13 +8,17 @@ type OverlayState = {
   params: Record<string, number | boolean>;
 };
 
+export type SourceMode = "upload" | "webcam";
+
 type StudioState = {
+  mode: SourceMode;
   image: HTMLImageElement | null;
   imageUrl: string | null;
   pose: PoseResult;
   status: "idle" | "loading" | "detecting" | "ready" | "no-face" | "error";
   errorMsg: string | null;
   overlays: Record<string, OverlayState>;
+  setMode: (m: SourceMode) => void;
   setImage: (img: HTMLImageElement, url: string) => void;
   setStatus: (s: StudioState["status"], msg?: string) => void;
   setPose: (p: PoseResult) => void;
@@ -25,16 +29,26 @@ type StudioState = {
 
 const initialOverlays: Record<string, OverlayState> = {};
 for (const o of OVERLAYS) {
-  initialOverlays[o.id] = { enabled: o.id === "loomis", params: defaultParams(o) };
+  // Defaults: ovoid + anatomy on so user sees something immediately when face is detected
+  initialOverlays[o.id] = {
+    enabled: o.id === "ovoid" || o.id === "anatomy",
+    params: defaultParams(o),
+  };
 }
 
 export const useStudio = create<StudioState>((set) => ({
+  mode: "upload",
   image: null,
   imageUrl: null,
   pose: null,
   status: "idle",
   errorMsg: null,
   overlays: initialOverlays,
+  setMode: (mode) =>
+    set((s) => {
+      if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
+      return { mode, image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null };
+    }),
   setImage: (img, url) => set({ image: img, imageUrl: url, pose: null, status: "detecting", errorMsg: null }),
   setStatus: (status, msg) => set({ status, errorMsg: msg ?? null }),
   setPose: (pose) => set({ pose, status: pose ? "ready" : "no-face" }),
@@ -50,6 +64,13 @@ export const useStudio = create<StudioState>((set) => ({
   reset: () =>
     set((s) => {
       if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
-      return { image: null, imageUrl: null, pose: null, status: "idle", errorMsg: null, overlays: initialOverlays };
+      return {
+        image: null,
+        imageUrl: null,
+        pose: null,
+        status: "idle",
+        errorMsg: null,
+        overlays: initialOverlays,
+      };
     }),
 }));

@@ -3,9 +3,11 @@ import { OVERLAYS } from "@/lib/overlays/registry";
 import { useStudio } from "@/lib/store";
 
 export function OverlayPanel() {
-  const { overlays, toggleOverlay, setOverlayParam, pose, status } = useStudio();
+  const { overlays, toggleOverlay, setOverlayParam, pose, status, mode } = useStudio();
 
-  if (status === "idle" || status === "loading" || status === "detecting") return null;
+  // In webcam mode, always show the panel (status churns frame-to-frame).
+  // In upload mode, hide until an image is being processed or done.
+  if (mode === "upload" && (status === "idle" || status === "loading")) return null;
 
   return (
     <div className="space-y-3">
