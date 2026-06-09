@@ -101,3 +101,62 @@ export function drawJawLine(ctx: CanvasRenderingContext2D, lms: Pt[]): void {
   ctx.lineTo(last.x, last.y);
   ctx.stroke();
 }
+
+/**
+ * Open Catmull-Rom-style spline through pts. Tangent at each interior point
+ * uses its neighbors so the curve hugs feature contours instead of rounding
+ * corners (the failure mode of midpoint-quadratic smoothing).
+ *
+ * tension in [0, 1]: 0 = nearly straight lines, 0.5 = standard CR, 1 = looser.
+ */
+export function catmullRomOpen(
+  ctx: CanvasRenderingContext2D,
+  pts: Pt[],
+  tension = 0.5
+): void {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  if (pts.length === 2) {
+    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.stroke();
+    return;
+  }
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + ((p2.x - p0.x) / 6) * tension * 2;
+    const c1y = p1.y + ((p2.y - p0.y) / 6) * tension * 2;
+    const c2x = p2.x - ((p3.x - p1.x) / 6) * tension * 2;
+    const c2y = p2.y - ((p3.y - p1.y) / 6) * tension * 2;
+    ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+  }
+  ctx.stroke();
+}
+
+/** Looped Catmull-Rom — like catmullRomOpen but wraps back to pts[0]. */
+export function catmullRomLoop(
+  ctx: CanvasRenderingContext2D,
+  pts: Pt[],
+  tension = 0.5
+): void {
+  if (pts.length < 3) return;
+  const wrap = (i: number) => pts[((i % pts.length) + pts.length) % pts.length];
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 0; i < pts.length; i++) {
+    const p0 = wrap(i - 1);
+    const p1 = wrap(i);
+    const p2 = wrap(i + 1);
+    const p3 = wrap(i + 2);
+    const c1x = p1.x + ((p2.x - p0.x) / 6) * tension * 2;
+    const c1y = p1.y + ((p2.y - p0.y) / 6) * tension * 2;
+    const c2x = p2.x - ((p3.x - p1.x) / 6) * tension * 2;
+    const c2y = p2.y - ((p3.y - p1.y) / 6) * tension * 2;
+    ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+}

@@ -15,6 +15,7 @@ import {
   NOSE_TIP,
   indicesToPts,
   drawJawLine,
+  catmullRomOpen,
   type Pt,
 } from "../pose/landmarks";
 
@@ -37,22 +38,12 @@ function hLine(ctx: CanvasRenderingContext2D, y: number, xL: number, xR: number)
   ctx.stroke();
 }
 
+// Catmull-Rom spline through pts. Was previously midpoint-quadratic
+// smoothing, which rounded corners and flattened the cupid's bow / eye
+// corners. Catmull-Rom uses neighbor-tangent control points so the curve
+// passes through every landmark and preserves sharper transitions.
 function smoothOpenCurve(ctx: CanvasRenderingContext2D, pts: Pt[]) {
-  if (pts.length < 2) return;
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  if (pts.length === 2) {
-    ctx.lineTo(pts[1].x, pts[1].y);
-  } else {
-    for (let i = 1; i < pts.length - 1; i++) {
-      const mx = (pts[i].x + pts[i + 1].x) / 2;
-      const my = (pts[i].y + pts[i + 1].y) / 2;
-      ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
-    }
-    const last = pts[pts.length - 1];
-    ctx.lineTo(last.x, last.y);
-  }
-  ctx.stroke();
+  catmullRomOpen(ctx, pts, 0.5);
 }
 
 // Eye contour landmark INDICES, split into upper and lower lid halves.

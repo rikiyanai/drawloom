@@ -9,6 +9,8 @@ import {
   RIGHT_MOUTH_CORNER,
   LEFT_PUPIL,
   RIGHT_PUPIL,
+  catmullRomOpen,
+  catmullRomLoop,
   type Pt,
 } from "../pose/landmarks";
 
@@ -31,10 +33,6 @@ import {
 // Sternal-notch line only appears when the user has enabled body pose
 // (MediaPipe Pose Landmarker) and shoulders are visible — it draws at the
 // midpoint between the left/right shoulder landmarks.
-
-function lerp(a: Pt, b: Pt, t: number): Pt {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-}
 
 function labelLine(
   ctx: CanvasRenderingContext2D,
@@ -221,98 +219,49 @@ export const loomisReillyOverlay: Overlay = {
     }
 
     // -------- Reilly: eye-cheek "C" rhythms --------
-    if (showEyeCheekC && leftPupil && rightPupil && leftMouth && rightMouth) {
+    // Traced through actual MediaPipe landmarks per side and smoothed with a
+    // Catmull-Rom open curve. Path: outer brow -> outer eye corner -> ear
+    // (temple) -> jaw-side -> mouth corner -> nose-side -> inner brow. That
+    // sequence wraps the eye+cheek mass with the open side facing center,
+    // which is what Khang Ta's C-rhythm encloses.
+    if (showEyeCheekC && leftMouth && rightMouth) {
       ctx.strokeStyle = "#fb7185";
       ctx.lineWidth = 1.6;
-
-      // LEFT C — wraps left eye + left cheek mass, opens to the right (toward center).
-      // Top anchor: above + outside the left brow. Outer anchor: outside cheekbone.
-      // Bottom anchor: below cheek toward mouth corner. Inner anchor: nose side.
-      const lTop = { x: leftPupil.x - halfWidth * 0.15, y: leftPupil.y - halfWidth * 0.35 };
-      const lOuter = { x: leftEar.x + halfWidth * 0.1, y: leftPupil.y + halfWidth * 0.1 };
-      const lBottom = { x: leftMouth.x - halfWidth * 0.05, y: leftMouth.y - halfWidth * 0.05 };
-      const lInner = { x: noseTip ? noseTip.x - halfWidth * 0.18 : lTop.x, y: noseTip ? noseTip.y : lTop.y };
-      ctx.beginPath();
-      ctx.moveTo(lTop.x, lTop.y);
-      ctx.bezierCurveTo(
-        lTop.x - halfWidth * 0.25, lTop.y + halfWidth * 0.1,
-        lOuter.x, lOuter.y - halfWidth * 0.15,
-        lOuter.x, lOuter.y
-      );
-      ctx.bezierCurveTo(
-        lOuter.x, lOuter.y + halfWidth * 0.3,
-        lBottom.x + halfWidth * 0.1, lBottom.y,
-        lBottom.x, lBottom.y
-      );
-      // Inner sweep (the open inner side of the C)
-      ctx.bezierCurveTo(
-        lInner.x + halfWidth * 0.1, lBottom.y - halfWidth * 0.1,
-        lInner.x, lInner.y - halfWidth * 0.05,
-        lInner.x, lInner.y - halfWidth * 0.3
-      );
-      ctx.stroke();
-
-      // RIGHT C — mirror
-      const rTop = { x: rightPupil.x + halfWidth * 0.15, y: rightPupil.y - halfWidth * 0.35 };
-      const rOuter = { x: rightEar.x - halfWidth * 0.1, y: rightPupil.y + halfWidth * 0.1 };
-      const rBottom = { x: rightMouth.x + halfWidth * 0.05, y: rightMouth.y - halfWidth * 0.05 };
-      const rInner = { x: noseTip ? noseTip.x + halfWidth * 0.18 : rTop.x, y: noseTip ? noseTip.y : rTop.y };
-      ctx.beginPath();
-      ctx.moveTo(rTop.x, rTop.y);
-      ctx.bezierCurveTo(
-        rTop.x + halfWidth * 0.25, rTop.y + halfWidth * 0.1,
-        rOuter.x, rOuter.y - halfWidth * 0.15,
-        rOuter.x, rOuter.y
-      );
-      ctx.bezierCurveTo(
-        rOuter.x, rOuter.y + halfWidth * 0.3,
-        rBottom.x - halfWidth * 0.1, rBottom.y,
-        rBottom.x, rBottom.y
-      );
-      ctx.bezierCurveTo(
-        rInner.x - halfWidth * 0.1, rBottom.y - halfWidth * 0.1,
-        rInner.x, rInner.y - halfWidth * 0.05,
-        rInner.x, rInner.y - halfWidth * 0.3
-      );
-      ctx.stroke();
+      // LEFT C — landmarks confirmed on the left perimeter of the eye-cheek mass.
+      const leftCPath: Pt[] = [70, 33, 234, 132, 61, 102, 105]
+        .map((i) => lms[i])
+        .filter(Boolean) as Pt[];
+      if (leftCPath.length >= 3) catmullRomOpen(ctx, leftCPath, 0.5);
+      // RIGHT C — mirror set.
+      const rightCPath: Pt[] = [300, 263, 454, 361, 291, 331, 334]
+        .map((i) => lms[i])
+        .filter(Boolean) as Pt[];
+      if (rightCPath.length >= 3) catmullRomOpen(ctx, rightCPath, 0.5);
     }
 
     // -------- Reilly: central feature lozenge --------
-    if (showLozenge && noseTip && leftMouth && rightMouth) {
+    // Traced as a Catmull-Rom loop through real perimeter landmarks
+    // (glabella, brow ends, mouth corners, chin) instead of bezier control
+    // points with magic offsets from halfWidth.
+    if (showLozenge && leftMouth && rightMouth) {
       ctx.strokeStyle = "#fb7185";
       ctx.lineWidth = 1.5;
-      const browL = lms[105] ?? lerp(leftPupil ?? leftEar, top, 0.5);
-      const browR = lms[334] ?? lerp(rightPupil ?? rightEar, top, 0.5);
-      const browMid = { x: (browL.x + browR.x) / 2, y: (browL.y + browR.y) / 2 };
-      const mouthMid = { x: (leftMouth.x + rightMouth.x) / 2, y: (leftMouth.y + rightMouth.y) / 2 };
-      const widthAtNose = halfWidth * 0.55;
-      const widthAtMouth = Math.hypot(rightMouth.x - leftMouth.x, rightMouth.y - leftMouth.y) * 0.65;
-      ctx.beginPath();
-      // Top apex (above brows)
-      ctx.moveTo(browMid.x, browMid.y - halfWidth * 0.05);
-      // Down left side: brow -> nose-tip-left -> mouth-corner-left -> chin
-      ctx.bezierCurveTo(
-        browMid.x - widthAtNose * 0.5, (browMid.y + noseTip.y) / 2,
-        noseTip.x - widthAtNose, noseTip.y,
-        mouthMid.x - widthAtMouth, mouthMid.y
-      );
-      ctx.bezierCurveTo(
-        mouthMid.x - widthAtMouth * 0.6, (mouthMid.y + chin.y) / 2,
-        chin.x - halfWidth * 0.15, chin.y - halfWidth * 0.05,
-        chin.x, chin.y
-      );
-      // Up right side: chin -> mouth-corner-right -> nose-tip-right -> brow
-      ctx.bezierCurveTo(
-        chin.x + halfWidth * 0.15, chin.y - halfWidth * 0.05,
-        mouthMid.x + widthAtMouth * 0.6, (mouthMid.y + chin.y) / 2,
-        mouthMid.x + widthAtMouth, mouthMid.y
-      );
-      ctx.bezierCurveTo(
-        noseTip.x + widthAtNose, noseTip.y,
-        browMid.x + widthAtNose * 0.5, (browMid.y + noseTip.y) / 2,
-        browMid.x, browMid.y - halfWidth * 0.05
-      );
-      ctx.stroke();
+      // Glabella (9) anchors the top; if missing, fall back to midpoint of brow tips.
+      const glabella = lms[9] ?? {
+        x: ((lms[105]?.x ?? top.x) + (lms[334]?.x ?? top.x)) / 2,
+        y: ((lms[105]?.y ?? top.y) + (lms[334]?.y ?? top.y)) / 2,
+      };
+      const lBrow = lms[105];
+      const rBrow = lms[334];
+      const loopPath: Pt[] = [
+        glabella,
+        ...(lBrow ? [lBrow] : []),
+        leftMouth,
+        chin,
+        rightMouth,
+        ...(rBrow ? [rBrow] : []),
+      ];
+      if (loopPath.length >= 4) catmullRomLoop(ctx, loopPath, 0.5);
     }
 
     // -------- Reilly: jaw ovoid --------
