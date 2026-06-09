@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStudio } from "@/lib/store";
 import { detectPoseForVideo, warmupVideo, type PoseResult } from "@/lib/pose/detect";
 import { OVERLAYS } from "@/lib/overlays/registry";
@@ -9,18 +9,51 @@ const MAX_W = 1100;
 export function WebcamStage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const hiddenImgRef = useRef<HTMLImageElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number>(-1);
   const poseRef = useRef<PoseResult>(null);
   const lastStorePushRef = useRef<number>(0);
   const lastPoseTruthyRef = useRef<boolean>(false);
+  const pausedRef = useRef<boolean>(false);
+  const [paused, setPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const overlays = useStudio((s) => s.overlays);
   const setPose = useStudio((s) => s.setPose);
   const overlaysRef = useRef(overlays);
   overlaysRef.current = overlays;
+
+  // Keep pausedRef in sync so the RAF loop sees the latest value
+  // without re-subscribing through useEffect deps.
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
+
+  const handlePauseToggle = useCallback(() => {
+    setPaused((p) => !p);
+  }, []);
+
+  const handleSnapshot = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")
+        .replace("T", "_")
+        .slice(0, 19);
+      a.href = url;
+      a.download = `drawloom-${stamp}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Slight delay before revoking lets the download start cleanly.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +83,12 @@ export function WebcamStage() {
 
     function loop() {
       if (cancelled) return;
+      // Pause short-circuit: keep the loop alive (cheap) but skip detection
+      // and rendering so the canvas freezes on its last frame.
+      if (pausedRef.current) {
+        rafRef.current = requestAnimationFrame(loop);
+        return;
+      }
       const video = videoRef.current;
       const canvas = canvasRef.current;
       if (!video || !canvas || video.readyState < 2) {
@@ -91,7 +130,6 @@ export function WebcamStage() {
               poseRef.current = null;
               return;
             }
-            // Mirror landmark X coords to match the flipped canvas, then scale to canvas size
             const sx = w / vw;
             const sy = h / vh;
             const mirrored: PoseResult = {
@@ -106,7 +144,6 @@ export function WebcamStage() {
                 cy: pose.bbox.cy * sy,
                 size: pose.bbox.size * sx,
               },
-              // Mirror angles too so yaw matches what user sees
               angles: { ...pose.angles, yaw: -pose.angles.yaw, roll: -pose.angles.roll },
               imageWidth: w,
               imageHeight: h,
@@ -116,12 +153,8 @@ export function WebcamStage() {
           .catch((e) => console.warn("detect failed", e));
       }
 
-      // Render overlays using the most recent pose (may lag a frame; that's fine)
+      // Render overlays using the most recent pose
       const pose = poseRef.current;
-      if (!hiddenImgRef.current) {
-        // Pass canvas-as-image fallback for overlays that need image source (notan/edges)
-        // We construct a temporary HTMLImageElement only if needed; for now skip non-face overlays gracefully
-      }
       for (const overlay of OVERLAYS) {
         const state = overlaysRef.current[overlay.id];
         if (!state?.enabled) continue;
@@ -129,7 +162,6 @@ export function WebcamStage() {
         try {
           overlay.render({
             ctx,
-            // For non-face overlays that need an image source, use the canvas itself
             image: canvas as unknown as HTMLImageElement,
             pose,
             width: w,
@@ -141,10 +173,7 @@ export function WebcamStage() {
         }
       }
 
-      // Push pose into the store so the toggle panel un-disables face-required
-      // overlays and the yaw/pitch/roll HUD updates. Throttle to 4x/sec to
-      // avoid hammering React, but always push the FIRST detection immediately
-      // and always push on truthy<->falsy transitions so disabled state flips.
+      // Push pose into store (throttled, plus on first detect + transitions)
       const now = performance.now();
       const wasTruthy = lastPoseTruthyRef.current;
       const isTruthy = !!pose;
@@ -168,21 +197,46 @@ export function WebcamStage() {
   }, []);
 
   return (
-    <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black">
-      <video ref={videoRef} className="hidden" playsInline muted />
-      <canvas ref={canvasRef} className="block max-w-full h-auto" />
-      {!running && !error && (
-        <div className="p-6 text-center text-zinc-400 text-sm">Starting webcam…</div>
-      )}
-      {error && (
-        <div className="p-6 text-center text-rose-400 text-sm">
-          Webcam error: {error}
-          <br />
-          <span className="text-zinc-500 text-xs">
-            Check the browser permission prompt and that no other app is using the camera.
-          </span>
-        </div>
-      )}
+    <div className="space-y-2">
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={handlePauseToggle}
+          disabled={!running}
+          className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-40"
+          title="Freeze the live view on the current frame"
+        >
+          {paused ? "▶ resume" : "⏸ pause"}
+        </button>
+        <button
+          onClick={handleSnapshot}
+          disabled={!running}
+          className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-40"
+          title="Save the current canvas (with overlays) as a PNG"
+        >
+          📸 snapshot
+        </button>
+      </div>
+      <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black relative">
+        <video ref={videoRef} className="hidden" playsInline muted />
+        <canvas ref={canvasRef} className="block max-w-full h-auto" />
+        {paused && (
+          <div className="absolute top-2 left-2 px-2 py-1 rounded bg-black/70 text-cyan-300 text-xs font-mono">
+            PAUSED
+          </div>
+        )}
+        {!running && !error && (
+          <div className="p-6 text-center text-zinc-400 text-sm">Starting webcam…</div>
+        )}
+        {error && (
+          <div className="p-6 text-center text-rose-400 text-sm">
+            Webcam error: {error}
+            <br />
+            <span className="text-zinc-500 text-xs">
+              Check the browser permission prompt and that no other app is using the camera.
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
