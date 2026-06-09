@@ -5,6 +5,7 @@ import { CanvasStage } from "./CanvasStage";
 import { WebcamStage } from "./WebcamStage";
 import { OverlayPanel } from "./OverlayPanel";
 import { SkullPanel } from "./SkullPanel";
+import { SkullOverlay } from "./SkullOverlay";
 import { useStudio } from "@/lib/store";
 import { installConsoleFilter } from "@/lib/console-filter";
 
@@ -66,6 +67,13 @@ export function Studio() {
             >
               split + skull
             </button>
+            <button
+              onClick={() => setLayout("overlay")}
+              className={`px-3 py-1.5 ${layout === "overlay" ? "bg-cyan-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
+              title="Skull rendered on top of your face at the same scale"
+            >
+              skull overlay
+            </button>
           </div>
           {(image || mode === "webcam") && (
             <button
@@ -99,6 +107,25 @@ export function Studio() {
               <div className="min-w-0">
                 <SkullPanel />
               </div>
+            </div>
+          ) : layout === "overlay" ? (
+            <div className="relative">
+              {mode === "webcam" ? (
+                <WebcamStage>
+                  <SkullOverlay />
+                </WebcamStage>
+              ) : !image ? (
+                <div className="max-w-xl mx-auto pt-16">
+                  <UploadDropzone />
+                  {errorMsg && status === "error" && (
+                    <p className="text-center mt-4 text-rose-400 text-sm">{errorMsg}</p>
+                  )}
+                </div>
+              ) : (
+                <CanvasStage>
+                  <SkullOverlay />
+                </CanvasStage>
+              )}
             </div>
           ) : mode === "webcam" ? (
             <WebcamStage />

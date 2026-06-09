@@ -8,7 +8,7 @@ import { OVERLAYS } from "@/lib/overlays/registry";
 
 const MAX_W = 1100;
 
-export function WebcamStage() {
+export function WebcamStage({ children }: { children?: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -359,6 +359,7 @@ export function WebcamStage() {
       <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black relative">
         <video ref={videoRef} className="hidden" playsInline muted />
         <canvas ref={canvasRef} className="block max-w-full h-auto" />
+        {children}
         {paused && (
           <div className="absolute top-2 left-2 px-2 py-1 rounded bg-black/70 text-cyan-300 text-xs font-mono">
             PAUSED

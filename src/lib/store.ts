@@ -10,7 +10,7 @@ type OverlayState = {
 };
 
 export type SourceMode = "upload" | "webcam";
-export type LayoutMode = "single" | "split";
+export type LayoutMode = "single" | "split" | "overlay";
 
 export type ViewFilters = {
   grayscale: boolean;

@@ -5,7 +5,7 @@ import { OVERLAYS } from "@/lib/overlays/registry";
 
 const MAX_W = 1100;
 
-export function CanvasStage() {
+export function CanvasStage({ children }: { children?: React.ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { image, pose, overlays, viewFilters } = useStudio();
 
@@ -50,8 +50,9 @@ export function CanvasStage() {
 
   if (!image) return null;
   return (
-    <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black">
+    <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black relative">
       <canvas ref={canvasRef} className="block max-w-full h-auto" />
+      {children}
     </div>
   );
 }
