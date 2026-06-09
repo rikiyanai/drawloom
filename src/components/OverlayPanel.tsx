@@ -3,7 +3,7 @@ import { OVERLAYS } from "@/lib/overlays/registry";
 import { useStudio } from "@/lib/store";
 
 export function OverlayPanel() {
-  const { overlays, toggleOverlay, setOverlayParam, pose, status, mode } = useStudio();
+  const { overlays, toggleOverlay, setOverlayParam, pose, status, mode, viewFilters, setViewFilter } = useStudio();
 
   // In webcam mode, always show the panel (status churns frame-to-frame).
   // In upload mode, hide until an image is being processed or done.
@@ -23,6 +23,46 @@ export function OverlayPanel() {
           roll <span className="text-cyan-400">{pose.angles.roll.toFixed(1)}°</span>
         </div>
       )}
+
+      <div className="rounded-md border border-zinc-800 bg-zinc-950 p-3 space-y-2">
+        <div className="text-xs uppercase tracking-wide text-zinc-500 mb-1">View filters</div>
+        <label className="flex items-center justify-between text-sm cursor-pointer">
+          <span>Black &amp; white</span>
+          <input
+            type="checkbox"
+            checked={viewFilters.grayscale}
+            onChange={(e) => setViewFilter("grayscale", e.target.checked)}
+            className="h-4 w-4 accent-cyan-500"
+          />
+        </label>
+        <label className="flex items-center justify-between text-sm cursor-pointer">
+          <span>Background blur {mode === "upload" && <span className="text-zinc-500 text-xs">(webcam only)</span>}</span>
+          <input
+            type="checkbox"
+            disabled={mode === "upload"}
+            checked={viewFilters.bgBlur}
+            onChange={(e) => setViewFilter("bgBlur", e.target.checked)}
+            className="h-4 w-4 accent-cyan-500"
+          />
+        </label>
+        {viewFilters.bgBlur && (
+          <div className="text-xs">
+            <div className="flex justify-between text-zinc-400 mb-0.5">
+              <span>Blur strength</span>
+              <span className="font-mono">{viewFilters.bgBlurAmount}px</span>
+            </div>
+            <input
+              type="range"
+              min={4}
+              max={40}
+              step={1}
+              value={viewFilters.bgBlurAmount}
+              onChange={(e) => setViewFilter("bgBlurAmount", Number(e.target.value))}
+              className="w-full accent-cyan-500"
+            />
+          </div>
+        )}
+      </div>
       {OVERLAYS.map((o) => {
         const state = overlays[o.id];
         const disabled = o.requiresFace && !pose;

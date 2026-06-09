@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useStudio } from "@/lib/store";
+import { useStudio, type ViewFilters } from "@/lib/store";
 import { detectPoseForVideo, warmupVideo, type PoseResult } from "@/lib/pose/detect";
+import { segmentVideo, warmupSegmenter } from "@/lib/pose/segmenter";
 import { OVERLAYS } from "@/lib/overlays/registry";
 
 const MAX_W = 1100;
@@ -20,8 +21,14 @@ export function WebcamStage() {
   const [running, setRunning] = useState(false);
   const overlays = useStudio((s) => s.overlays);
   const setPose = useStudio((s) => s.setPose);
+  const viewFilters = useStudio((s) => s.viewFilters);
   const overlaysRef = useRef(overlays);
   overlaysRef.current = overlays;
+  const filtersRef = useRef<ViewFilters>(viewFilters);
+  filtersRef.current = viewFilters;
+  // Offscreen scratch canvases for blur + mask compositing — avoid re-allocating per frame.
+  const blurCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Keep pausedRef in sync so the RAF loop sees the latest value
   // without re-subscribing through useEffect deps.
@@ -62,6 +69,10 @@ export function WebcamStage() {
     (async () => {
       try {
         await warmupVideo();
+        // Pre-load the segmenter in parallel with camera startup so the first
+        // background-blur toggle doesn't stall the render loop. Failure is OK
+        // here — segmenter only matters if the user enables bg blur.
+        warmupSegmenter().catch(() => {});
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false,
@@ -113,15 +124,85 @@ export function WebcamStage() {
         return;
       }
 
-      // Mirror horizontally for selfie view
+      const filters = filtersRef.current;
+      // Shared timestamp for both segmentation and face detection this frame.
+      const ts = performance.now();
+
+      // Step 1: draw the video frame onto the canvas, applying view filters.
+      // Background-blur path: blurred copy of the whole frame, then composite
+      // the in-focus person area on top using the segmentation mask.
       ctx.save();
       ctx.translate(w, 0);
       ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, w, h);
+      const baseFilter = filters.grayscale ? "grayscale(1)" : "none";
+
+      if (filters.bgBlur) {
+        // Blurred background pass
+        ctx.filter = `${baseFilter === "none" ? "" : baseFilter + " "}blur(${filters.bgBlurAmount}px)`;
+        ctx.drawImage(video, 0, 0, w, h);
+        ctx.filter = "none";
+      } else {
+        ctx.filter = baseFilter;
+        ctx.drawImage(video, 0, 0, w, h);
+        ctx.filter = "none";
+      }
       ctx.restore();
 
+      // Compose unblurred person area on top using the segmentation mask.
+      if (filters.bgBlur) {
+        // Run segmenter on the unmirrored video at its native timestamp.
+        segmentVideo(video, ts).then((seg) => {
+          if (!seg || !canvas) return;
+          // Build a mask canvas at video resolution
+          if (!maskCanvasRef.current) maskCanvasRef.current = document.createElement("canvas");
+          const mc = maskCanvasRef.current;
+          mc.width = seg.width;
+          mc.height = seg.height;
+          const mctx = mc.getContext("2d");
+          if (!mctx) return;
+          const arr = seg.mask.getAsUint8Array();
+          // SelfieSegmenter categories: 0 = background, 1 = person. Build RGBA.
+          const imgData = mctx.createImageData(seg.width, seg.height);
+          const data = imgData.data;
+          for (let i = 0, j = 0; i < arr.length; i++, j += 4) {
+            const v = arr[i] === 0 ? 255 : 0; // bg pixels = white (we want to KEEP the blur there)
+            data[j] = data[j + 1] = data[j + 2] = 255;
+            data[j + 3] = arr[i] === 0 ? 0 : 255; // alpha: 255 where person (so we draw sharp on top)
+            void v;
+          }
+          mctx.putImageData(imgData, 0, 0);
+
+          // Build a sharp canvas of just the person area, then draw to the main canvas
+          if (!blurCanvasRef.current) blurCanvasRef.current = document.createElement("canvas");
+          const bc = blurCanvasRef.current;
+          bc.width = w;
+          bc.height = h;
+          const bctx = bc.getContext("2d");
+          if (!bctx) return;
+          bctx.clearRect(0, 0, w, h);
+          // Draw sharp video (with grayscale if active), mirrored
+          bctx.save();
+          bctx.translate(w, 0);
+          bctx.scale(-1, 1);
+          bctx.filter = baseFilter;
+          bctx.drawImage(video, 0, 0, w, h);
+          bctx.restore();
+          // Clip to person mask using compositing
+          bctx.globalCompositeOperation = "destination-in";
+          bctx.save();
+          bctx.translate(w, 0);
+          bctx.scale(-1, 1);
+          bctx.drawImage(mc, 0, 0, w, h);
+          bctx.restore();
+          bctx.globalCompositeOperation = "source-over";
+
+          // Now blit the sharp-person canvas over the blurred background
+          ctx.drawImage(bc, 0, 0);
+          try { seg.mask.close(); } catch {}
+        }).catch((e) => console.warn("segment failed", e));
+      }
+
       // Run detection at most once per frame timestamp
-      const ts = performance.now();
       if (ts !== lastTimestampRef.current) {
         lastTimestampRef.current = ts;
         detectPoseForVideo(video, ts)

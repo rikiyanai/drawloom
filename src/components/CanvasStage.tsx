@@ -7,7 +7,7 @@ const MAX_W = 1100;
 
 export function CanvasStage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { image, pose, overlays } = useStudio();
+  const { image, pose, overlays, viewFilters } = useStudio();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -20,7 +20,11 @@ export function CanvasStage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, w, h);
+
+    // Apply view filters only to the photo draw, not to overlays
+    ctx.filter = viewFilters.grayscale ? "grayscale(1)" : "none";
     ctx.drawImage(image, 0, 0, w, h);
+    ctx.filter = "none";
 
     const scaledPose = pose
       ? {
@@ -42,7 +46,7 @@ export function CanvasStage() {
         console.warn(`overlay ${overlay.id} failed`, e);
       }
     }
-  }, [image, pose, overlays]);
+  }, [image, pose, overlays, viewFilters]);
 
   if (!image) return null;
   return (

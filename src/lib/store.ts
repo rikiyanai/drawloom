@@ -10,6 +10,12 @@ type OverlayState = {
 
 export type SourceMode = "upload" | "webcam";
 
+export type ViewFilters = {
+  grayscale: boolean;
+  bgBlur: boolean;
+  bgBlurAmount: number; // px
+};
+
 type StudioState = {
   mode: SourceMode;
   image: HTMLImageElement | null;
@@ -18,12 +24,14 @@ type StudioState = {
   status: "idle" | "loading" | "detecting" | "ready" | "no-face" | "error";
   errorMsg: string | null;
   overlays: Record<string, OverlayState>;
+  viewFilters: ViewFilters;
   setMode: (m: SourceMode) => void;
   setImage: (img: HTMLImageElement, url: string) => void;
   setStatus: (s: StudioState["status"], msg?: string) => void;
   setPose: (p: PoseResult) => void;
   toggleOverlay: (id: string) => void;
   setOverlayParam: (id: string, key: string, value: number | boolean) => void;
+  setViewFilter: <K extends keyof ViewFilters>(key: K, value: ViewFilters[K]) => void;
   reset: () => void;
 };
 
@@ -36,6 +44,8 @@ for (const o of OVERLAYS) {
   };
 }
 
+const initialViewFilters: ViewFilters = { grayscale: false, bgBlur: false, bgBlurAmount: 18 };
+
 export const useStudio = create<StudioState>((set) => ({
   mode: "upload",
   image: null,
@@ -44,6 +54,7 @@ export const useStudio = create<StudioState>((set) => ({
   status: "idle",
   errorMsg: null,
   overlays: initialOverlays,
+  viewFilters: initialViewFilters,
   setMode: (mode) =>
     set((s) => {
       if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
@@ -61,6 +72,8 @@ export const useStudio = create<StudioState>((set) => ({
         [id]: { ...s.overlays[id], params: { ...s.overlays[id].params, [key]: value } },
       },
     })),
+  setViewFilter: (key, value) =>
+    set((s) => ({ viewFilters: { ...s.viewFilters, [key]: value } })),
   reset: () =>
     set((s) => {
       if (s.imageUrl) URL.revokeObjectURL(s.imageUrl);
@@ -71,6 +84,7 @@ export const useStudio = create<StudioState>((set) => ({
         status: "idle",
         errorMsg: null,
         overlays: initialOverlays,
+        viewFilters: initialViewFilters,
       };
     }),
 }));
