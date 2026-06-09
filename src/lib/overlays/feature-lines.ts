@@ -212,17 +212,32 @@ export const featureLinesOverlay: Overlay = {
     }
 
     if (((params.lipLine as boolean) ?? true) && lips.length > 8) {
-      // Mouth opening line (where upper and lower lip meet): midpoints between
-      // upper-lip outer and lower-lip outer indices.
-      const upperHalf = lips.slice(0, 11);   // 61 ... 291 (top edge)
-      const lowerHalf = lips.slice(10).concat([lips[0]]); // wraps back
-      const opening: Pt[] = [];
-      // Cheap approximation: just connect the two mouth corners with a smooth
-      // line through the middle landmarks of upper-lip-bottom (use 13/14 area).
-      const innerLip = [78, 81, 82, 13, 312, 311, 308];
-      opening.push(...indicesToPts(innerLip, lms));
-      smoothOpenCurve(ctx, opening);
-      void upperHalf; void lowerHalf;
+      // Gullwing lip-closure line: traces the bottom edge of the upper lip
+      // (which is the seam where the lips meet from the outside view). This
+      // produces the classic M-shape — peaks at the cupid's bow on the
+      // tubercles, dip at the philtrum notch, sweep down to the corners.
+      //
+      // Landmarks taken from the top half of LIPS_INNER (MediaPipe convention:
+      // upper-lip-bottom edge, corner to corner, left to right).
+      const GULLWING_IDXS = [61, 76, 184, 74, 73, 72, 11, 302, 303, 304, 408, 306, 291];
+      const pts = GULLWING_IDXS.map((i) => lms[i]).filter(Boolean) as Pt[];
+      if (pts.length >= 3) {
+        // Catmull-Rom through the lip-closure landmarks for a smooth M-curve.
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i - 1] ?? pts[i];
+          const p1 = pts[i];
+          const p2 = pts[i + 1];
+          const p3 = pts[i + 2] ?? p2;
+          const c1x = p1.x + (p2.x - p0.x) / 6;
+          const c1y = p1.y + (p2.y - p0.y) / 6;
+          const c2x = p2.x - (p3.x - p1.x) / 6;
+          const c2y = p2.y - (p3.y - p1.y) / 6;
+          ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2.x, p2.y);
+        }
+        ctx.stroke();
+      }
     }
 
     void noseBridge;
