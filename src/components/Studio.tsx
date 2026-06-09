@@ -5,9 +5,16 @@ import { CanvasStage } from "./CanvasStage";
 import { WebcamStage } from "./WebcamStage";
 import { OverlayPanel } from "./OverlayPanel";
 import { useStudio } from "@/lib/store";
+import { installConsoleFilter } from "@/lib/console-filter";
 
 export function Studio() {
   const { image, reset, status, errorMsg, mode, setMode } = useStudio();
+
+  // Mute MediaPipe/TFLite INFO lines that ride on console.error and trip
+  // Next's error overlay — must run before any detection call.
+  useEffect(() => {
+    installConsoleFilter();
+  }, []);
 
   // Prevent the browser from navigating to a dropped image if it lands outside the dropzone.
   useEffect(() => {
