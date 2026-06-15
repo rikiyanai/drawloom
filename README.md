@@ -12,12 +12,12 @@ Everything runs in the browser — no backend, no upload, your image never leave
 
 | Overlay | Category | Status |
 |---|---|---|
-| Loomis head (sphere + cut-plane) | Construction | ✅ |
-| Skeleton + jaw + eye-sockets | Anatomy | ✅ stub (skeleton; muscles TODO) |
-| Proportion compare vs Loomis canon | Proportion | ✅ |
-| Horizon + plumb lines + thirds grid | Geometry | ✅ |
-| Notan (2-value / 3-value reduction) | Value | ✅ |
-| Edge map / squint blur / silhouette | Shape | ✅ |
+| Loomis head (sphere + cut-plane) | Construction | |
+| Skeleton + jaw + eye-sockets | Anatomy | stub (skeleton; muscles TODO) |
+| Proportion compare vs Loomis canon | Proportion | 
+| Horizon + plumb lines + thirds grid | Geometry |
+| Notan (2-value / 3-value reduction) | Value | 
+| Edge map / squint blur / silhouette | Shape | 
 
 Each overlay is a self-contained module under `src/lib/overlays/`. Add a new one by exporting an `Overlay` from a file in that folder and registering it in `registry.ts`.
 
