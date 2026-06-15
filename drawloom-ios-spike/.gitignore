@@ -1,0 +1,10 @@
+DrawloomSpike.xcodeproj/
+DrawloomSpike.xcworkspace/
+build/
+DerivedData/
+.build/
+*.xcuserstate
+*.xcuserdatad/
+*.swiftpm/
+xcuserdata/
+.DS_Store

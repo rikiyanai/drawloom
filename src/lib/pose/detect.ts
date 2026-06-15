@@ -18,7 +18,7 @@ async function createLandmarker(mode: Mode): Promise<FaceLandmarker> {
         "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
       delegate: "GPU",
     },
-    outputFaceBlendshapes: false,
+    outputFaceBlendshapes: true,
     outputFacialTransformationMatrixes: true,
     runningMode: mode,
     numFaces: 1,
@@ -47,6 +47,7 @@ export type HeadAngles = { yaw: number; pitch: number; roll: number };
 
 export type PoseResult = {
   landmarks: { x: number; y: number; z: number }[];
+  blendShapes: Record<string, number>;
   angles: HeadAngles;
   matrix: number[];
   bbox: { cx: number; cy: number; size: number };
@@ -92,8 +93,12 @@ function processResult(result: FaceLandmarkerResult, w: number, h: number): Pose
   const size = Math.max(maxX - minX, maxY - minY) * 1.4;
   const matrix = result.facialTransformationMatrixes?.[0]?.data;
   const angles: HeadAngles = matrix ? matrixToYPR(Array.from(matrix)) : { yaw: 0, pitch: 0, roll: 0 };
+  const blendShapes = Object.fromEntries(
+    (result.faceBlendshapes?.[0]?.categories ?? []).map((c) => [c.categoryName, c.score])
+  );
   return {
     landmarks: lms,
+    blendShapes,
     angles,
     matrix: matrix ? Array.from(matrix) : [],
     bbox: { cx, cy, size },

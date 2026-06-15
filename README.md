@@ -1,33 +1,29 @@
 # drawloom
 
-> Upload a portrait → AI detects head angle → overlay form-first drawing exercises.
+Upload a portrait, get construction/anatomy/value overlays for study. Runs in-browser, no backend, no upload.
 
-The inverse of [viva-reference-angle](https://github.com/watusiii/viva-reference-angle): instead of picking a head pose to find a matching photo, drawloom analyzes the photo you give it and lays construction/value/anatomy guides over the top so you can study the underlying form.
+![Loomis overlay](screenshots/loomis.png)
+![Skull overlay](screenshots/skull.png)
 
-Everything runs in the browser — no backend, no upload, your image never leaves your machine.
+## Overlays
 
-![Drawloom pre-alpha demo](demo.gif)
+| Overlay | Category |
+|---|---|
+| Loomis head (sphere + cut-plane) | Construction |
+| Skeleton + jaw + eye-sockets | Anatomy |
+| Proportion vs Loomis canon | Proportion |
+| Horizon + plumb + thirds grid | Geometry |
+| Notan (2/3-value reduction) | Value |
+| Edge map / squint / silhouette | Shape |
+| Skull (3D .glb model) | Anatomy |
+| Doveline contour | Construction |
+| Feature lines (gullwing lips, brows, jaw) | Anatomy |
 
-## Overlay roster (v1)
-
-| Overlay | Category | Status |
-|---|---|---|
-| Loomis head (sphere + cut-plane) | Construction | |
-| Skeleton + jaw + eye-sockets | Anatomy | stub (skeleton; muscles TODO) |
-| Proportion compare vs Loomis canon | Proportion | 
-| Horizon + plumb lines + thirds grid | Geometry |
-| Notan (2-value / 3-value reduction) | Value | 
-| Edge map / squint blur / silhouette | Shape | 
-
-Each overlay is a self-contained module under `src/lib/overlays/`. Add a new one by exporting an `Overlay` from a file in that folder and registering it in `registry.ts`.
+Overlays live in `src/lib/overlays/`. Add one by exporting an `Overlay` and registering it in `registry.ts`.
 
 ## Stack
 
-- Next.js 16 (app router) + React 19 + TypeScript
-- Tailwind v4
-- `@mediapipe/tasks-vision` Face Landmarker (browser WASM, GPU delegate)
-- Pose math ported from the Python `extract_poses.py` pipeline in the source repo
-- Zustand for state
+Next.js 16 + React 19 + TypeScript, Tailwind v4, `@mediapipe/tasks-vision` Face Landmarker, Zustand.
 
 ## Run
 
@@ -40,12 +36,12 @@ Open http://localhost:3000.
 
 ## Roadmap
 
-- **v1.1** — Three.js-rendered 3D Loomis head (replace the 2D ellipse approximation)
-- **v1.2** — Asaro plane head overlay
-- **v1.3** — Full muscle layer (Z-Anatomy SVG, Delaunay-warped to landmarks)
-- **v1.4** — Body pose (MediaPipe Pose Landmarker) for figure work
-- **v1.5** — Webcam mode for live mirror studies
-- **v2** — Export overlaid image, study session timer, side-by-side reference angles
+- Three.js-rendered 3D Loomis head (replace 2D ellipse)
+- Asaro plane head overlay
+- Full muscle layer (Z-Anatomy SVG, Delaunay-warped)
+- Body pose (MediaPipe Pose Landmarker)
+- Webcam mode for live mirror studies
+- Export overlaid image, session timer, side-by-side angles
 
 ## License
 

@@ -8,9 +8,10 @@ import { SkullPanel } from "./SkullPanel";
 import { SkullOverlay } from "./SkullOverlay";
 import { useStudio } from "@/lib/store";
 import { installConsoleFilter } from "@/lib/console-filter";
+import { downloadMediaPipeFramePacket } from "@/lib/pose/packet";
 
 export function Studio() {
-  const { image, reset, status, errorMsg, mode, setMode, layout, setLayout } = useStudio();
+  const { image, reset, status, errorMsg, mode, setMode, layout, setLayout, pose } = useStudio();
 
   // Mute MediaPipe/TFLite INFO lines that ride on console.error and trip
   // Next's error overlay — must run before any detection call.
@@ -75,6 +76,14 @@ export function Studio() {
               skull overlay
             </button>
           </div>
+          {status === "ready" && pose && (
+            <button
+              onClick={() => downloadMediaPipeFramePacket(pose)}
+              className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 font-mono"
+            >
+              export MediaPipe JSON
+            </button>
+          )}
           {(image || mode === "webcam") && (
             <button
               onClick={reset}
