@@ -4,6 +4,8 @@ Upload a portrait, get construction/anatomy/value overlays for study. Runs in-br
 
 ![Loomis overlay](screenshots/loomis.png)
 ![Skull overlay](screenshots/skull.png)
+![Proportion overlay](screenshots/proportion.png)
+![Proportion overlay detail](screenshots/proportion-detail.png)
 
 ## Overlays
 
