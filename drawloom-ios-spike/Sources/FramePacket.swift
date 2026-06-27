@@ -73,7 +73,7 @@ struct FramePacket: Codable {
             faceTransform: Mat(m: flatten4x4(face.transform)),
             modelToCamera: Mat(m: flatten4x4(modelToCamera)),
             vertices: geom.vertices.map { Vec3(x: $0.x, y: $0.y, z: $0.z) },
-            triangleIndices: geom.triangleIndices,
+            triangleIndices: geom.triangleIndices.map { UInt16(bitPattern: $0) },
             blendShapes: blends,
             depth: frame.capturedDepthData.flatMap { summarizeDepth($0, face: face, modelToCamera: modelToCamera, imageResolution: resolution, intrinsics: cam.intrinsics) }
         )

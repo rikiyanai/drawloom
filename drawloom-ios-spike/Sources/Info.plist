@@ -36,6 +36,8 @@
 		<string>arm64</string>
 		<string>front-facing-camera</string>
 	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -23,6 +23,15 @@ struct ContentView: View {
                 .padding()
                 Spacer()
                 HStack {
+                    Button(action: { session.advanceStage() }) {
+                        Text(session.stage.label)
+                            .font(.system(.caption, design: .monospaced))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.black.opacity(0.55))
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
                     Spacer()
                     Button(action: {
                         if let url = session.exportLatestPacket() {
