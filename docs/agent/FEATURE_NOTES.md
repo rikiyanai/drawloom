@@ -50,4 +50,50 @@ MediaPipe `ImageSegmenter` with `selfie_segmenter.tflite` produces a person mask
 
 ---
 
+---
+
+## Future external references — 2026-07-07
+
+Recorded so they are not lost. Plan: use shape-similarity ASCII-art / structure-based glyph selection
+in drawloom construction or edge-map overlays, or in the asciicker-Y9-2 glyph-rendering paper lane,
+or both. No commitment to either project yet.
+
+- **Structure-based ASCII Art** — Xu, Xuemiao; Zhang, Linling; Wong, Tien-Tsin. *ACM Transactions
+  on Graphics (Proc. SIGGRAPH)*, vol. 29, no. 4, 2010. Key contribution: alignment-insensitive shape
+  similarity (AISS) — a log-polar shape descriptor that tolerates position/orientation/scale
+  misalignment — plus constrained deformation, formulated as an optimization that minimizes shape
+  dissimilarity and deformation to approximate a reference image's major line structure with ASCII
+  character shapes. This is the paper cited in the unrelated asciicker-Y9-2 repo's glyph-rendering
+  bibliography (`xu2010structureascii`) and recorded there as a future role-specific structural
+  scorer. Project page (paper + result galleries, no source code):
+  `http://www.cse.cuhk.edu.hk/~ttwong/papers/asciiart/asciiart.html`. Mirror PDF:
+  `https://www.cg.tuwien.ac.at/courses/CA/material/papers/AsciiArt.pdf`.
+- **Runnable reimplementation (closest match): `MacLeek/ascii-art`** — GitHub, Python/Cython.
+  Implements a Shape-Context class with log-polar bins (`nbins_r=5, nbins_theta=12,
+  r_inner=0.5, r_outer=2.0`), the same log-polar descriptor family the paper's AISS is built on.
+  Ships the paper's own test images (`monk_1.bmp`, `queen.gif`) matching the CUHK project galleries.
+  Run: `pip install numpy scipy scikit-image`, `python setup.py build_ext --i`, then
+  `import ascii; ascii.image_to_ascii('monk_1.bmp', 0.3, Rw=48)`. Caveat: Python-2-era Cython
+  (`xrange`, `scipy.misc.toimage/imresize`) — needs porting to Python 3 / modern scikit-image
+  before it runs. This is the most relevant runnable artifact for testing the algorithm.
+- **Runnable reimplementation (narrower): `arduinocc04/AAC`** — GitHub, C++, Sogang University
+  CSE2035 term project, "heavily influenced by structure-based ascii art". Implements log-polar
+  transform + Bhattacharyya distance image comparison, Suzuki topological structural analysis,
+  monotone-chain convex hull, grassfire transform. Deps: libpng + eigen. Narrower term-project
+  scope than MacLeek.
+- **Computer-Generated Pen-and-Ink Illustration of Trees** — Deussen, Oliver; Strothotte, Thomas.
+  *Proceedings of SIGGRAPH*, 2000. Key contribution: depth-difference algorithm for pen-and-ink
+  foliage using abstract drawing primitives (disks/ellipses/interpolated leaf polygons) with
+  depth-buffer-driven outline admission and level-of-abstraction via depth-buffer non-linearity;
+  input tree models via xfrog (Greenworks, commercial). Less directly relevant to drawloom's
+  portrait-overlay scope, but recorded alongside because it shares the depth-buffer-driven
+  stroke-placement family and may inform any future scene/foliage rendering in either project.
+  No public reference implementation found. PDF:
+  `https://www.cs.princeton.edu/courses/archive/fall00/cs597b/papers/plantsketch.pdf`.
+
+Drawloom relevance note: the AISS log-polar shape-similarity approach is a candidate for an
+edge-map / silhouette / "squint" overlay that selects rendering strokes (or simplification levels)
+by matching detected portrait contours to a library of construction-curve templates, rather than
+the current fixed landmark-chain bezier overlays. Not started; this is a reference capture only.
+
 *Status snapshot 2026-06-09: all 9 items LANDED. Commit refs: `0be2848`, `7dc4a5a` (×3), `70fdf1d`, `4c4f037`, `e6f953e` (×2), `43c74cb`, `368274e` (body pose + GLB loader).*
