@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 // Skull is loaded via the following priority:
-//   1. /skull.glb in public/ (drop a CC-BY/CC0 mesh there and it auto-uses).
+//   1. skull.glb in public/ (drop a CC-BY/CC0 mesh there and it auto-uses).
 //   2. window.__DRAWLOOM_SKULL_URL if set (lets the host page point us at any
 //      hosted GLB without code changes).
 //   3. Procedural fallback built from three.js primitives.
@@ -235,7 +237,7 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
   // stays in place — no user-visible failure.
   (async () => {
     const candidates = [
-      "/skull.glb",
+      `${BASE_PATH}/skull.glb`,
       ...(typeof window !== "undefined" && (window as unknown as { __DRAWLOOM_SKULL_URL?: string }).__DRAWLOOM_SKULL_URL
         ? [(window as unknown as { __DRAWLOOM_SKULL_URL?: string }).__DRAWLOOM_SKULL_URL as string]
         : []),

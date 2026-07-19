@@ -2,6 +2,8 @@
 
 Upload a portrait, get construction/anatomy/value overlays for study. Runs in-browser, no backend, no upload.
 
+[Open Drawloom](https://rikiworld.com/drawloom/)
+
 ![Loomis overlay](screenshots/loomis.png)
 ![Skull overlay](screenshots/skull.png)
 ![Proportion overlay](screenshots/proportion.png)
@@ -34,16 +36,15 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000/drawloom/.
 
 ## Roadmap
 
-- Three.js-rendered 3D Loomis head (replace 2D ellipse)
+- Projected 3D Loomis cut-plane geometry
+- More accurate Reilly rhythms across front, three-quarter, and profile views
+- Better skull scale and portrait matching
 - Asaro plane head overlay
-- Full muscle layer (Z-Anatomy SVG, Delaunay-warped)
-- Body pose (MediaPipe Pose Landmarker)
-- Webcam mode for live mirror studies
-- Export overlaid image, session timer, side-by-side angles
+- Full muscle layer
 
 ## License
 

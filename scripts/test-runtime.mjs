@@ -9,7 +9,7 @@ import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEST_IMAGE = process.argv[2] ?? "/tmp/portrait-test.jpg";
-const URL = process.argv[3] ?? "http://localhost:3000";
+const URL = process.argv[3] ?? "http://localhost:3000/drawloom/";
 const OUT_DIR = resolve(__dirname, "..", ".test-out");
 
 import { mkdirSync, writeFileSync } from "node:fs";
