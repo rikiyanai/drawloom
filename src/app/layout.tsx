@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "drawloom — form-first drawing overlays",
   description:
-    "Upload a portrait and overlay Loomis construction, value reduction, anatomy, proportion checks, and shape-simplification exercises. Runs in your browser.",
+    "Upload a portrait for landmark traces, face-mesh wireframe, value reduction, measurement guides, and shape-simplification tools. Runs in your browser.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

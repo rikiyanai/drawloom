@@ -1,27 +1,21 @@
 # drawloom
 
-Upload a portrait, get construction/anatomy/value overlays for study. Runs in-browser, no backend, no upload.
+Upload a portrait for direct landmark traces, a face-mesh wireframe, value reduction, measurement guides, and shape studies. Runs in-browser, no backend, no upload.
 
 [Open Drawloom](https://rikiworld.com/drawloom/)
-
-![Loomis overlay](screenshots/loomis.png)
-![Skull overlay](screenshots/skull.png)
-![Proportion overlay](screenshots/proportion.png)
-![Proportion overlay detail](screenshots/proportion-detail.png)
 
 ## Overlays
 
 | Overlay | Category |
 |---|---|
-| Loomis head (sphere + cut-plane) | Construction |
-| Skeleton + jaw + eye-sockets | Anatomy |
-| Proportion vs Loomis canon | Proportion |
-| Horizon + plumb + thirds grid | Geometry |
+| Face-oval landmark trace | Construction |
+| Face centerline landmark trace | Construction |
+| MediaPipe face-mesh wireframe | Structure |
+| Eye-line + plumb + thirds grid | Geometry |
 | Notan (2/3-value reduction) | Value |
 | Edge map / squint / silhouette | Shape |
-| Skull (3D .glb model) | Anatomy |
-| Doveline contour | Construction |
-| Feature lines (gullwing lips, brows, jaw) | Anatomy |
+
+The default layout places the portrait/webcam beside a 3D skull reference at the detected head angle. The skull is deliberately separate; Drawloom does not claim anatomical registration to the subject.
 
 Overlays live in `src/lib/overlays/`. Add one by exporting an `Overlay` and registering it in `registry.ts`.
 
@@ -40,11 +34,9 @@ Open http://localhost:3000/drawloom/.
 
 ## Roadmap
 
-- Projected 3D Loomis cut-plane geometry
-- More accurate Reilly rhythms across front, three-quarter, and profile views
-- Better skull scale and portrait matching
-- Asaro plane head overlay
-- Full muscle layer
+- Validate landmark-derived guides across front, three-quarter, and profile views
+- Improve skull comparison framing without implying anatomical registration
+- Add new construction or anatomy aids only with a cited model and visual validation set
 
 ## License
 

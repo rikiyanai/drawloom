@@ -5,7 +5,6 @@ import { CanvasStage } from "./CanvasStage";
 import { WebcamStage } from "./WebcamStage";
 import { OverlayPanel } from "./OverlayPanel";
 import { SkullPanel } from "./SkullPanel";
-import { SkullOverlay } from "./SkullOverlay";
 import { useStudio } from "@/lib/store";
 import { installConsoleFilter } from "@/lib/console-filter";
 import { downloadMediaPipeFramePacket } from "@/lib/pose/packet";
@@ -68,13 +67,6 @@ export function Studio() {
             >
               split + skull
             </button>
-            <button
-              onClick={() => setLayout("overlay")}
-              className={`px-3 py-1.5 ${layout === "overlay" ? "bg-cyan-600 text-white" : "text-zinc-400 hover:text-zinc-200"}`}
-              title="Skull rendered on top of your face at the same scale"
-            >
-              skull overlay
-            </button>
           </div>
           {status === "ready" && pose && (
             <button
@@ -117,33 +109,14 @@ export function Studio() {
                 <SkullPanel />
               </div>
             </div>
-          ) : layout === "overlay" ? (
-            <div className="relative">
-              {mode === "webcam" ? (
-                <WebcamStage>
-                  <SkullOverlay />
-                </WebcamStage>
-              ) : !image ? (
-                <div className="max-w-xl mx-auto pt-16">
-                  <UploadDropzone />
-                  {errorMsg && status === "error" && (
-                    <p className="text-center mt-4 text-rose-400 text-sm">{errorMsg}</p>
-                  )}
-                </div>
-              ) : (
-                <CanvasStage>
-                  <SkullOverlay />
-                </CanvasStage>
-              )}
-            </div>
           ) : mode === "webcam" ? (
             <WebcamStage />
           ) : !image ? (
             <div className="max-w-xl mx-auto pt-16">
               <p className="text-center text-zinc-400 mb-6 text-sm leading-relaxed">
-                Upload a portrait or switch to webcam mode. drawloom detects the head angle and overlays Loomis
-                construction, value reduction, anatomical structure, proportion measurements, and shape-simplification
-                exercises — all in your browser.
+                Upload a portrait or switch to webcam mode. drawloom detects facial landmarks and provides direct
+                landmark traces, a face-mesh wireframe, value reduction, measurement guides, and shape-simplification
+                tools — all in your browser.
               </p>
               <UploadDropzone />
               {errorMsg && status === "error" && (

@@ -57,10 +57,10 @@ function drawCatmullRom(ctx: CanvasRenderingContext2D, pts: Pt[], tension = 0.5)
 
 export const dovelineOverlay: Overlay = {
   id: "doveline",
-  name: "Doveline (central contour)",
+  name: "Face centerline trace",
   category: "construction",
   description:
-    "Central rhythm contour from forehead crown through nose ridge, philtrum, lips, and chin. Follows the true midline of the face surface, so it naturally angles in 3/4 view.",
+    "Detected MediaPipe centerline landmarks traced from forehead through nose, lips, and chin.",
   requiresFace: true,
   params: [
     { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.9 },

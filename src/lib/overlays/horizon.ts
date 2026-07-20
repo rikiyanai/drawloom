@@ -2,9 +2,9 @@ import type { Overlay } from "./types";
 
 export const horizonOverlay: Overlay = {
   id: "horizon",
-  name: "Horizon + plumb + grid",
+  name: "Eye-line + plumb + grid",
   category: "geometry",
-  description: "Eye-level horizon, plumb lines through key landmarks, rule-of-thirds grid.",
+  description: "Eye line, plumb lines through detected landmarks, and a rule-of-thirds grid.",
   requiresFace: false,
   params: [
     { key: "horizon", label: "Horizon line", type: "toggle", default: true },

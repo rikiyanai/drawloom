@@ -9,7 +9,7 @@ export const ovoidOverlay: Overlay = {
   name: "Ovoid silhouette",
   category: "construction",
   description:
-    "Egg-shape outline of the whole face perimeter, traced from the face-oval landmarks. (Not the doveline — see the Doveline overlay for the central rhythm contour.)",
+    "Face perimeter traced directly from MediaPipe face-oval landmarks.",
   requiresFace: true,
   params: [
     { key: "opacity", label: "Opacity", type: "slider", min: 0, max: 1, step: 0.05, default: 0.85 },

@@ -1,25 +1,18 @@
-import { loomisOverlay } from "./loomis";
-import { loomisReillyOverlay } from "./loomis-reilly";
 import { ovoidOverlay } from "./ovoid";
 import { dovelineOverlay } from "./doveline";
 import { notanOverlay } from "./notan";
 import { horizonOverlay } from "./horizon";
 import { edgesOverlay } from "./edges";
-import { proportionOverlay } from "./proportion";
-import { featureLinesOverlay } from "./feature-lines";
 import { meshWireframeOverlay } from "./mesh-wireframe";
-import { skeletonOverlay } from "./skeleton";
 import type { Overlay } from "./types";
 
+// FL-015: This registry is the public accuracy boundary. Keep only overlays
+// that directly trace detected landmarks or apply deterministic pixel/geometry
+// transforms; do not expose inferred construction or anatomical registration.
 export const OVERLAYS: Overlay[] = [
   ovoidOverlay,
   dovelineOverlay,
-  loomisReillyOverlay,
-  loomisOverlay,
-  skeletonOverlay,
   meshWireframeOverlay,
-  featureLinesOverlay,
-  proportionOverlay,
   horizonOverlay,
   notanOverlay,
   edgesOverlay,
