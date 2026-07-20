@@ -21,6 +21,7 @@ Status legend: `PENDING` (fix written, not verified) · `VERIFIED` (required che
 | FL-013 | ARKit/TrueDepth spike was outside the tracked `drawloom` repo and its packet comparison workflow could mislead. | High | `drawloom-ios-spike/`, `src/lib/pose/detect.ts`, `src/lib/pose/packet.ts`, `src/components/OverlayPanel.tsx` | Moved the spike into the repo and added explicit web/iOS packet export surfaces; full topology comparison remains outside this web-surface audit. | PENDING |  |
 | FL-014 | ARKit Loomis overlay reads pasted-on and inaccurate despite a measurement-first rewrite. | High | `drawloom-ios-spike/Sources/ARFaceView.swift` | The iOS spike remains non-public and pending validation; it is not registered on the web surface. | PENDING |  |
 | FL-015 | The deployed web surface exposed unverified construction/anatomy as valid tools: Loomis, Reilly rhythms, fabricated lip/nose curves, canonical proportion claims, and bbox-fitted skull overlays. | Critical | `src/lib/overlays/registry.ts`, `src/lib/store.ts`, `src/components/Studio.tsx`, `src/app/layout.tsx`, `README.md` | Established the public registry as an accuracy boundary, deleted every unvalidated implementation/owner, retained only direct landmark or deterministic pixel/geometry tools, removed skull superimposition, and made the separate split-skull reference default. ComplaintRefs: FL-006, FL-008, FL-009, FL-010, FL-011. | VERIFIED | 2026-07-21 |
+| FL-016 | Webcam mode exposed live pose data but provided no repeatable way to collect comparable front, three-quarter, and profile references; users had to time arbitrary manual screenshots. | Medium | `src/components/WebcamStage.tsx`, `src/lib/capture/pose-session.ts`, `scripts/test-surface.mjs`, `README.md` | Added one guided five-angle session owner. It advances only after measured yaw, level, framing, expression, exposure, sharpness, and short-term pose stability pass continuously, then stores a clean camera frame in a retakeable strip. It does not infer anatomy or bake overlays into the capture. | PENDING |  |
 
 ## Verification protocol
 
@@ -40,6 +41,18 @@ npm run test:surface → PASS; split default; 6 audited overlays
 git diff --check     → PASS
 public string audit  → PASS; removed overlay names/claims absent from src and export
 ```
+
+## Verification run — 2026-07-21 (FL-016)
+
+```text
+npx tsc --noEmit     → PASS
+npm run build        → PASS; production export compiled and generated 4 static pages
+npm run test:surface → PASS; split default, 6 audited overlays, 5-angle webcam surface
+fake-camera browser  → PASS; camera starts, guide activates, no-face gate blocks capture
+git diff --check     → PASS
+```
+
+FL-016 remains `PENDING` until a real face completes all five automatic captures in operator testing.
 
 Retained web overlays after the audit:
 

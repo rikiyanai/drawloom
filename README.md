@@ -17,6 +17,8 @@ Upload a portrait for direct landmark traces, a face-mesh wireframe, value reduc
 
 The default layout places the portrait/webcam beside a 3D skull reference at the detected head angle. The skull is deliberately separate; Drawloom does not claim anatomical registration to the subject.
 
+Webcam mode also includes a guided five-angle capture. It checks measurable pose, framing, even lighting, image sharpness, facial motion, and a relaxed expression before automatically storing each clean camera frame. Overlays are not baked into the captured set.
+
 Overlays live in `src/lib/overlays/`. Add one by exporting an `Overlay` and registering it in `registry.ts`.
 
 ## Stack

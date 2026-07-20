@@ -33,6 +33,14 @@ try {
   }
 
   await page.getByRole("button", { name: "webcam (live)" }).click();
+  const guidedCapture = page.getByTestId("guided-capture");
+  await guidedCapture.waitFor({ state: "visible" });
+  if ((await guidedCapture.getByTestId("capture-slot").count()) !== 5) {
+    throw new Error("guided webcam capture does not expose exactly five angle slots");
+  }
+  if ((await page.getByRole("button", { name: "Start 5-angle capture" }).count()) !== 1) {
+    throw new Error("guided webcam capture start control is missing");
+  }
   const visibleOverlays = await page.locator("aside .font-medium").allTextContents();
   if (JSON.stringify(visibleOverlays) !== JSON.stringify(expectedOverlays)) {
     throw new Error(`unexpected overlay surface: ${JSON.stringify(visibleOverlays)}`);
@@ -43,7 +51,7 @@ try {
     if (body.includes(claim)) throw new Error(`removed claim is still visible: ${claim}`);
   }
 
-  console.log(`surface ok: split default; ${visibleOverlays.length} audited overlays`);
+  console.log(`surface ok: split default; ${visibleOverlays.length} audited overlays; 5-angle webcam capture`);
 } finally {
   await browser.close();
 }

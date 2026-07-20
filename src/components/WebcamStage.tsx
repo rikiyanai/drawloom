@@ -5,8 +5,24 @@ import { detectPoseForVideo, warmupVideo, type PoseResult } from "@/lib/pose/det
 import { segmentVideo, warmupSegmenter } from "@/lib/pose/segmenter";
 import { detectBodyForVideo, warmupBody, type BodyPoseResult } from "@/lib/pose/body";
 import { OVERLAYS } from "@/lib/overlays/registry";
+import {
+  analyzeFrame,
+  assessCapture,
+  CAPTURE_TARGETS,
+  type CaptureAssessment,
+  type FrameQuality,
+} from "@/lib/capture/pose-session";
 
 const MAX_W = 1100;
+const CAPTURE_HOLD_MS = 850;
+
+type GuidedCapture = {
+  dataUrl: string;
+  yaw: number;
+  pitch: number;
+  roll: number;
+  capturedAt: number;
+};
 
 export function WebcamStage({ children }: { children?: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -38,6 +54,62 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
   // Offscreen scratch canvases for blur + mask compositing — avoid re-allocating per frame.
   const blurCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const qualityCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastQualityRef = useRef<FrameQuality | null>(null);
+  const lastQualityAtRef = useRef(0);
+  const angleSamplesRef = useRef<Array<{ at: number; yaw: number; pitch: number; roll: number }>>([]);
+  const guideActiveRef = useRef(false);
+  const targetIndexRef = useRef(0);
+  const readySinceRef = useRef<number | null>(null);
+  const lastGuideUiAtRef = useRef(0);
+  const [guideActive, setGuideActive] = useState(false);
+  const [targetIndex, setTargetIndex] = useState(0);
+  const [captures, setCaptures] = useState<Record<string, GuidedCapture>>({});
+  const [assessment, setAssessment] = useState<CaptureAssessment | null>(null);
+  const [holdProgress, setHoldProgress] = useState(0);
+
+  useEffect(() => {
+    guideActiveRef.current = guideActive;
+  }, [guideActive]);
+
+  useEffect(() => {
+    targetIndexRef.current = targetIndex;
+  }, [targetIndex]);
+
+  const startGuide = useCallback(() => {
+    setCaptures({});
+    setTargetIndex(0);
+    targetIndexRef.current = 0;
+    readySinceRef.current = null;
+    angleSamplesRef.current = [];
+    setAssessment(null);
+    setHoldProgress(0);
+    setGuideActive(true);
+    guideActiveRef.current = true;
+  }, []);
+
+  const stopGuide = useCallback(() => {
+    setGuideActive(false);
+    guideActiveRef.current = false;
+    readySinceRef.current = null;
+    setHoldProgress(0);
+  }, []);
+
+  const retakeTarget = useCallback((index: number) => {
+    const target = CAPTURE_TARGETS[index];
+    setCaptures((current) => {
+      const next = { ...current };
+      delete next[target.id];
+      return next;
+    });
+    setTargetIndex(index);
+    targetIndexRef.current = index;
+    readySinceRef.current = null;
+    angleSamplesRef.current = [];
+    setHoldProgress(0);
+    setGuideActive(true);
+    guideActiveRef.current = true;
+  }, []);
 
   // Keep pausedRef in sync so the RAF loop sees the latest value
   // without re-subscribing through useEffect deps.
@@ -136,6 +208,12 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
       const filters = filtersRef.current;
       // Shared timestamp for both segmentation and face detection this frame.
       const ts = performance.now();
+
+      if (guideActiveRef.current && ts - lastQualityAtRef.current >= 220) {
+        lastQualityAtRef.current = ts;
+        if (!qualityCanvasRef.current) qualityCanvasRef.current = document.createElement("canvas");
+        lastQualityRef.current = analyzeFrame(video, qualityCanvasRef.current);
+      }
 
       // Step 1: draw the video frame onto the canvas, applying view filters.
       // Background-blur path: blurred copy of the whole frame, then composite
@@ -283,6 +361,76 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
 
       // Render overlays using the most recent pose
       const pose = poseRef.current;
+
+      if (guideActiveRef.current) {
+        if (pose) {
+          angleSamplesRef.current.push({ at: ts, ...pose.angles });
+          angleSamplesRef.current = angleSamplesRef.current.filter((sample) => ts - sample.at <= 650);
+        } else {
+          angleSamplesRef.current = [];
+        }
+        const samples = angleSamplesRef.current;
+        const motion = samples.length < 4
+          ? Infinity
+          : Math.max(
+              ...(["yaw", "pitch", "roll"] as const).map((axis) => {
+                const values = samples.map((sample) => sample[axis]);
+                return Math.max(...values) - Math.min(...values);
+              })
+            );
+        const index = targetIndexRef.current;
+        const target = CAPTURE_TARGETS[index];
+        if (target) {
+          const nextAssessment = assessCapture(pose, target, lastQualityRef.current, motion);
+          if (nextAssessment.ready) {
+            if (readySinceRef.current === null) readySinceRef.current = ts;
+            const progress = Math.min(1, (ts - readySinceRef.current) / CAPTURE_HOLD_MS);
+            if (ts - lastGuideUiAtRef.current >= 80) {
+              lastGuideUiAtRef.current = ts;
+              setAssessment(nextAssessment);
+              setHoldProgress(progress);
+            }
+            if (progress >= 1 && pose) {
+              const clean = document.createElement("canvas");
+              clean.width = w;
+              clean.height = h;
+              const cleanCtx = clean.getContext("2d");
+              if (cleanCtx) {
+                cleanCtx.translate(w, 0);
+                cleanCtx.scale(-1, 1);
+                cleanCtx.drawImage(video, 0, 0, w, h);
+                const capture: GuidedCapture = {
+                  dataUrl: clean.toDataURL("image/jpeg", 0.9),
+                  yaw: pose.angles.yaw,
+                  pitch: pose.angles.pitch,
+                  roll: pose.angles.roll,
+                  capturedAt: Date.now(),
+                };
+                setCaptures((current) => ({ ...current, [target.id]: capture }));
+                readySinceRef.current = null;
+                angleSamplesRef.current = [];
+                setHoldProgress(0);
+                const nextIndex = index + 1;
+                if (nextIndex >= CAPTURE_TARGETS.length) {
+                  setGuideActive(false);
+                  guideActiveRef.current = false;
+                } else {
+                  targetIndexRef.current = nextIndex;
+                  setTargetIndex(nextIndex);
+                }
+              }
+            }
+          } else {
+            readySinceRef.current = null;
+            if (ts - lastGuideUiAtRef.current >= 120) {
+              lastGuideUiAtRef.current = ts;
+              setAssessment(nextAssessment);
+              setHoldProgress(0);
+            }
+          }
+        }
+      }
+
       for (const overlay of OVERLAYS) {
         const state = overlaysRef.current[overlay.id];
         if (!state?.enabled) continue;
@@ -336,16 +484,28 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const currentTarget = CAPTURE_TARGETS[targetIndex];
+  const currentYaw = poseRef.current?.angles.yaw ?? 0;
+  const captureCount = Object.keys(captures).length;
+  const complete = captureCount === CAPTURE_TARGETS.length;
+
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <button
+          onClick={guideActive ? stopGuide : startGuide}
+          disabled={!running}
+          className="text-xs px-3 py-1.5 rounded border border-cyan-700 text-cyan-300 hover:border-cyan-400 disabled:opacity-40"
+        >
+          {guideActive ? "Cancel guided capture" : complete ? "New 5-angle capture" : "Start 5-angle capture"}
+        </button>
         <button
           onClick={handlePauseToggle}
           disabled={!running}
           className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-40"
           title="Freeze the live view on the current frame"
         >
-          {paused ? "▶ resume" : "⏸ pause"}
+          {paused ? "Resume" : "Pause"}
         </button>
         <button
           onClick={handleSnapshot}
@@ -353,9 +513,83 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
           className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 disabled:opacity-40"
           title="Save the current canvas (with overlays) as a PNG"
         >
-          📸 snapshot
+          Snapshot
         </button>
       </div>
+      <section data-testid="guided-capture" className="rounded-lg border border-zinc-800 bg-zinc-950 p-3 space-y-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <div className="text-xs font-medium text-zinc-200">Guided five-angle capture</div>
+            <div className="text-[11px] text-zinc-500">Clean camera frames; overlays are excluded.</div>
+          </div>
+          <div className="text-[11px] font-mono text-zinc-400">{captureCount}/5 captured</div>
+        </div>
+
+        {guideActive && currentTarget && (
+          <div className="rounded border border-zinc-700 bg-zinc-900 p-3 space-y-2" aria-live="polite">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-medium text-white">{currentTarget.label}</span>
+              <span className="text-[11px] font-mono text-zinc-400">
+                yaw {currentYaw >= 0 ? "+" : ""}{currentYaw.toFixed(0)}° / {currentTarget.yaw >= 0 ? "+" : ""}{currentTarget.yaw}°
+              </span>
+            </div>
+            <div className="relative h-5" aria-label="Yaw alignment guide">
+              <div className="absolute left-0 right-0 top-2 h-px bg-zinc-700" />
+              <div
+                className="absolute top-0 h-5 rounded-sm bg-cyan-900/70 border border-cyan-500"
+                style={{
+                  left: `${((currentTarget.yaw - currentTarget.tolerance + 70) / 140) * 100}%`,
+                  width: `${(currentTarget.tolerance * 2 / 140) * 100}%`,
+                }}
+              />
+              <div
+                className="absolute top-0 h-5 w-0.5 bg-white"
+                style={{ left: `${Math.max(0, Math.min(100, ((currentYaw + 70) / 140) * 100))}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+                <div className="h-full bg-cyan-400 transition-[width]" style={{ width: `${holdProgress * 100}%` }} />
+              </div>
+              <span className="min-w-44 text-right text-xs text-zinc-300">{assessment?.message ?? "Finding face…"}</span>
+            </div>
+          </div>
+        )}
+
+        {complete && !guideActive && (
+          <div className="rounded border border-emerald-800 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-300">
+            Five-angle set complete. Select any frame to retake it.
+          </div>
+        )}
+
+        <div className="grid grid-cols-5 gap-2">
+          {CAPTURE_TARGETS.map((target, index) => {
+            const capture = captures[target.id];
+            const selected = guideActive && index === targetIndex;
+            return (
+              <button
+                data-testid="capture-slot"
+                key={target.id}
+                type="button"
+                onClick={() => capture && retakeTarget(index)}
+                disabled={!capture}
+                className={`min-w-0 overflow-hidden rounded border text-left ${selected ? "border-cyan-500" : "border-zinc-800"} disabled:opacity-100`}
+                title={capture ? `Retake ${target.label}` : target.label}
+              >
+                <div className="aspect-[4/3] bg-zinc-900 flex items-center justify-center overflow-hidden">
+                  {capture ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={capture.dataUrl} alt={`${target.label} capture`} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] text-zinc-600">{index + 1}</span>
+                  )}
+                </div>
+                <div className="truncate px-1.5 py-1 text-[10px] text-zinc-400">{target.shortLabel}</div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
       <div className="rounded-xl overflow-hidden border border-zinc-800 bg-black relative">
         <video ref={videoRef} className="hidden" playsInline muted />
         <canvas ref={canvasRef} className="block max-w-full h-auto" />
