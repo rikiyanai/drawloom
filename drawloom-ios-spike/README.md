@@ -1,6 +1,6 @@
 # Drawloom iOS ARKit Spike
 
-Native iOS proof for comparing ARKit/TrueDepth face tracking against the browser MediaPipe pipeline.
+Native iOS test app for comparing ARKit/TrueDepth face tracking with Drawloom's browser MediaPipe pipeline.
 
 ## Run
 
@@ -11,22 +11,22 @@ xcodegen generate
 open DrawloomSpike.xcodeproj
 ```
 
-Run on a TrueDepth-capable iPhone or iPad. The simulator and non-TrueDepth devices cannot run `ARFaceTrackingConfiguration`.
+Run it on a TrueDepth-capable iPhone or iPad. The simulator and devices without TrueDepth cannot use `ARFaceTrackingConfiguration`.
 
-This machine currently also needs full Xcode selected, not only Command Line Tools:
+If Xcode Command Line Tools is selected instead of full Xcode, select Xcode first:
 
 ```sh
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 ```
 
-## Packet Workflow
+## Compare tracking data
 
-1. In the iOS app, tap `Export JSON` and share the packet out of the app.
-2. In drawloom web, detect a face and click `export MediaPipe JSON` in the header.
-3. Compare packets:
+1. In the iOS app, tap `Export JSON` and share the file.
+2. In Drawloom web, detect a face and select `export MediaPipe JSON`.
+3. Compare the two files:
 
 ```sh
 node drawloom-ios-spike/scripts/compare-packets.mjs arkit.json mediapipe.json
 ```
 
-The script compares pose matrices and mapped blendshapes. It only compares vertex L2 when packet topologies match; ARKit's `arkit-face-geometry-1220` and MediaPipe's `mediapipe-face-landmarks-478` are different meshes.
+The script compares pose matrices and mapped blendshapes. It compares vertex L2 only when the packet topologies match. ARKit's `arkit-face-geometry-1220` and MediaPipe's `mediapipe-face-landmarks-478` use different meshes.
