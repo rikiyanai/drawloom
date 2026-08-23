@@ -6,9 +6,9 @@ import { edgesOverlay } from "./edges";
 import { meshWireframeOverlay } from "./mesh-wireframe";
 import type { Overlay } from "./types";
 
-// FL-015: This registry is the public accuracy boundary. Keep only overlays
-// that directly trace detected landmarks or apply deterministic pixel/geometry
-// transforms; do not expose inferred construction or anatomical registration.
+// See failure log entry #15. This registry is the public accuracy boundary.
+// Keep only direct landmark traces and deterministic pixel or geometry transforms.
+// Do not expose inferred construction or anatomical registration.
 export const OVERLAYS: Overlay[] = [
   ovoidOverlay,
   dovelineOverlay,
