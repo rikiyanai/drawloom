@@ -44,7 +44,7 @@ type StudioState = {
 
 const initialOverlays: Record<string, OverlayState> = {};
 for (const o of OVERLAYS) {
-  // FL-015: Default only to a direct landmark trace, never an inferred guide.
+  // See failure log entry #15: default only to a direct landmark trace, never an inferred guide.
   initialOverlays[o.id] = {
     enabled: o.id === "ovoid",
     params: defaultParams(o),
@@ -55,7 +55,7 @@ const initialViewFilters: ViewFilters = { grayscale: false, bgBlur: false, bgBlu
 
 export const useStudio = create<StudioState>((set) => ({
   mode: "upload",
-  // FL-015: A separate skull reference avoids implying anatomical registration.
+  // See failure log entry #15: keep the skull separate so the UI does not imply anatomical registration.
   layout: "split",
   image: null,
   imageUrl: null,
