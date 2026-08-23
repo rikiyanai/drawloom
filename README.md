@@ -4,6 +4,8 @@ Upload a portrait for direct landmark traces, a face-mesh wireframe, value reduc
 
 [Open Drawloom](https://rikiworld.com/drawloom/)
 
+![Drawloom pre-alpha demo](demo.gif)
+
 ## Overlays
 
 | Overlay | Category |
