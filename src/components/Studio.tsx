@@ -1,5 +1,7 @@
 "use client";
 import { useEffect } from "react";
+import { StudyBoard } from "./StudyBoard";
+import { useStudies } from "@/lib/capture/study-store";
 import { UploadDropzone } from "./UploadDropzone";
 import { CanvasStage } from "./CanvasStage";
 import { WebcamStage } from "./WebcamStage";
@@ -16,6 +18,7 @@ export function Studio() {
   // Next's error overlay — must run before any detection call.
   useEffect(() => {
     installConsoleFilter();
+    void useStudies.getState().hydrate();
   }, []);
 
   // Prevent the browser from navigating to a dropped image if it lands outside the dropzone.
@@ -38,6 +41,7 @@ export function Studio() {
           drawloom <span className="text-zinc-500 font-normal text-sm">— form-first drawing overlays</span>
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => setMode("study")} className={`text-xs px-3 py-1.5 rounded border ${mode === "study" ? "border-cyan-400 text-cyan-300" : "border-zinc-700"}`}>Study board</button>
           <div className="flex rounded-md border border-zinc-700 overflow-hidden text-xs">
             <button
               onClick={() => setMode("upload")}
@@ -89,7 +93,7 @@ export function Studio() {
 
       <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <section className="min-w-0">
-          {layout === "split" ? (
+          {mode === "study" ? <StudyBoard /> : layout === "split" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="min-w-0">
                 {mode === "webcam" ? (

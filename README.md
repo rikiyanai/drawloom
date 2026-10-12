@@ -21,6 +21,8 @@ The default layout places the portrait/webcam beside a 3D skull reference at the
 
 Webcam mode also includes a guided five-angle capture. It checks measurable pose, framing, even lighting, image sharpness, facial motion, and a relaxed expression before automatically storing each clean camera frame. Overlays are not baked into the captured set.
 
+Open **Study board** to select an enlarged frozen shot with overlays, rename and switch sessions, reorder photos, or choose a grid/strip layout. Captures and session edits save automatically in this browser’s IndexedDB. Use **Save shot** for a clean JPEG or **Export contact sheet** for a labeled PNG of the current arrangement. Use **Back up session** to download a portable JSON file containing photos, measured poses, order, and layout. **Import study** restores it as a new session without replacing existing studies (40 MB limit). Backups include your photos; keep them wherever you normally store private images. Device storage is local, not a cloud backup; storage failures are shown in the app. **Capture / retake** returns to the active set in webcam mode; clicking a captured thumbnail retakes that angle without removing the old shot until its replacement is ready.
+
 Overlays live in `src/lib/overlays/`. Add one by exporting an `Overlay` and registering it in `registry.ts`.
 
 ## Stack

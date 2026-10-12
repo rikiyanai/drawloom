@@ -13,16 +13,10 @@ import {
   type FrameQuality,
 } from "@/lib/capture/pose-session";
 
+import { useStudies, type StudyShot } from "@/lib/capture/study-store";
+
 const MAX_W = 1100;
 const CAPTURE_HOLD_MS = 850;
-
-type GuidedCapture = {
-  dataUrl: string;
-  yaw: number;
-  pitch: number;
-  roll: number;
-  capturedAt: number;
-};
 
 export function WebcamStage({ children }: { children?: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,7 +58,10 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
   const lastGuideUiAtRef = useRef(0);
   const [guideActive, setGuideActive] = useState(false);
   const [targetIndex, setTargetIndex] = useState(0);
-  const [captures, setCaptures] = useState<Record<string, GuidedCapture>>({});
+  const sessions = useStudies((s) => s.sessions);
+  const activeId = useStudies((s) => s.activeId);
+  const hydrated = useStudies((s) => s.hydrated);
+  const captures = sessions.find((s) => s.id === activeId)?.shots ?? {};
   const [assessment, setAssessment] = useState<CaptureAssessment | null>(null);
   const [holdProgress, setHoldProgress] = useState(0);
 
@@ -77,7 +74,9 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
   }, [targetIndex]);
 
   const startGuide = useCallback(() => {
-    setCaptures({});
+    useStudies.getState().newSession();
+    setPaused(false);
+    pausedRef.current = false;
     setTargetIndex(0);
     targetIndexRef.current = 0;
     readySinceRef.current = null;
@@ -97,11 +96,8 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
 
   const retakeTarget = useCallback((index: number) => {
     const target = CAPTURE_TARGETS[index];
-    setCaptures((current) => {
-      const next = { ...current };
-      delete next[target.id];
-      return next;
-    });
+    setPaused(false);
+    pausedRef.current = false;
     setTargetIndex(index);
     targetIndexRef.current = index;
     readySinceRef.current = null;
@@ -399,18 +395,21 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
                 cleanCtx.translate(w, 0);
                 cleanCtx.scale(-1, 1);
                 cleanCtx.drawImage(video, 0, 0, w, h);
-                const capture: GuidedCapture = {
+                const capture: StudyShot = {
+                  pose: structuredClone(pose),
                   dataUrl: clean.toDataURL("image/jpeg", 0.9),
                   yaw: pose.angles.yaw,
                   pitch: pose.angles.pitch,
                   roll: pose.angles.roll,
                   capturedAt: Date.now(),
                 };
-                setCaptures((current) => ({ ...current, [target.id]: capture }));
+                useStudies.getState().putShot(target.id, capture);
                 readySinceRef.current = null;
                 angleSamplesRef.current = [];
                 setHoldProgress(0);
-                const nextIndex = index + 1;
+                const savedShots = useStudies.getState().sessions.find((s) => s.id === useStudies.getState().activeId)?.shots ?? {};
+                const missingIndex = CAPTURE_TARGETS.findIndex((t) => !savedShots[t.id]);
+                const nextIndex = missingIndex < 0 ? CAPTURE_TARGETS.length : missingIndex;
                 if (nextIndex >= CAPTURE_TARGETS.length) {
                   setGuideActive(false);
                   guideActiveRef.current = false;
@@ -494,7 +493,7 @@ export function WebcamStage({ children }: { children?: React.ReactNode }) {
       <div className="flex flex-wrap items-center justify-end gap-2">
         <button
           onClick={guideActive ? stopGuide : startGuide}
-          disabled={!running}
+          disabled={!running || !hydrated}
           className="text-xs px-3 py-1.5 rounded border border-cyan-700 text-cyan-300 hover:border-cyan-400 disabled:opacity-40"
         >
           {guideActive ? "Cancel guided capture" : complete ? "New 5-angle capture" : "Start 5-angle capture"}

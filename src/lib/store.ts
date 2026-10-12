@@ -9,7 +9,7 @@ type OverlayState = {
   params: Record<string, number | boolean>;
 };
 
-export type SourceMode = "upload" | "webcam";
+export type SourceMode = "upload" | "webcam" | "study";
 export type LayoutMode = "single" | "split";
 
 export type ViewFilters = {
