@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test:surface": "node scripts/test-surface.mjs",
-    "test:study": "node scripts/test-study.mjs"
+    "test:study": "node scripts/test-study.mjs",
+    "export:underdrawing": "node scripts/export-underdrawing.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",

@@ -10,14 +10,17 @@ import { SkullPanel } from "./SkullPanel";
 import { useStudio } from "@/lib/store";
 import { installConsoleFilter } from "@/lib/console-filter";
 import { downloadMediaPipeFramePacket } from "@/lib/pose/packet";
+import { currentUnderdrawingPacket, installDrawloomApi } from "@/lib/export/api";
+import { downloadUnderdrawingPacket } from "@/lib/export/underdrawing";
 
 export function Studio() {
-  const { image, reset, status, errorMsg, mode, setMode, layout, setLayout, pose } = useStudio();
+  const { image, reset, status, errorMsg, mode, setMode, layout, setLayout, pose, setStatus } = useStudio();
 
   // Mute MediaPipe/TFLite INFO lines that ride on console.error and trip
   // Next's error overlay — must run before any detection call.
   useEffect(() => {
     installConsoleFilter();
+    installDrawloomApi();
     void useStudies.getState().hydrate();
   }, []);
 
@@ -78,6 +81,19 @@ export function Studio() {
               className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 font-mono"
             >
               export MediaPipe JSON
+            </button>
+          )}
+          {mode === "upload" && image && (status === "ready" || status === "no-face") && (
+            <button
+              onClick={() =>
+                currentUnderdrawingPacket()
+                  .then(downloadUnderdrawingPacket)
+                  .catch((err) => setStatus("error", err instanceof Error ? err.message : "Export failed"))
+              }
+              className="text-xs px-3 py-1.5 rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 font-mono"
+              title="Each overlay as its own PNG layer plus pose, for Hatch Studio's Tracing guide"
+            >
+              export for Hatch Studio
             </button>
           )}
           {(image || mode === "webcam") && (

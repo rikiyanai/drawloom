@@ -25,6 +25,19 @@ Open **Study board** to select an enlarged frozen shot with overlays, rename and
 
 Overlays live in `src/lib/overlays/`. Add one by exporting an `Overlay` and registering it in `registry.ts`.
 
+## Hatch Studio underdrawing export
+
+In upload mode, **export for Hatch Studio** downloads a `drawloom.underdrawing.v1` packet: every overlay rendered alone on a transparent PNG at one shared size, the photo, head yaw/pitch/roll and the MediaPipe frame packet. In Hatch Studio, switch to **Draw · edit text**, open **Tracing** and import the `.json`; each layer becomes its own aligned tracing guide, and guides never enter the exported text.
+
+The same export runs headless (the photo stays on your machine; only the MediaPipe wasm and model are fetched from their CDNs):
+
+```bash
+npm run build
+npm run export:underdrawing -- portrait.jpg --out ./underdrawing --param edges.mode=1 --param notan.levels=3
+```
+
+Options: `--width N` (default 1024, max 2048), `--only ovoid,doveline,notan`, repeatable `--param overlay.key=value`, `--no-photo`, and `--url` to use a running dev server. Each image writes `<out>/<name>/packet.json`, `pose.json` and `layers/<overlay>.png`. Sobel edges are exported as dark lines on white so they multiply cleanly onto paper. Scripts can also call `window.drawloom.exportUnderdrawing()` once `window.drawloom.status()` is `ready`.
+
 ## Stack
 
 Next.js 16 + React 19 + TypeScript, Tailwind v4, `@mediapipe/tasks-vision` Face Landmarker, Zustand.
