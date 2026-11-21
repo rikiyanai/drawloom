@@ -169,6 +169,40 @@ Mounted in the existing `children` slot of `CanvasStage` (it is already a `relat
 - Eyes: lid vertices behave like any vertex; iris radius has two handles in the front view only.
 - Mark hidden: a review tool for the validation run only: the user can flag a vertex "actually hidden in this view" to give visibility ground truth (section 6, V3).
 
+### 4.1 UX direction from the hands-on editor (2026-11-21)
+
+The user corrected the four angles in a stand-in editor (an artifact page built from `reference-planes0001.py` and the 3D head of section 3). What they asked for, and what worked, is the UX spec here. It takes precedence over the bullets above where they differ.
+
+- **What the user places is what the view shows.** A placement on a shot is a pin. That shot draws the vertex exactly there, and the solve in 3.8 uses pins only to predict the shots where the vertex is not pinned. Lines and faces pass through pinned points: per-view offsets are interpolated along each edge. On the reference (front) view, every original vertex counts as fixed at its accepted position. The solve then takes x and y from the front and depth from the turned views, and an edit on a turned view never moves the front.
+- **Never silently down-weight earlier work.** A first 3D version blended the user's earlier 2D drags in at 30 percent weight, so the points visibly moved away from where the user had put them. The user had to ask for them back. Migrations of observations are exact, and a check asserts that every stored pin re-renders within 0.2 px of where it was saved.
+- **Zoom and pan on the canvas:**
+  - a tool strip directly above the drawing, with −, + and Fit and the current percentage;
+  - pinch (touch and trackpad, plus Safari gesture events) and Ctrl/⌘ + wheel zoom about the pointer, from 0.3x to 12x;
+  - dragging empty paper pans.
+  The first version only had zoom buttons in the side rail, and the user did not find them.
+- **Topology tools.** The user must be able to change the graph, not only move points:
+  - Modes: Move (V), Add point (A), Connect (C) and Remove line (X), plus Delete point and Undo (Ctrl/⌘+Z) covering every change, drags included.
+  - Add point splits a tapped line (3D prior = interpolated along the edge), or places a free point on the head surface. The free point is unprojected through the shot's depth map, or onto the front of the Loomis ball off the mesh.
+  - Connect chains taps from point to point.
+  - Faces are recomputed as the regions of the planar line graph, laid out on the reference view, so a new line immediately splits or merges planes.
+  - Topology edits are one document per session (`added`, `addE`, `delE`, `delV`), separate from per-shot pins.
+- **Hidden lines are still confusing on the turned views.** Dashed ghosts on the photo do not tell the user which surface hides what. Add a side-by-side rotatable 3D view:
+  - It reuses `src/components/SkullPanel.tsx` and `src/lib/skull/scene.ts` (three.js is already a dependency, and the procedural skull already exists).
+  - It shows the solved plane mesh, shaded by normal, over a skull proxy scaled to the Loomis ball, with the ball, side planes and neck cylinder.
+  - Orbit freely. Buttons snap the camera to each capture's registered pose, and the photo canvas and the 3D view stay in sync.
+  - Selecting a point or plane in either view highlights it in both. Faces hidden from the active capture are tinted, so the user can see from the side what the photo view occludes.
+  - Dragging in the 3D view moves a point along the surface. The occlusion test of 3.7 is unchanged; this is a reading aid.
+  - The skull GLB rule in `scene.ts` still applies: CC-BY or CC0 only, procedural fallback otherwise.
+- **Plane orientation readout, and later editing.** Tapping a plane reports its Newell normal relative to the head axes, as yaw and pitch ("faces 34 degrees toward the viewer's left, tilted 12 degrees down"), with optional normal arrows on every plane. Moving any corner re-tilts every plane that uses it. Later, not in M2: a normal gizmo on the selected plane rotates it about its centroid. The solve changes only the corner depths along the active view's rays, so the active view does not move, the other shots update, and neighbouring planes re-tilt through their shared corners.
+- **Names over keys.** Every handle has a plain name ("Lower lid edge, outer (viewer left)") in its tooltip, an optional label on the canvas, and region chips. New points can be named.
+- **From planes to art: the underdrawing export.** The workflow the user mandated is: construction (Loomis, planes, features) over the line drawing, then an independent visual review, and only then glyph authoring. So the export in 5.3 also renders, for each shot at a common head scale (the reference view's pixel frame, which is the text-art frame), an underdrawing with these layers:
+  - the faint line drawing;
+  - the notan value block-in, clipped to the subject: dark masses connected to the Loomis ball, half-tones inside the face hull;
+  - the Loomis construction;
+  - the plane edges;
+  - the feature contours drawn heavier.
+  Each underdrawing is paired with the photo for review.
+
 ## 5. Persistence, backup, export
 
 ### 5.1 Study store (`src/lib/capture/study-store.ts`)
@@ -245,7 +279,7 @@ Caveats written into the results: the ground truth is the same person who placed
 
 1. **M0 data and measurement, no UI.** Copy the final reference script into this folder; port its vertices into `topology.ts` (kinds, regions, mirrors, seeds); review the face list on the front frame; implement registration and the mesh triangle list; build the study backup from the 90 frames; extract the user-corrections fixture; reproduce V1. Exit: V1 passes, the topology validator passes, mirroring and left/right naming verified on the capture.
 2. **M1 3D plane head, read-only.** Lift, project, visibility, iris discs. Exit: V3 and V4 on the four angles; B1 numbers recorded.
-3. **M2 triangulation, editor and persistence.** Drag (visible only), greyed hidden points, trail strip, reset, notes, undo, store and backup (version 2, `frame-` ids, keyframe cap). Exit: V2 against the confirmed gate; V7 round trip.
+3. **M2 triangulation, editor and persistence.** Drag (visible only), exact per-view pins (4.1), greyed hidden points, trail strip, reset, notes, undo, canvas zoom and pan, topology tools (add, split, connect, remove, delete), the side-by-side 3D view synced to the shots, store and backup (version 2, `frame-` ids, keyframe cap). Exit: V2 against the confirmed gate; V7 round trip; the pin re-render check of 4.1 passes.
 4. **M3 Loomis primitives and canon layer.** Sphere with side planes and jaw, neck cylinder with handles, canon rows. Exit: V5 and V6.
 5. **M4 export.** Three layers, `planes` packet block, Hatch Studio import check. Exit: Tracing shows the aligned layers; the unknown-key question is answered.
 6. **M5 gate.** V8 and V9; then, and only then, remove the flag in one commit with `test-surface.mjs`, `README.md` roadmap and an FL entry updated.
