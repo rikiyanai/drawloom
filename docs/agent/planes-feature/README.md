@@ -6,4 +6,5 @@
  priority 1: automatic public deployment on every passing commit pushed to main, following Shallot's Actions trigger; publish to rikiyanai.github.io/drawloom/ (D0 in PLAN.md).
  review in REVIEW.md: reconcile exact pins with the solver, persist topology and 3D edits, define face regeneration and interaction checks.
  M0 still needs the final working scripts, 3D head build and topology recovered from the originating machine; private face fixtures stay outside the public repo.
+ implementation status and measured deployment evidence: IMPLEMENTATION.md; M0 math foundations tested, real-fixture gate still open.
 DONE

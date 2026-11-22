@@ -9,6 +9,7 @@
     "test:surface": "node scripts/test-surface.mjs",
     "test:study": "node scripts/test-study.mjs",
     "test:deploy": "node --test scripts/test-deploy.mjs",
+    "test:planes": "tsx --test scripts/test-planes.ts",
     "serve:static": "node scripts/serve-static.mjs",
     "export:underdrawing": "node scripts/export-underdrawing.mjs"
   },
@@ -29,6 +30,7 @@
     "@types/react-dom": "^19",
     "playwright": "^1.60.0",
     "tailwindcss": "^4",
+    "tsx": "4.23.15",
     "typescript": "^5"
   }
 }

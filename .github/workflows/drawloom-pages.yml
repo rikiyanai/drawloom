@@ -46,6 +46,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:deploy
+      - run: npm run test:planes
       - run: npx playwright install --with-deps chromium
       - name: Build the public surface (experimental planes stay disabled)
         run: npm run build

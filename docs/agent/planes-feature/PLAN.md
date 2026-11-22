@@ -1,6 +1,6 @@
 # Plan: 3D head planes, Loomis construction and editable corrections for Drawloom
 
-Status: D0 deployment workflow implemented; first live publication pending verification. The planes feature is not built. Revised 2026-11-21 after the hand workflow in section 1 failed on turned views. Supersedes Muse's first draft, whose geometry was 2D offsets from landmark-derived defaults (see section 11 for what changed). Research and sources: `RESEARCH.md`. Reference script (early version, 102 vertices, 70 polylines): `reference-planes0001.py`.
+Status: deployment is live and verified; M0 geometry foundations are implemented with synthetic tests. Real-fixture M0 validation and M1–M5 remain open. Current evidence and remaining gates: `IMPLEMENTATION.md`. Revised 2026-11-21 after the hand workflow in section 1 failed on turned views. Supersedes Muse's first draft, whose geometry was 2D offsets from landmark-derived defaults (see section 11 for what changed). Research and sources: `RESEARCH.md`. Reference script (early version, 102 vertices, 70 polylines): `reference-planes0001.py`.
 
 ## First priority: automatic public deployment (D0)
 
