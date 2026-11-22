@@ -6,6 +6,8 @@ The destination uses its existing branch-based Pages build. Its CNAME, `.nojekyl
 
 Publication is serialized. An older automatic build cannot publish after source `main` advances. Destination pushes retry from its newest `main` if unrelated site edits happen concurrently. Failed builds and regression checks never reach publication. The workflow stays open until the expected source SHA is visible in `/drawloom/build-info.json` and the app's JavaScript and CSS assets respond successfully.
 
+The destination requires its “AI attribution policy” check before `main` accepts a commit. Publication first pushes a temporary `drawloom-publication/…` candidate branch, waits for that exact commit's check to pass, then fast-forwards `main` to it and deletes the candidate branch. It does not bypass or disable branch protection. A failed destination check leaves the current public site intact.
+
 ## Checks
 
 Run `npm ci`, `npm run test:deploy`, `npm run build`, and `npx tsc --noEmit`. Start the exported site with `npm run serve:static`, then run `npm run test:surface` and `npm run test:study` against `http://localhost:3000/drawloom/`.
