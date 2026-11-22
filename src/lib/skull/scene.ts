@@ -232,6 +232,14 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
   scene.add(pivot);
 
   let disposed = false;
+  let pendingRender = 0;
+  function requestRender() {
+    if (disposed || pendingRender) return;
+    pendingRender = requestAnimationFrame(() => {
+      pendingRender = 0;
+      if (!disposed) renderer.render(scene, camera);
+    });
+  }
 
   // Try the GLB sources in priority order. If none load, the procedural skull
   // stays in place — no user-visible failure.
@@ -257,17 +265,15 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
         });
         current = loaded;
         pivot.add(current);
+        requestRender();
         return;
       }
     }
   })().catch((e) => console.warn("[skull] GLB swap pipeline error", e));
 
-  function render() {
-    if (disposed) return;
-    renderer.render(scene, camera);
-    requestAnimationFrame(render);
-  }
-  render();
+  // Nothing in this reference scene animates by itself. Continuous rendering
+  // can monopolize software WebGL and delay unrelated editor interactions.
+  requestRender();
 
   return {
     setRotation(matrixArray: number[]) {
@@ -284,6 +290,7 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
       e.y = -e.y;
       e.z = -e.z;
       pivot.quaternion.setFromEuler(e);
+      requestRender();
     },
     renderNow() {
       if (disposed) return;
@@ -293,9 +300,11 @@ export function mountSkullScene(canvas: HTMLCanvasElement): SkullScene {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      requestRender();
     },
     dispose() {
       disposed = true;
+      cancelAnimationFrame(pendingRender);
       renderer.dispose();
     },
   };

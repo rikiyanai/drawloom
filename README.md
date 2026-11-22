@@ -51,6 +51,10 @@ npm run dev
 
 Open http://localhost:3000/drawloom/.
 
+## Deployment
+
+Pushes to `main` build and test the static export, then publish it automatically to [Drawloom](https://rikiworld.com/drawloom/). Pull requests run checks without publishing. See [deployment and rollback](docs/DEPLOYMENT.md). The public `build-info.json` records the deployed source commit.
+
 ## Roadmap
 
 - Validate landmark-derived guides across front, three-quarter, and profile views

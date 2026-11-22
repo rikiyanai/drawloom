@@ -1,6 +1,25 @@
 # Plan: 3D head planes, Loomis construction and editable corrections for Drawloom
 
-Status: plan only, nothing built. Revised 2026-11-21 after the hand workflow in section 1 failed on turned views. Supersedes Muse's first draft, whose geometry was 2D offsets from landmark-derived defaults (see section 11 for what changed). Research and sources: `RESEARCH.md`. Reference script (early version, 102 vertices, 70 polylines): `reference-planes0001.py`.
+Status: D0 deployment workflow implemented; first live publication pending verification. The planes feature is not built. Revised 2026-11-21 after the hand workflow in section 1 failed on turned views. Supersedes Muse's first draft, whose geometry was 2D offsets from landmark-derived defaults (see section 11 for what changed). Research and sources: `RESEARCH.md`. Reference script (early version, 102 vertices, 70 polylines): `reference-planes0001.py`.
+
+## First priority: automatic public deployment (D0)
+
+Before M0 or any wire-mesh implementation, make every commit pushed to `main` automatically update the public Drawloom endpoint. A local commit must be pushed before GitHub can deploy it. Feature branches must not replace production. A failed check or build keeps the last successful deployment live.
+
+Reference checked on 2026-11-21: Shallot's `.github/workflows/tamanegi-pages.yml` runs on `push` to `main` and supports `workflow_dispatch`; it builds an artifact and publishes through `actions/configure-pages`, `actions/upload-pages-artifact` and `actions/deploy-pages`, with a `github-pages` environment and `contents: read`, `pages: write`, `id-token: write` permissions. Reuse that deployment pattern, not its application-specific build or asset packaging.
+
+Hosting verified on 2026-11-21: `rikiyanai/rikiyanai.github.io` owns the `rikiworld.com` CNAME and publishes `main:/` through legacy GitHub Pages. Its committed `drawloom/` directory contains the existing static export. `https://rikiworld.com/drawloom/` responds with HTTP 200. The Drawloom source repository itself has no committed Actions workflow or Pages site (`has_pages: false`, Pages API 404). The preferred deployment is therefore an automatic handoff into the existing site's `drawloom/` directory, preserving its CNAME and other applications.
+
+Implementation:
+1. Use `rikiyanai/drawloom` as the source and `rikiyanai/rikiyanai.github.io:main:drawloom/` as the publication target. Keep the Actions-on-main behavior used by Shallot; adapt publication to this existing parent site instead of assuming Drawloom has its own Pages project. Establish a narrowly scoped credential or GitHub App installation for the cross-repository handoff, stored in GitHub secrets. The default source-repo `GITHUB_TOKEN` cannot write to the other repository. Record any missing access before claiming D0 complete.
+2. Add `.github/workflows/drawloom-pages.yml`: run on every push to `main` (no path filters, including documentation commits), plus manual dispatch for recovery. Check out the triggering SHA; use a supported Node version compatible with the lockfile, `npm ci`, `npx tsc --noEmit`, `npm run build`, and the existing surface/study checks against the served static export. Install Playwright Chromium in CI. Publish only after all required checks pass.
+3. Preserve `next.config.ts`'s static export, `/drawloom` base path and trailing slashes. Stage `out/` as the checked artifact, then replace only the destination site's `drawloom/` directory with its contents (no nested `drawloom/drawloom/`). Preserve the parent's `.nojekyll`, CNAME and every sibling path. Verify JS/CSS, skull fallback, MediaPipe wasm/model loading, image upload and study backup/import from the deployed path. Webcam must remain on HTTPS.
+4. Serialize publication, check the source SHA before handoff, and update the destination on top of its latest `main` without force-pushing so unrelated site edits survive. Ensure the chosen cross-repo credential triggers the parent's Pages build; wait for that build and the public receipt rather than treating a destination commit as a completed deployment. Honor the destination's existing attribution-policy check. Keep `NEXT_PUBLIC_DRAWLOOM_PLANES` unset in production until M5; any flag-on validation build is separate from the artifact published to production. A future switch to Shallot's standalone Pages deploy actions is a separate hosting migration requiring route validation.
+5. Generate a public build receipt in `out/build-info.json` containing only the source SHA and build time; this is build output, not a tracked source edit. Record the final URL in the deployment summary. Provide manual redeployment of a known-good SHA for rollback without rewriting source history.
+
+Exit gate: push two successive commits to `main` and confirm each triggers a successful unattended deployment to the same public URL. Fetch `/drawloom/build-info.json` without cache and match each SHA; verify assets and the six-overlay public surface. Confirm a failed required check does not publish, and demonstrate rollback/redeployment. Local studies must survive an update at the same origin. If hosting access or route configuration is missing, D0 stays open with the exact missing dependency recorded.
+
+Implementation: `.github/workflows/drawloom-pages.yml` and `docs/DEPLOYMENT.md`. Actions are enabled, a dedicated destination-repo write key is registered, and its private key is stored in the source repository's `DRAWLOOM_PUBLISH_KEY` secret. The workflow builds the public artifact, checks it, publishes only the destination `drawloom/` directory and waits for the public SHA receipt. Local build, TypeScript, deployment-helper, surface and study checks pass. Next.js is patched to 16.4.6 and the dependency audit is clean. The skull reference now renders on changes instead of continuously; this resolved the local interaction stalls. Complete the live exit gate before marking D0 done. `REVIEW.md` records the mesh implementation blockers.
 
 ## 0. Honesty boundary and the FL-015 constraint
 
@@ -277,7 +296,8 @@ Caveats written into the results: the ground truth is the same person who placed
 
 ## 7. Milestones
 
-1. **M0 data and measurement, no UI.** Copy the final reference script into this folder; port its vertices into `topology.ts` (kinds, regions, mirrors, seeds); review the face list on the front frame; implement registration and the mesh triangle list; build the study backup from the 90 frames; extract the user-corrections fixture; reproduce V1. Exit: V1 passes, the topology validator passes, mirroring and left/right naming verified on the capture.
+0. **D0 automatic public deployment, first priority.** Complete the workflow, existing-domain routing and exit gate above before mesh implementation. Every passing commit pushed to `main` updates the public endpoint without a separate manual upload.
+1. **M0 data and measurement, no UI.** Recover the final working scripts, the 3D head build and face topology from the originating machine's scratchpad before it disappears. Put reusable code and topology in versioned repo paths with provenance; keep face photos, capture packets, corrections and any subject-specific geometry in an external private fixture. Record durable locations and fail with a useful missing-fixture message on this PC. The early reference script is not a replacement for the final build. Then port the vertices into `topology.ts` (kinds, regions, mirrors, seeds); review the face list on the front frame; implement registration and the mesh triangle list; build the study backup from the 90 frames; extract the user-corrections fixture; reproduce V1. Exit: required assets are recoverable, V1 passes, the topology validator passes, mirroring and left/right naming verified on the capture.
 2. **M1 3D plane head, read-only.** Lift, project, visibility, iris discs. Exit: V3 and V4 on the four angles; B1 numbers recorded.
 3. **M2 triangulation, editor and persistence.** Drag (visible only), exact per-view pins (4.1), greyed hidden points, trail strip, reset, notes, undo, canvas zoom and pan, topology tools (add, split, connect, remove, delete), the side-by-side 3D view synced to the shots, store and backup (version 2, `frame-` ids, keyframe cap). Exit: V2 against the confirmed gate; V7 round trip; the pin re-render check of 4.1 passes.
 4. **M3 Loomis primitives and canon layer.** Sphere with side planes and jaw, neck cylinder with handles, canon rows. Exit: V5 and V6.
@@ -288,6 +308,8 @@ Caveats written into the results: the ground truth is the same person who placed
 
 | File | Change |
 |---|---|
+| `.github/workflows/drawloom-pages.yml` (new, D0) | Publish the checked static export on every push to `main`; manual recovery, serialized deployment, SHA receipt and deployment summary. |
+| `rikiyanai/rikiyanai.github.io:main:drawloom/` (existing publication destination) | Automated artifact handoff; retain the parent site's CNAME, `.nojekyll` and sibling content, then verify its Pages build and public source-SHA receipt. |
 | `src/lib/planes/topology.ts` (new) | Vertices, faces, edges, regions, seeds, `TOPOLOGY_VERSION`; pure data plus a validator. |
 | `src/lib/planes/mesh.ts` (new) | Triangle list from the tessellation edges; point-in-triangle lookup; vertex normals. |
 | `src/lib/planes/register.ts` (new) | Umeyama similarity with Huber reweighting; residual report. |
@@ -328,6 +350,7 @@ Risks:
 - **Image-side naming.** `L`/`R` are image sides; webcam mirroring unverified.
 
 Open decisions for Riki:
+- D0 dependency: configure narrowly scoped cross-repository publication access from Drawloom to `rikiyanai.github.io`; the destination and public route are verified. Automatic deployment remains the first priority while this is resolved.
 - D1: keyframe selection for the 90-frame capture (the proposed cap of 12 and which yaws).
 - D2: how to run pure TypeScript math tests (add `tsx` as a dev dependency, or enable `allowImportingTsExtensions` and Node's built-in type stripping, or run them in Playwright). Recommendation: `tsx`, one small dev dependency.
 - D3: confirm the proposed thresholds in section 6 before M2 ends.

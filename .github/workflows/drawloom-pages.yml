@@ -1,0 +1,108 @@
+name: Drawloom public deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Source commit, tag or branch (leave main for the latest; use a known-good SHA to roll back)
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+# A newer source commit supersedes pending builds. Once publication starts it
+# finishes verification before the next publication can touch the destination.
+concurrency:
+  group: drawloom-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:deploy
+      - run: npx playwright install --with-deps chromium
+      - name: Build the public surface (experimental planes stay disabled)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_DRAWLOOM_PLANES: ''
+          NEXT_TELEMETRY_DISABLED: '1'
+      - run: npx tsc --noEmit
+      - name: Check the actual static export
+        run: |
+          node scripts/serve-static.mjs > /tmp/drawloom-static.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/drawloom/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:surface -- http://127.0.0.1:3000/drawloom/
+          npm run test:study -- http://127.0.0.1:3000/drawloom/
+      - run: node scripts/build-info.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: drawloom-public
+          path: out/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://rikiworld.com/drawloom/
+    steps:
+      # Always use current deployment code, even when publishing an older app.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: drawloom-public
+          path: publish-artifact
+      - name: Checkout the existing publication repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: rikiyanai/rikiyanai.github.io
+          ref: main
+          path: publication-site
+          ssh-key: ${{ secrets.DRAWLOOM_PUBLISH_KEY }}
+      - name: Publish only the Drawloom directory
+        env:
+          SOURCE_SHA: ${{ needs.build.outputs.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/publish-site.sh
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Wait for Pages and verify the public SHA and assets
+        run: node scripts/verify-deployment.mjs '${{ needs.build.outputs.sha }}'
+      - name: Record publication
+        env:
+          SOURCE_SHA: ${{ needs.build.outputs.sha }}
+        run: |
+          printf 'Published `%s` to https://rikiworld.com/drawloom/\n' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
