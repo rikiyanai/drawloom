@@ -1,12 +1,19 @@
 import type { PoseResult } from "../pose/detect";
 import { makeMediaPipeFramePacket, type MediaPipeFramePacket } from "../pose/packet";
 import { OVERLAYS, defaultParams } from "../overlays/registry";
+import { PLANES_ENABLED, singleViewFrame } from '../planes/solve';
+import type { PlanesFrame } from '../planes/solve';
+import { FACE_OVAL } from '../pose/landmarks';
+import { segmentImage } from '../pose/segmenter';
+import { inPolygon } from '../planes/geometry';
+import { drawPlanes } from '../planes/render';
 
 // Underdrawing packet for text-art tools such as Hatch Studio's Tracing guide.
 // Each registered overlay is rendered alone on a transparent canvas at the
 // export size, so the receiver can show, hide and weight them separately.
 // The packet carries only what the registry already draws (failure log #15):
-// no inferred construction is added on export.
+// inferred construction is added only in an explicitly flagged experimental
+// build, with source and fit quality preserved in optional metadata.
 export const UNDERDRAWING_SCHEMA = "drawloom.underdrawing.v1";
 export const UNDERDRAWING_MAX_WIDTH = 2048;
 
@@ -37,6 +44,7 @@ export type UnderdrawingPacket = {
   pose: MediaPipeFramePacket | null;
   layers: UnderdrawingLayer[];
   skipped: { id: string; reason: string }[];
+  planes?: {topologyVersion:number;source:PlanesFrame['source'];refShotId:string;vertices:Record<string,{x:number;y:number;depth:number;visibility:string;observed:boolean;depthFromPrior:boolean;residualPx:number}>;faces:PlanesFrame['faces'];primitives:PlanesFrame['primitives'];primitiveSpace:'normalized reference head frame';curves:PlanesFrame['curves'];irises:PlanesFrame['irises'];canon:PlanesFrame['canon'];notes:PlanesFrame['state']['notes'][string]};
 };
 
 export type OverlaySelection = Record<string, { enabled: boolean; params: Record<string, number | boolean> }>;
@@ -51,6 +59,11 @@ export type UnderdrawingOptions = {
   includePhoto?: boolean;
   // Per-overlay parameter overrides, e.g. { edges: { mode: 1 }, notan: { levels: 3 } }.
   params?: Record<string, Record<string, number | boolean>>;
+  planes?:PlanesFrame;
+  includePlanesMetadata?:boolean;
+  includeReviewBlockIn?:boolean;
+  reviewConstruction?:boolean;
+  targetFaceSize?:number;
 };
 
 async function encode(canvas: HTMLCanvasElement): Promise<{ png: string; sha256: string }> {
@@ -100,14 +113,17 @@ function scalePose(pose: PoseResult, scale: number, width: number, height: numbe
 
 export async function buildUnderdrawingPacket(options: UnderdrawingOptions): Promise<UnderdrawingPacket> {
   const { image, overlays, sourceName = "drawloom-portrait", includePhoto = true } = options;
+  if(options.targetFaceSize!==undefined&&(!Number.isFinite(options.targetFaceSize)||options.targetFaceSize<=0))throw new Error('The reference head size must be positive.');
   const maxWidth = Math.min(UNDERDRAWING_MAX_WIDTH, Math.max(64, Math.round(options.maxWidth ?? 1024)));
   const include = options.include ? new Set(options.include) : null;
   const unknown = [...(include ?? []), ...Object.keys(options.params ?? {})].filter((id) => !OVERLAYS.some((o) => o.id === id));
   if (unknown.length) throw new Error(`Unknown overlay id(s): ${unknown.join(", ")}`);
-  const scale = Math.min(1, maxWidth / image.naturalWidth);
-  const width = Math.round(image.naturalWidth * scale);
+  const requestedScale = options.targetFaceSize&&options.pose?Math.min(UNDERDRAWING_MAX_WIDTH/image.naturalWidth,options.targetFaceSize/options.pose.bbox.size):Math.min(1, maxWidth / image.naturalWidth);
+  const width = Math.round(image.naturalWidth * requestedScale);
+  const scale=width/image.naturalWidth;
   const height = Math.round(image.naturalHeight * scale);
   const pose = scalePose(options.pose, scale, width, height);
+  const planes=PLANES_ENABLED?(options.planes??(options.pose?singleViewFrame(options.pose):undefined)):undefined;
 
   const [photoCanvas, photoCtx] = blankCanvas(width, height);
   photoCtx.drawImage(image, 0, 0, width, height);
@@ -127,9 +143,12 @@ export async function buildUnderdrawingPacket(options: UnderdrawingOptions): Pro
     const state = overlays?.[overlay.id];
     const params = { ...(state?.params ?? defaultParams(overlay)), ...options.params?.[overlay.id] };
     const [canvas, ctx] = blankCanvas(width, height);
-    overlay.render({ ctx, image, pose, bodyPose: null, width, height, params });
+    overlay.render({ ctx, image, pose, bodyPose: null, width, height, params,planes });
     const inverted = overlay.id === "edges" && Math.round(params.mode as number) === 1;
     if (inverted) invertInPlace(canvas, ctx);
+    if(planes&&options.reviewConstruction&&overlay.id==='edges'){
+      const lines=ctx.getImageData(0,0,width,height);for(let i=0;i<lines.data.length;i+=4){const strength=255-lines.data[i];lines.data[i]=lines.data[i+1]=lines.data[i+2]=0;lines.data[i+3]=Math.round(strength*.25);}ctx.putImageData(lines,0,0);
+    }
     layers.push({
       id: overlay.id,
       name: overlay.name,
@@ -144,6 +163,22 @@ export async function buildUnderdrawingPacket(options: UnderdrawingOptions): Pro
     });
   }
 
+  if(planes&&options.includeReviewBlockIn&&pose){
+    const mask=await segmentImage(image),[canvas,ctx]=blankCanvas(width,height),[hull,hullCtx]=blankCanvas(width,height);
+    hullCtx.beginPath();FACE_OVAL.forEach((id,i)=>{const p=pose.landmarks[id];if(i)hullCtx.lineTo(p.x,p.y);else hullCtx.moveTo(p.x,p.y);});hullCtx.closePath();hullCtx.fill();
+    const face=hullCtx.getImageData(0,0,width,height).data;ctx.drawImage(image,0,0,width,height);const pixels=ctx.getImageData(0,0,width,height),d=pixels.data;
+    const sphereOutline=planes.curves.find(curve=>curve.id==='sphere')?.points.map(p=>({x:p.x*scale,y:p.y*scale}))??[];
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++){const index=(y*width+x)*4,person=mask.labels[Math.floor(y*mask.height/height)*mask.width+Math.floor(x*mask.width/width)]!==0,inside=face[index+3]>0,inBall=inPolygon({x,y},sphereOutline),lum=(.299*d[index]+.587*d[index+1]+.114*d[index+2])/255;
+      const dark=lum<.33,mid=lum<.67;d[index]=d[index+1]=d[index+2]=dark?25:120;d[index+3]=person&&(dark&&(inside||inBall)||mid&&inside)?220:0;
+    }
+    ctx.putImageData(pixels,0,0);layers.push({id:'review-block-in',name:'Subject-masked head value block-in (experimental)',kind:'overlay',category:'value',enabled:true,params:{levels:3},inverted:false,width,height,...await encode(canvas)});
+  }
+  if(planes&&options.reviewConstruction){
+    const[canvas,ctx]=blankCanvas(width,height);drawPlanes(ctx,planes,{scale,faces:false,regions:['eye','nose','mouth']});
+    layers.push({id:'review-features',name:'Feature contours (experimental)',kind:'overlay',category:'construction',enabled:true,params:{},inverted:false,width,height,...await encode(canvas)});
+    const order=['photo','edges','review-block-in','head-primitives','head-planes','review-features'];layers.sort((a,b)=>(order.includes(a.id)?order.indexOf(a.id):99)-(order.includes(b.id)?order.indexOf(b.id):99));
+  }
+
   return {
     schema: UNDERDRAWING_SCHEMA,
     createdAt: new Date().toISOString(),
@@ -156,6 +191,7 @@ export async function buildUnderdrawingPacket(options: UnderdrawingOptions): Pro
     pose: makeMediaPipeFramePacket(pose),
     layers,
     skipped,
+    ...(planes&&options.includePlanesMetadata?{planes:{topologyVersion:planes.state.topologyVersion,source:planes.source,refShotId:planes.context.refShotId,vertices:Object.fromEntries(Object.entries(planes.vertices).map(([id,p])=>[id,{x:p.x*scale,y:p.y*scale,depth:p.depth*scale,visibility:p.visibility,observed:p.observed,depthFromPrior:p.depthFromPrior,residualPx:p.residualPx*scale}])),faces:planes.faces,primitives:planes.primitives,primitiveSpace:'normalized reference head frame',curves:planes.curves.map(curve=>({...curve,points:curve.points.map(p=>({x:p.x*scale,y:p.y*scale}))})),irises:planes.irises.map(iris=>({...iris,points:iris.points.map(p=>({x:p.x*scale,y:p.y*scale}))})),canon:planes.canon,notes:planes.state.notes[planes.shotId]??{}}}:{}),
   };
 }
 

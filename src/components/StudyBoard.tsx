@@ -5,6 +5,8 @@ import { CAPTURE_TARGETS } from "@/lib/capture/pose-session";
 import { useStudio } from "@/lib/store";
 import { MAX_BACKUP_BYTES, parseBackup, serializeBackup } from "@/lib/capture/backup";
 import { CanvasStage } from "./CanvasStage";
+import { PLANES_ENABLED } from '@/lib/planes/solve';
+import { PlanesEditor } from './PlanesEditor';
 
 const label = (id: string) => CAPTURE_TARGETS.find(t => t.id === id)?.shortLabel ?? id;
 const button = "rounded border border-zinc-700 px-3 py-1.5 text-xs hover:border-cyan-400 disabled:opacity-40";
@@ -89,7 +91,7 @@ export function StudyBoard() {
       <button className={button} disabled={!hydrated || importing} onClick={() => inputRef.current?.click()}>{importing ? "Importing…" : "Import study"}</button>
       <select aria-label="Saved session" value={activeId ?? ""} onChange={e => { select(e.target.value); setSelected(null); }} className="max-w-full rounded bg-zinc-900 border border-zinc-700 px-2 py-1">
         {!sessions.length && <option value="">No saved sessions</option>}
-        {sessions.map(s => <option key={s.id} value={s.id}>{s.name} ({Object.keys(s.shots).length}/5)</option>)}
+        {sessions.map(s => <option key={s.id} value={s.id}>{s.name} ({Object.keys(s.shots).length} shots)</option>)}
       </select>
       <button className={button} disabled={!hydrated} onClick={() => useStudio.getState().setMode("webcam")}>Capture / retake</button>
     </div>
@@ -118,7 +120,7 @@ export function StudyBoard() {
         </div>)}
       </div>
       <h3 className="text-sm">{label(selectedId)} · frozen study</h3>
-      <CanvasStage />
+      {PLANES_ENABLED&&shot?.pose?<PlanesEditor key={session.id} session={session} shotId={selectedId} save={planes=>update({planes})} selectShot={setSelected}/>:<CanvasStage />}
     </>}
   </div>;
 }

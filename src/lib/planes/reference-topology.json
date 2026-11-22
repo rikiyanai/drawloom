@@ -1,0 +1,3949 @@
+{
+  "version": 1,
+  "vertices": [
+    {
+      "id": "ftl",
+      "label": "Forehead top corner (viewer left)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            -0.49057787382759666,
+            0.6902567285382092,
+            -0.531863702858659
+          ]
+        }
+      },
+      "mirror": "ftr"
+    },
+    {
+      "id": "ftr",
+      "label": "Forehead top corner (viewer right)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            0.5088901875525113,
+            0.6655171912114436,
+            -0.5460015066048819
+          ]
+        }
+      },
+      "mirror": "ftl"
+    },
+    {
+      "id": "trl",
+      "label": "Forehead edge at the brow (viewer left)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          63,
+          104,
+          68
+        ],
+        "w": [
+          0.8842013026030358,
+          0.00347217183831413,
+          0.11232652555865011
+        ]
+      },
+      "mirror": "trr"
+    },
+    {
+      "id": "trr",
+      "label": "Forehead edge at the brow (viewer right)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          293,
+          301,
+          298
+        ],
+        "w": [
+          0.09488658399226141,
+          0.16472374552169317,
+          0.7403896704860453
+        ]
+      },
+      "mirror": "trl"
+    },
+    {
+      "id": "tsl",
+      "label": "Temple, upper (viewer left)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          21,
+          71,
+          68
+        ],
+        "w": [
+          0.8710349639174712,
+          0.12330435956084614,
+          0.005660676521682714
+        ]
+      },
+      "mirror": "tsr"
+    },
+    {
+      "id": "tsr",
+      "label": "Temple, upper (viewer right)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          293,
+          301,
+          298
+        ],
+        "w": [
+          0.024286524771615584,
+          0.9634373756645372,
+          0.01227609956384712
+        ]
+      },
+      "mirror": "tsl"
+    },
+    {
+      "id": "tll",
+      "label": "Temple, lower (front of ear) (viewer left)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          116,
+          143,
+          227
+        ],
+        "w": [
+          0.06454819393193553,
+          0.6891053468001337,
+          0.24634645926793075
+        ]
+      },
+      "mirror": "tlr"
+    },
+    {
+      "id": "tlr",
+      "label": "Temple, lower (front of ear) (viewer right)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          345,
+          366,
+          447
+        ],
+        "w": [
+          0.1585909099156604,
+          0.24457304417501768,
+          0.5968360459093219
+        ]
+      },
+      "mirror": "tll"
+    },
+    {
+      "id": "brl0",
+      "label": "Brow ridge, outer end (viewer left)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          46,
+          225,
+          53
+        ],
+        "w": [
+          0.7175765258981972,
+          0.004287329828719986,
+          0.2781361442730828
+        ]
+      },
+      "mirror": "brr0"
+    },
+    {
+      "id": "brl1",
+      "label": "Brow ridge, middle (viewer left)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          52,
+          65,
+          66
+        ],
+        "w": [
+          0.5967389445573094,
+          0.09057854531171025,
+          0.31268251013098036
+        ]
+      },
+      "mirror": "brr1"
+    },
+    {
+      "id": "brl2",
+      "label": "Brow ridge, inner end (viewer left)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          9,
+          107,
+          55
+        ],
+        "w": [
+          0.03779909213596653,
+          0.7288339290660395,
+          0.23336697879799395
+        ]
+      },
+      "mirror": "brr2"
+    },
+    {
+      "id": "gl0",
+      "label": "Glabella (between brows) (viewer left)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          8,
+          193,
+          168
+        ],
+        "w": [
+          0.6804868372015479,
+          0.24019996634541335,
+          0.07931319645303875
+        ]
+      }
+    },
+    {
+      "id": "gl1",
+      "label": "Glabella (between brows) (viewer right)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          8,
+          417,
+          285
+        ],
+        "w": [
+          0.46490361780034467,
+          0.37705721025001276,
+          0.1580391719496425
+        ]
+      }
+    },
+    {
+      "id": "brr1",
+      "label": "Brow ridge, inner end (viewer right)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          9,
+          285,
+          336
+        ],
+        "w": [
+          0.07136826668072067,
+          0.4764127991968595,
+          0.45221893412241976
+        ]
+      },
+      "mirror": "brl1"
+    },
+    {
+      "id": "brr2",
+      "label": "Brow ridge, middle (viewer right)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          282,
+          296,
+          295
+        ],
+        "w": [
+          0.749656578384908,
+          0.23249213883241246,
+          0.017851282782679584
+        ]
+      },
+      "mirror": "brl2"
+    },
+    {
+      "id": "brr0",
+      "label": "Brow ridge, outer end (viewer right)",
+      "region": "brow",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          276,
+          383,
+          300
+        ],
+        "w": [
+          0.7564581846094363,
+          0.05688926372483577,
+          0.18665255166572797
+        ]
+      },
+      "mirror": "brl0"
+    },
+    {
+      "id": "nas0",
+      "label": "Nose root (nasion) (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          8,
+          193,
+          168
+        ],
+        "w": [
+          0.015461551329751886,
+          0.5829270644385833,
+          0.40161138423166476
+        ]
+      }
+    },
+    {
+      "id": "nas1",
+      "label": "Nose root (nasion) (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          168,
+          351,
+          417
+        ],
+        "w": [
+          0.004635101395637684,
+          0.011895154842172934,
+          0.9834697437621893
+        ]
+      }
+    },
+    {
+      "id": "solo",
+      "label": "Eye socket, outer corner",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          35,
+          111,
+          226
+        ],
+        "w": [
+          0.3654256261463325,
+          0.03602279303953222,
+          0.5985515808141353
+        ]
+      },
+      "mirror": "soro"
+    },
+    {
+      "id": "sollo",
+      "label": "Eye socket, lower outer",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          117,
+          229,
+          228
+        ],
+        "w": [
+          0.2921223067747151,
+          0.6262936059325209,
+          0.0815840872927639
+        ]
+      },
+      "mirror": "sorlo"
+    },
+    {
+      "id": "solli",
+      "label": "Eye socket, lower inner",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          100,
+          121,
+          120
+        ],
+        "w": [
+          0.3798262689896497,
+          0.5296270607711014,
+          0.0905466702392489
+        ]
+      },
+      "mirror": "sorli"
+    },
+    {
+      "id": "soli",
+      "label": "Eye socket, inner (by nose)",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          128,
+          245,
+          233
+        ],
+        "w": [
+          0.1559535216978643,
+          0.5262948608566647,
+          0.3177516174454711
+        ]
+      },
+      "mirror": "sori"
+    },
+    {
+      "id": "soro",
+      "label": "Eye socket, outer corner",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          265,
+          353,
+          342
+        ],
+        "w": [
+          0.853412038060713,
+          0.06329891301084113,
+          0.0832890489284459
+        ]
+      },
+      "mirror": "solo"
+    },
+    {
+      "id": "sorlo",
+      "label": "Eye socket, lower outer",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          346,
+          448,
+          449
+        ],
+        "w": [
+          0.35143311538631933,
+          0.3155467806217806,
+          0.33302010399190013
+        ]
+      },
+      "mirror": "sollo"
+    },
+    {
+      "id": "sorli",
+      "label": "Eye socket, lower inner",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          329,
+          330,
+          349
+        ],
+        "w": [
+          0.24803423991549686,
+          0.11578967586137562,
+          0.6361760842231274
+        ]
+      },
+      "mirror": "solli"
+    },
+    {
+      "id": "sori",
+      "label": "Eye socket, inner (by nose)",
+      "region": "socket",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          453,
+          464,
+          465
+        ],
+        "w": [
+          0.6003710073768855,
+          0.20103640586327368,
+          0.1985925867598408
+        ]
+      },
+      "mirror": "soli"
+    },
+    {
+      "id": "tip0",
+      "label": "Nose tip, top (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          4,
+          45,
+          44
+        ],
+        "w": [
+          0.3845245051038022,
+          0.2836533601317355,
+          0.3318221347644623
+        ]
+      }
+    },
+    {
+      "id": "tip1",
+      "label": "Nose tip, top (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          274,
+          440,
+          275
+        ],
+        "w": [
+          0.259063929948699,
+          0.5796709311914485,
+          0.1612651388598525
+        ]
+      }
+    },
+    {
+      "id": "tip2",
+      "label": "Nose tip, bottom (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          274,
+          354,
+          457
+        ],
+        "w": [
+          0.18741024124103248,
+          0.3715540941013602,
+          0.44103566465760735
+        ]
+      }
+    },
+    {
+      "id": "tip3",
+      "label": "Nose tip, bottom (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          1,
+          44,
+          19
+        ],
+        "w": [
+          0.6405744972760691,
+          0.25404885170645025,
+          0.10537665101748067
+        ]
+      }
+    },
+    {
+      "id": "nsl",
+      "label": "Nose wing, outer (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          166,
+          218,
+          219
+        ],
+        "w": [
+          0.4858722389511124,
+          0.38724353831666336,
+          0.12688422273222422
+        ]
+      },
+      "mirror": "nsr"
+    },
+    {
+      "id": "nsr",
+      "label": "Nose wing, outer (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          278,
+          455,
+          294
+        ],
+        "w": [
+          0.5389058985416654,
+          0.15346108174271014,
+          0.3076330197156245
+        ]
+      },
+      "mirror": "nsl"
+    },
+    {
+      "id": "wl0",
+      "label": "Nostril, outer (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          75,
+          235,
+          240
+        ],
+        "w": [
+          0.08024029046161578,
+          0.4258122273670003,
+          0.49394748217138396
+        ]
+      },
+      "mirror": "wr0"
+    },
+    {
+      "id": "wl1",
+      "label": "Nostril, inner (viewer left)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          19,
+          141,
+          94
+        ],
+        "w": [
+          0.11898346277412312,
+          0.3834358152796935,
+          0.4975807219461834
+        ]
+      },
+      "mirror": "wr1"
+    },
+    {
+      "id": "wr0",
+      "label": "Nostril, outer (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          327,
+          423,
+          358
+        ],
+        "w": [
+          0.6757920271853698,
+          0.10614530781768775,
+          0.21806266499694246
+        ]
+      },
+      "mirror": "wl0"
+    },
+    {
+      "id": "wr1",
+      "label": "Nostril, inner (viewer right)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          250,
+          462,
+          328
+        ],
+        "w": [
+          0.3390465743641346,
+          0.25967124129160996,
+          0.4012821843442554
+        ]
+      },
+      "mirror": "wl1"
+    },
+    {
+      "id": "sub",
+      "label": "Under the nose (subnasale)",
+      "region": "nose",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          2,
+          326,
+          370
+        ],
+        "w": [
+          0.5283529871988231,
+          0.20533517802195164,
+          0.26631183477922526
+        ]
+      }
+    },
+    {
+      "id": "ckl",
+      "label": "Cheekbone, front corner (viewer left)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          50,
+          117,
+          123
+        ],
+        "w": [
+          0.8041017327206957,
+          0.09496444550016415,
+          0.1009338217791401
+        ]
+      },
+      "mirror": "ckr"
+    },
+    {
+      "id": "ckr",
+      "label": "Cheekbone, front corner (viewer right)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          280,
+          346,
+          347
+        ],
+        "w": [
+          0.6281144124416242,
+          0.23629576953569933,
+          0.13558981802267642
+        ]
+      },
+      "mirror": "ckl"
+    },
+    {
+      "id": "hol",
+      "label": "Cheek hollow, low (viewer left)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          187,
+          214,
+          207
+        ],
+        "w": [
+          0.5108662497922156,
+          0.40997604429897605,
+          0.07915770590880833
+        ]
+      },
+      "mirror": "hor"
+    },
+    {
+      "id": "hor",
+      "label": "Cheek hollow, low (viewer right)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          411,
+          434,
+          416
+        ],
+        "w": [
+          0.604731862045012,
+          0.19539771921623672,
+          0.19987041873875133
+        ]
+      },
+      "mirror": "hol"
+    },
+    {
+      "id": "mcl",
+      "label": "Mouth corner (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          61,
+          184,
+          185
+        ],
+        "w": [
+          0.312535136439434,
+          0.01668192106567432,
+          0.6707829424948917
+        ]
+      },
+      "mirror": "mcr"
+    },
+    {
+      "id": "mcr",
+      "label": "Mouth corner (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          287,
+          409,
+          291
+        ],
+        "w": [
+          0.11082562104713072,
+          0.4055259166805764,
+          0.4836484622722929
+        ]
+      },
+      "mirror": "mcl"
+    },
+    {
+      "id": "nll",
+      "label": "Smile fold (nasolabial) (viewer left)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          92,
+          216,
+          186
+        ],
+        "w": [
+          0.5361751133541109,
+          0.26699041918222044,
+          0.19683446746366862
+        ]
+      },
+      "mirror": "nlr"
+    },
+    {
+      "id": "nlr",
+      "label": "Smile fold (nasolabial) (viewer right)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          270,
+          410,
+          322
+        ],
+        "w": [
+          0.03664700918544808,
+          0.5261886259982966,
+          0.4371643648162553
+        ]
+      },
+      "mirror": "nll"
+    },
+    {
+      "id": "lpl",
+      "label": "Upper lip peak (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          37,
+          167,
+          39
+        ],
+        "w": [
+          0.5576232786072204,
+          0.07976175079053659,
+          0.362614970602243
+        ]
+      },
+      "mirror": "lpr"
+    },
+    {
+      "id": "lp0",
+      "label": "Upper lip, centre dip",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          0,
+          37,
+          11
+        ],
+        "w": [
+          0.4612383584092507,
+          0.024212745629264693,
+          0.5145488959614846
+        ]
+      }
+    },
+    {
+      "id": "lpr",
+      "label": "Upper lip peak (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          267,
+          269,
+          393
+        ],
+        "w": [
+          0.44128374230866046,
+          0.45614556402687034,
+          0.10257069366446925
+        ]
+      },
+      "mirror": "lpl"
+    },
+    {
+      "id": "pt",
+      "label": "Lip parting, centre",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          12,
+          38,
+          13
+        ],
+        "w": [
+          0.29296706345424295,
+          0.044258192438426956,
+          0.6627747441073301
+        ]
+      }
+    },
+    {
+      "id": "lll",
+      "label": "Lower lip, side (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          84,
+          180,
+          181
+        ],
+        "w": [
+          0.347824275583877,
+          0.11899179678979596,
+          0.533183927626327
+        ]
+      },
+      "mirror": "llr"
+    },
+    {
+      "id": "llr",
+      "label": "Lower lip, side (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          314,
+          405,
+          404
+        ],
+        "w": [
+          0.7269949714018428,
+          0.015595134317003111,
+          0.25740989428115413
+        ]
+      },
+      "mirror": "lll"
+    },
+    {
+      "id": "ll0",
+      "label": "Lower lip, centre",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          17,
+          83,
+          18
+        ],
+        "w": [
+          0.8436232040942104,
+          0.10693770238802056,
+          0.04943909351776901
+        ]
+      }
+    },
+    {
+      "id": "ml0",
+      "label": "Under-lip fold, side (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          182,
+          194,
+          201
+        ],
+        "w": [
+          0.02668222309555198,
+          0.29125986500794704,
+          0.6820579118965009
+        ]
+      }
+    },
+    {
+      "id": "ml1",
+      "label": "Under-lip fold, side (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          262,
+          418,
+          421
+        ],
+        "w": [
+          0.015459319448670331,
+          0.304430364114481,
+          0.6801103164368487
+        ]
+      }
+    },
+    {
+      "id": "chl",
+      "label": "Chin box, upper corner (viewer left)",
+      "region": "chin",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          202,
+          210,
+          204
+        ],
+        "w": [
+          0.1580173709587167,
+          0.1626301063504297,
+          0.6793525226908536
+        ]
+      },
+      "mirror": "chr"
+    },
+    {
+      "id": "chr",
+      "label": "Chin box, upper corner (viewer right)",
+      "region": "chin",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          273,
+          335,
+          424
+        ],
+        "w": [
+          0.059043309292974695,
+          0.21721929787083197,
+          0.7237373928361933
+        ]
+      },
+      "mirror": "chl"
+    },
+    {
+      "id": "cbl",
+      "label": "Chin bottom, side (viewer left)",
+      "region": "chin",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          140,
+          176,
+          148
+        ],
+        "w": [
+          0.015630626964965328,
+          0.19975479775896823,
+          0.7846145752760665
+        ]
+      },
+      "mirror": "cbr"
+    },
+    {
+      "id": "cb0",
+      "label": "Chin bottom, centre",
+      "region": "chin",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          148,
+          152,
+          175
+        ],
+        "w": [
+          0.12232702799739437,
+          0.8776729720026056,
+          0
+        ],
+        "off": [
+          0.00019901279615755488,
+          0.015218556974338306
+        ]
+      }
+    },
+    {
+      "id": "cbr",
+      "label": "Chin bottom, side (viewer right)",
+      "region": "chin",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          369,
+          377,
+          400
+        ],
+        "w": [
+          0.06581436638254451,
+          0.21152660555659994,
+          0.7226590280608555
+        ]
+      },
+      "mirror": "cbl"
+    },
+    {
+      "id": "jal",
+      "label": "Jaw angle (viewer left)",
+      "region": "jaw",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          136,
+          138,
+          172
+        ],
+        "w": [
+          0.6456585549685602,
+          0.28389603487915915,
+          0.07044541015228067
+        ]
+      },
+      "mirror": "jar"
+    },
+    {
+      "id": "jar",
+      "label": "Jaw angle (viewer right)",
+      "region": "jaw",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          364,
+          379,
+          365
+        ],
+        "w": [
+          0.24193705852492403,
+          0.15722986286675042,
+          0.6008330786083255
+        ]
+      },
+      "mirror": "jal"
+    },
+    {
+      "id": "eal",
+      "label": "Jaw under the ear (viewer left)",
+      "region": "jaw",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          138,
+          213,
+          215
+        ],
+        "w": [
+          0.14545678808182613,
+          0.5356041582894838,
+          0.31893905362869
+        ]
+      },
+      "mirror": "ear"
+    },
+    {
+      "id": "ear",
+      "label": "Jaw under the ear (viewer right)",
+      "region": "jaw",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          367,
+          397,
+          435
+        ],
+        "w": [
+          0.748504451743263,
+          0.09796468180676658,
+          0.15353086644997044
+        ]
+      },
+      "mirror": "eal"
+    },
+    {
+      "id": "fel",
+      "label": "Forehead plane split, top (viewer left)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            -0.2603785549058147,
+            0.6726965641498194,
+            -0.6925910342519515
+          ]
+        }
+      },
+      "mirror": "fer"
+    },
+    {
+      "id": "fel1",
+      "label": "Forehead plane split, bottom (viewer left)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          65,
+          107,
+          66
+        ],
+        "w": [
+          0.370061556122233,
+          0.38685162634195447,
+          0.24308681753581252
+        ]
+      },
+      "mirror": "fer1"
+    },
+    {
+      "id": "fer",
+      "label": "Forehead plane split, top (viewer right)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            0.19468131539134953,
+            0.6430175977316056,
+            -0.7406939681440433
+          ]
+        }
+      },
+      "mirror": "fel"
+    },
+    {
+      "id": "fer1",
+      "label": "Forehead plane split, bottom (viewer right)",
+      "region": "cranium",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          295,
+          296,
+          336
+        ],
+        "w": [
+          0.3942427933611044,
+          0.09872432870487649,
+          0.5070328779340192
+        ]
+      },
+      "mirror": "fel1"
+    },
+    {
+      "id": "skl",
+      "label": "Skull top corner (viewer left)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            -0.41305550304576466,
+            0.9044313321359073,
+            -0.10671980535251509
+          ]
+        }
+      },
+      "mirror": "skr"
+    },
+    {
+      "id": "skr",
+      "label": "Skull top corner (viewer right)",
+      "region": "cranium",
+      "surface": "cranium",
+      "seed": {
+        "sphere": {
+          "dir": [
+            0.4949256720344242,
+            0.8594732077429417,
+            -0.12788426147627346
+          ]
+        }
+      },
+      "mirror": "skl"
+    },
+    {
+      "id": "ph0",
+      "label": "Philtrum ridge, top (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          2,
+          97,
+          167
+        ],
+        "w": [
+          0.6388018861679132,
+          0.2470883222549147,
+          0.11410979157717208
+        ]
+      }
+    },
+    {
+      "id": "ph1",
+      "label": "Philtrum ridge, bottom (viewer left)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          0,
+          164,
+          37
+        ],
+        "w": [
+          0.28524363615136433,
+          0.14568028342707326,
+          0.5690760804215623
+        ]
+      }
+    },
+    {
+      "id": "ph2",
+      "label": "Philtrum ridge, top (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          2,
+          393,
+          326
+        ],
+        "w": [
+          0.3352775389865249,
+          0.05487346708169504,
+          0.60984899393178
+        ]
+      }
+    },
+    {
+      "id": "ph3",
+      "label": "Philtrum ridge, bottom (viewer right)",
+      "region": "mouth",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          0,
+          267,
+          164
+        ],
+        "w": [
+          0.1484942020387594,
+          0.6906900630137591,
+          0.16081573494748147
+        ]
+      }
+    },
+    {
+      "id": "zal",
+      "label": "Cheekbone arch toward ear (viewer left)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          116,
+          227,
+          137
+        ],
+        "w": [
+          0.3121636300622712,
+          0.2548466228122092,
+          0.4329897471255196
+        ]
+      },
+      "mirror": "zar"
+    },
+    {
+      "id": "zar",
+      "label": "Cheekbone arch toward ear (viewer right)",
+      "region": "cheek",
+      "surface": "face",
+      "seed": {
+        "tri": [
+          345,
+          366,
+          447
+        ],
+        "w": [
+          0.07515036453801689,
+          0.26610931061633536,
+          0.6587403248456477
+        ]
+      },
+      "mirror": "zal"
+    },
+    {
+      "id": "sjl",
+      "label": "Under-jaw band (viewer left)",
+      "region": "neck",
+      "surface": "neck",
+      "seed": {
+        "neck": {
+          "t": 0.18874055633234488,
+          "theta": -1.945997123045622
+        }
+      },
+      "mirror": "sjr"
+    },
+    {
+      "id": "sjc",
+      "label": "Under-jaw band, centre",
+      "region": "neck",
+      "surface": "neck",
+      "seed": {
+        "neck": {
+          "t": 0.2409360418644206,
+          "theta": -1.648750244592407
+        }
+      }
+    },
+    {
+      "id": "sjr",
+      "label": "Under-jaw band (viewer right)",
+      "region": "neck",
+      "surface": "neck",
+      "seed": {
+        "neck": {
+          "t": 0.1927977376799917,
+          "theta": -1.3434278301386542
+        }
+      },
+      "mirror": "sjl"
+    },
+    {
+      "id": "elo",
+      "label": "Eye, outer corner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          25,
+          33,
+          130
+        ],
+        "w": [
+          0.5995581693524276,
+          0.39719988546861523,
+          0.0032419451789572062
+        ]
+      },
+      "mirror": "ero"
+    },
+    {
+      "id": "elu1",
+      "label": "Upper lid edge, outer (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          30,
+          161,
+          160
+        ],
+        "w": [
+          0,
+          0.4820966972013284,
+          0.5179033027986716
+        ],
+        "off": [
+          0.006189979065646031,
+          0.009843844836918803
+        ]
+      },
+      "mirror": "eru1"
+    },
+    {
+      "id": "elu",
+      "label": "Upper lid edge, top (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          28,
+          159,
+          158
+        ],
+        "w": [
+          0,
+          0.4060478896528542,
+          0.5939521103471458
+        ],
+        "off": [
+          -0.0000555664704912374,
+          0.0037921786723169597
+        ]
+      },
+      "mirror": "eru"
+    },
+    {
+      "id": "elu2",
+      "label": "Upper lid edge, inner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          56,
+          157,
+          173
+        ],
+        "w": [
+          0.11542253639698728,
+          0.16133128083698908,
+          0.7232461827660236
+        ]
+      },
+      "mirror": "eru2"
+    },
+    {
+      "id": "eli",
+      "label": "Eye, inner corner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          112,
+          233,
+          244
+        ],
+        "w": [
+          0.6087729874803024,
+          0.08685205506572559,
+          0.30437495745397203
+        ]
+      },
+      "mirror": "eri"
+    },
+    {
+      "id": "ell2",
+      "label": "Lower lid edge, inner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          22,
+          231,
+          26
+        ],
+        "w": [
+          0.03773617347780716,
+          0.05529270906114542,
+          0.9069711174610475
+        ]
+      },
+      "mirror": "erl2"
+    },
+    {
+      "id": "ell",
+      "label": "Lower lid edge, bottom (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          22,
+          145,
+          23
+        ],
+        "w": [
+          0.46311192191338607,
+          0.2873728866043626,
+          0.24951519148225126
+        ]
+      },
+      "mirror": "erl"
+    },
+    {
+      "id": "ell1",
+      "label": "Lower lid edge, outer (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          24,
+          144,
+          110
+        ],
+        "w": [
+          0.16879857145513655,
+          0.6950755689147144,
+          0.136125859630149
+        ]
+      },
+      "mirror": "erl1"
+    },
+    {
+      "id": "ero",
+      "label": "Eye, outer corner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          255,
+          359,
+          263
+        ],
+        "w": [
+          0.6612459300654245,
+          0.023572742939831446,
+          0.315181326994744
+        ]
+      },
+      "mirror": "elo"
+    },
+    {
+      "id": "eru1",
+      "label": "Upper lid edge, outer (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          260,
+          387,
+          388
+        ],
+        "w": [
+          0,
+          0.40529629414541735,
+          0.5947037058545827
+        ],
+        "off": [
+          -0.003414306935587405,
+          0.007375312945586786
+        ]
+      },
+      "mirror": "elu1"
+    },
+    {
+      "id": "eru",
+      "label": "Upper lid edge, top (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          258,
+          385,
+          386
+        ],
+        "w": [
+          0,
+          0.38504182434554957,
+          0.6149581756544504
+        ],
+        "off": [
+          0.00131721380893514,
+          0.009348943876220027
+        ]
+      },
+      "mirror": "elu"
+    },
+    {
+      "id": "eru2",
+      "label": "Upper lid edge, inner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          258,
+          384,
+          385
+        ],
+        "w": [
+          0,
+          0.9393409803231308,
+          0.06065901967686918
+        ],
+        "off": [
+          0.0005553589718660118,
+          0.0013224714068057995
+        ]
+      },
+      "mirror": "elu2"
+    },
+    {
+      "id": "eri",
+      "label": "Eye, inner corner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          341,
+          463,
+          464
+        ],
+        "w": [
+          0.5625393656087506,
+          0.36264181134926426,
+          0.07481882304198512
+        ]
+      },
+      "mirror": "eli"
+    },
+    {
+      "id": "erl2",
+      "label": "Lower lid edge, inner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          252,
+          381,
+          256
+        ],
+        "w": [
+          0.20552794448528425,
+          0.1544939119884704,
+          0.6399781435262454
+        ]
+      },
+      "mirror": "ell2"
+    },
+    {
+      "id": "erl",
+      "label": "Lower lid edge, bottom (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          252,
+          253,
+          374
+        ],
+        "w": [
+          0.2607626551882617,
+          0.6850673771994675,
+          0.054169967612270775
+        ]
+      },
+      "mirror": "ell"
+    },
+    {
+      "id": "erl1",
+      "label": "Lower lid edge, outer (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          254,
+          339,
+          373
+        ],
+        "w": [
+          0.24279813274167897,
+          0.39537255922012743,
+          0.36182930803819363
+        ]
+      },
+      "mirror": "ell1"
+    },
+    {
+      "id": "elf0",
+      "label": "Lid fold, outer (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          25,
+          130,
+          226
+        ],
+        "w": [
+          0.35534559603452825,
+          0.565223663751246,
+          0.0794307402142258
+        ]
+      },
+      "mirror": "erf0"
+    },
+    {
+      "id": "elf1",
+      "label": "Lid fold, outer-middle (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          27,
+          29,
+          160
+        ],
+        "w": [
+          0.09314479362084485,
+          0.1592544772286483,
+          0.7476007291505069
+        ]
+      },
+      "mirror": "erf1"
+    },
+    {
+      "id": "elf2",
+      "label": "Lid fold, top (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          28,
+          159,
+          158
+        ],
+        "w": [
+          0.4022670357606872,
+          0.17074836090431514,
+          0.42698460333499766
+        ]
+      },
+      "mirror": "erf2"
+    },
+    {
+      "id": "elf3",
+      "label": "Lid fold, inner-middle (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          28,
+          157,
+          56
+        ],
+        "w": [
+          0.13689109960082144,
+          0.5220399383069682,
+          0.3410689620922104
+        ]
+      },
+      "mirror": "erf3"
+    },
+    {
+      "id": "elf4",
+      "label": "Lid fold, inner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          189,
+          243,
+          244
+        ],
+        "w": [
+          0.37681813647579604,
+          0.19880500907556814,
+          0.42437685444863577
+        ]
+      },
+      "mirror": "erf4"
+    },
+    {
+      "id": "elg1",
+      "label": "Lower lid band, outer (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          24,
+          228,
+          229
+        ],
+        "w": [
+          0.7482514841745407,
+          0.0202330052791885,
+          0.23151551054627081
+        ]
+      },
+      "mirror": "erg1"
+    },
+    {
+      "id": "elg2",
+      "label": "Lower lid band, bottom (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          22,
+          23,
+          230
+        ],
+        "w": [
+          0.17268951916738598,
+          0.11870729738858975,
+          0.7086031834440243
+        ]
+      },
+      "mirror": "erg2"
+    },
+    {
+      "id": "elg3",
+      "label": "Lower lid band, inner (viewer left)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          120,
+          232,
+          231
+        ],
+        "w": [
+          0.03965947931967852,
+          0.777942615262784,
+          0.18239790541753753
+        ]
+      },
+      "mirror": "erg3"
+    },
+    {
+      "id": "erf0",
+      "label": "Lid fold, outer (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          255,
+          446,
+          359
+        ],
+        "w": [
+          0.3111979388758296,
+          0.4736558753456201,
+          0.21514618577855033
+        ]
+      },
+      "mirror": "elf0"
+    },
+    {
+      "id": "erf1",
+      "label": "Lid fold, outer-middle (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          259,
+          387,
+          260
+        ],
+        "w": [
+          0.20837750164096688,
+          0.6483979444324867,
+          0.14322455392654643
+        ]
+      },
+      "mirror": "elf1"
+    },
+    {
+      "id": "erf2",
+      "label": "Lid fold, top (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          257,
+          258,
+          386
+        ],
+        "w": [
+          0.07943319784503526,
+          0.36191077964624274,
+          0.558656022508722
+        ]
+      },
+      "mirror": "elf2"
+    },
+    {
+      "id": "erf3",
+      "label": "Lid fold, inner-middle (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          258,
+          286,
+          384
+        ],
+        "w": [
+          0.003991488134262114,
+          0.6748831782845598,
+          0.3211253335811781
+        ]
+      },
+      "mirror": "elf3"
+    },
+    {
+      "id": "erf4",
+      "label": "Lid fold, inner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          413,
+          463,
+          414
+        ],
+        "w": [
+          0.494398774623575,
+          0.33800670374969527,
+          0.16759452162672978
+        ]
+      },
+      "mirror": "elf4"
+    },
+    {
+      "id": "erg1",
+      "label": "Lower lid band, outer (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          254,
+          448,
+          339
+        ],
+        "w": [
+          0.23535610168429213,
+          0.4391741076971874,
+          0.3254697906185205
+        ]
+      },
+      "mirror": "elg1"
+    },
+    {
+      "id": "erg2",
+      "label": "Lower lid band, bottom (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          252,
+          450,
+          253
+        ],
+        "w": [
+          0.3849248973938841,
+          0.554142415509393,
+          0.06093268709672284
+        ]
+      },
+      "mirror": "elg2"
+    },
+    {
+      "id": "erg3",
+      "label": "Lower lid band, inner (viewer right)",
+      "region": "eye",
+      "surface": "lid",
+      "seed": {
+        "tri": [
+          256,
+          452,
+          451
+        ],
+        "w": [
+          0.21956636662066972,
+          0.4435467888394531,
+          0.33688684453987716
+        ]
+      },
+      "mirror": "elg3"
+    },
+    {
+      "id": "nkl",
+      "label": "Neck side (viewer left)",
+      "region": "neck",
+      "surface": "limb",
+      "seed": {
+        "neck": {
+          "t": 0.44297404546242164,
+          "theta": 3.1034811006888945
+        }
+      },
+      "mirror": "nkr"
+    },
+    {
+      "id": "nkr",
+      "label": "Neck side (viewer right)",
+      "region": "neck",
+      "surface": "limb",
+      "seed": {
+        "neck": {
+          "t": 0.44576047813441844,
+          "theta": -0.2596682984426034
+        }
+      },
+      "mirror": "nkl"
+    }
+  ],
+  "faces": [
+    {
+      "id": "plane.1",
+      "label": "Cranium plane 1",
+      "region": "cranium",
+      "verts": [
+        "fel",
+        "fer",
+        "fer1",
+        "brr1",
+        "gl1",
+        "gl0",
+        "brl2",
+        "fel1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.2",
+      "label": "Jaw plane 2",
+      "region": "jaw",
+      "verts": [
+        "jar",
+        "mcr",
+        "hor"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.3",
+      "label": "Socket plane 3",
+      "region": "socket",
+      "verts": [
+        "nsl",
+        "solli",
+        "soli"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.4",
+      "label": "Cheek plane 4",
+      "region": "cheek",
+      "verts": [
+        "hol",
+        "mcl",
+        "jal"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.5",
+      "label": "Brow plane 5",
+      "region": "brow",
+      "verts": [
+        "brr0",
+        "brr2",
+        "trr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.6",
+      "label": "Eye plane 6",
+      "region": "eye",
+      "verts": [
+        "solli",
+        "sollo",
+        "elg1",
+        "elg2",
+        "elg3"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.7",
+      "label": "Socket plane 7",
+      "region": "socket",
+      "verts": [
+        "sorli",
+        "sorlo",
+        "ckr",
+        "nlr",
+        "nsr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.8",
+      "label": "Socket plane 8",
+      "region": "socket",
+      "verts": [
+        "ckr",
+        "sorlo",
+        "soro"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.9",
+      "label": "Eye plane 9",
+      "region": "eye",
+      "verts": [
+        "ell1",
+        "elo",
+        "elu1",
+        "elu",
+        "elu2",
+        "eli",
+        "ell2",
+        "ell"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.10",
+      "label": "Eye plane 10",
+      "region": "eye",
+      "verts": [
+        "ell",
+        "ell2",
+        "elg3",
+        "elg2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.11",
+      "label": "Cranium plane 11",
+      "region": "cranium",
+      "verts": [
+        "ftl",
+        "trl",
+        "tsl",
+        "skl"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.12",
+      "label": "Chin plane 12",
+      "region": "chin",
+      "verts": [
+        "cbr",
+        "ml1",
+        "chr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.13",
+      "label": "Eye plane 13",
+      "region": "eye",
+      "verts": [
+        "elg3",
+        "ell2",
+        "eli"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.14",
+      "label": "Cranium plane 14",
+      "region": "cranium",
+      "verts": [
+        "fel",
+        "ftl",
+        "skl",
+        "skr",
+        "ftr",
+        "fer"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.15",
+      "label": "Cranium plane 15",
+      "region": "cranium",
+      "verts": [
+        "tll",
+        "tsl",
+        "trl",
+        "brl0",
+        "solo",
+        "zal"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.16",
+      "label": "Cranium plane 16",
+      "region": "cranium",
+      "verts": [
+        "brr2",
+        "fer1",
+        "fer",
+        "ftr",
+        "trr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.17",
+      "label": "Socket plane 17",
+      "region": "socket",
+      "verts": [
+        "soli",
+        "solli",
+        "elg3",
+        "eli"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.18",
+      "label": "Neck plane 18",
+      "region": "neck",
+      "verts": [
+        "jar",
+        "sjr",
+        "sjc",
+        "sjl",
+        "jal",
+        "cbl",
+        "cb0",
+        "cbr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.19",
+      "label": "Chin plane 19",
+      "region": "chin",
+      "verts": [
+        "jal",
+        "mcl",
+        "chl",
+        "cbl"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.20",
+      "label": "Nose plane 20",
+      "region": "nose",
+      "verts": [
+        "tip3",
+        "wl1",
+        "wl0",
+        "nsl"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.21",
+      "label": "Eye plane 21",
+      "region": "eye",
+      "verts": [
+        "erl",
+        "erl1",
+        "erg1",
+        "erg2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.22",
+      "label": "Cranium plane 22",
+      "region": "cranium",
+      "verts": [
+        "fel",
+        "fel1",
+        "brl1",
+        "trl",
+        "ftl"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.23",
+      "label": "Cranium plane 23",
+      "region": "cranium",
+      "verts": [
+        "ftr",
+        "skr",
+        "tsr",
+        "trr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.24",
+      "label": "Brow plane 24",
+      "region": "brow",
+      "verts": [
+        "brr1",
+        "fer1",
+        "brr2",
+        "erf2",
+        "erf3",
+        "erf4",
+        "sori",
+        "nas1",
+        "gl1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.25",
+      "label": "Nose plane 25",
+      "region": "nose",
+      "verts": [
+        "nas1",
+        "tip1",
+        "tip0",
+        "nas0",
+        "gl0",
+        "gl1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.26",
+      "label": "Nose plane 26",
+      "region": "nose",
+      "verts": [
+        "tip0",
+        "tip1",
+        "tip2",
+        "tip3"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.27",
+      "label": "Chin plane 27",
+      "region": "chin",
+      "verts": [
+        "chl",
+        "ml0",
+        "cbl"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.28",
+      "label": "Eye plane 28",
+      "region": "eye",
+      "verts": [
+        "erg1",
+        "ero",
+        "erf0",
+        "soro",
+        "sorlo"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.29",
+      "label": "Eye plane 29",
+      "region": "eye",
+      "verts": [
+        "erg3",
+        "sorli",
+        "sori",
+        "eri"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.30",
+      "label": "Eye plane 30",
+      "region": "eye",
+      "verts": [
+        "erf2",
+        "eru",
+        "eru2",
+        "erf3"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.31",
+      "label": "Eye plane 31",
+      "region": "eye",
+      "verts": [
+        "elf4",
+        "soli",
+        "eli"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.32",
+      "label": "Eye plane 32",
+      "region": "eye",
+      "verts": [
+        "erl",
+        "erl2",
+        "eri",
+        "eru2",
+        "eru",
+        "eru1",
+        "ero",
+        "erl1"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.33",
+      "label": "Nose plane 33",
+      "region": "nose",
+      "verts": [
+        "nas0",
+        "tip0",
+        "tip3",
+        "nsl",
+        "soli"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.34",
+      "label": "Cheek plane 34",
+      "region": "cheek",
+      "verts": [
+        "ckl",
+        "hol",
+        "eal",
+        "zal",
+        "solo"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.35",
+      "label": "Chin plane 35",
+      "region": "chin",
+      "verts": [
+        "chr",
+        "mcr",
+        "jar",
+        "cbr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.36",
+      "label": "Eye plane 36",
+      "region": "eye",
+      "verts": [
+        "erf4",
+        "eri",
+        "sori"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.37",
+      "label": "Chin plane 37",
+      "region": "chin",
+      "verts": [
+        "cb0",
+        "cbl",
+        "ml0",
+        "ml1",
+        "cbr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.38",
+      "label": "Mouth plane 38",
+      "region": "mouth",
+      "verts": [
+        "llr",
+        "mcr",
+        "chr",
+        "ml1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.39",
+      "label": "Eye plane 39",
+      "region": "eye",
+      "verts": [
+        "elf2",
+        "elu",
+        "elu1",
+        "elf1"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.40",
+      "label": "Cranium plane 40",
+      "region": "cranium",
+      "verts": [
+        "brr0",
+        "trr",
+        "tsr",
+        "tlr",
+        "zar",
+        "soro"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.41",
+      "label": "Eye plane 41",
+      "region": "eye",
+      "verts": [
+        "ero",
+        "eru1",
+        "erf1",
+        "erf0"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.42",
+      "label": "Eye plane 42",
+      "region": "eye",
+      "verts": [
+        "brl0",
+        "brl1",
+        "elf2",
+        "elf1",
+        "elf0",
+        "solo"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.43",
+      "label": "Eye plane 43",
+      "region": "eye",
+      "verts": [
+        "nas0",
+        "soli",
+        "elf4",
+        "elf3",
+        "elf2",
+        "brl1",
+        "fel1",
+        "brl2",
+        "gl0"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.44",
+      "label": "Cheek plane 44",
+      "region": "cheek",
+      "verts": [
+        "ear",
+        "hor",
+        "ckr",
+        "soro",
+        "zar"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.45",
+      "label": "Nose plane 45",
+      "region": "nose",
+      "verts": [
+        "lp0",
+        "lpl",
+        "mcl",
+        "nll",
+        "nsl",
+        "wl0",
+        "wl1",
+        "sub"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.46",
+      "label": "Mouth plane 46",
+      "region": "mouth",
+      "verts": [
+        "lpr",
+        "mcr",
+        "pt",
+        "mcl",
+        "lpl",
+        "lp0"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.47",
+      "label": "Eye plane 47",
+      "region": "eye",
+      "verts": [
+        "elf0",
+        "elf1",
+        "elu1",
+        "elo"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.48",
+      "label": "Mouth plane 48",
+      "region": "mouth",
+      "verts": [
+        "chl",
+        "mcl",
+        "lll",
+        "ml0"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.49",
+      "label": "Eye plane 49",
+      "region": "eye",
+      "verts": [
+        "elf0",
+        "elo",
+        "elg1",
+        "sollo",
+        "solo"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.50",
+      "label": "Cheek plane 50",
+      "region": "cheek",
+      "verts": [
+        "ckl",
+        "nll",
+        "mcl",
+        "hol"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.51",
+      "label": "Nose plane 51",
+      "region": "nose",
+      "verts": [
+        "nsr",
+        "wr0",
+        "wr1",
+        "tip2"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.52",
+      "label": "Eye plane 52",
+      "region": "eye",
+      "verts": [
+        "elf4",
+        "eli",
+        "elu2",
+        "elf3"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.53",
+      "label": "Eye plane 53",
+      "region": "eye",
+      "verts": [
+        "erg2",
+        "erg3",
+        "erl2",
+        "erl"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.54",
+      "label": "Mouth plane 54",
+      "region": "mouth",
+      "verts": [
+        "llr",
+        "ml1",
+        "ml0",
+        "lll",
+        "ll0"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.55",
+      "label": "Cheek plane 55",
+      "region": "cheek",
+      "verts": [
+        "ckl",
+        "sollo",
+        "solli",
+        "nsl",
+        "nll"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.56",
+      "label": "Eye plane 56",
+      "region": "eye",
+      "verts": [
+        "elg1",
+        "ell1",
+        "ell",
+        "elg2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.57",
+      "label": "Nose plane 57",
+      "region": "nose",
+      "verts": [
+        "lp0",
+        "sub",
+        "wr1",
+        "wr0",
+        "nsr",
+        "nlr",
+        "mcr",
+        "lpr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.58",
+      "label": "Brow plane 58",
+      "region": "brow",
+      "verts": [
+        "brl0",
+        "trl",
+        "brl1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.59",
+      "label": "Eye plane 59",
+      "region": "eye",
+      "verts": [
+        "erg1",
+        "erl1",
+        "ero"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.60",
+      "label": "Eye plane 60",
+      "region": "eye",
+      "verts": [
+        "elg1",
+        "elo",
+        "ell1"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.61",
+      "label": "Socket plane 61",
+      "region": "socket",
+      "verts": [
+        "sori",
+        "sorli",
+        "nsr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.62",
+      "label": "Eye plane 62",
+      "region": "eye",
+      "verts": [
+        "erf0",
+        "erf1",
+        "erf2",
+        "brr2",
+        "brr0",
+        "soro"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.63",
+      "label": "Nose plane 63",
+      "region": "nose",
+      "verts": [
+        "tip2",
+        "wr1",
+        "sub",
+        "wl1",
+        "tip3"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.64",
+      "label": "Cheek plane 64",
+      "region": "cheek",
+      "verts": [
+        "hor",
+        "mcr",
+        "nlr",
+        "ckr"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.65",
+      "label": "Eye plane 65",
+      "region": "eye",
+      "verts": [
+        "erg1",
+        "sorlo",
+        "sorli",
+        "erg3",
+        "erg2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.66",
+      "label": "Jaw plane 66",
+      "region": "jaw",
+      "verts": [
+        "hol",
+        "jal",
+        "eal"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.67",
+      "label": "Socket plane 67",
+      "region": "socket",
+      "verts": [
+        "ckl",
+        "solo",
+        "sollo"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.68",
+      "label": "Jaw plane 68",
+      "region": "jaw",
+      "verts": [
+        "ear",
+        "jar",
+        "hor"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.69",
+      "label": "Nose plane 69",
+      "region": "nose",
+      "verts": [
+        "nas1",
+        "sori",
+        "nsr",
+        "tip2",
+        "tip1"
+      ],
+      "kind": "plane"
+    },
+    {
+      "id": "plane.70",
+      "label": "Eye plane 70",
+      "region": "eye",
+      "verts": [
+        "erf3",
+        "eru2",
+        "eri",
+        "erf4"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.71",
+      "label": "Eye plane 71",
+      "region": "eye",
+      "verts": [
+        "eri",
+        "erl2",
+        "erg3"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.72",
+      "label": "Eye plane 72",
+      "region": "eye",
+      "verts": [
+        "elf3",
+        "elu2",
+        "elu",
+        "elf2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.73",
+      "label": "Eye plane 73",
+      "region": "eye",
+      "verts": [
+        "erf1",
+        "eru1",
+        "eru",
+        "erf2"
+      ],
+      "kind": "band"
+    },
+    {
+      "id": "plane.74",
+      "label": "Mouth plane 74",
+      "region": "mouth",
+      "verts": [
+        "mcl",
+        "pt",
+        "mcr",
+        "llr",
+        "ll0",
+        "lll"
+      ],
+      "kind": "plane"
+    }
+  ],
+  "edges": [
+    {
+      "a": "ftl",
+      "b": "trl",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl0",
+      "b": "trl",
+      "kind": "ridge"
+    },
+    {
+      "a": "ftr",
+      "b": "trr",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr0",
+      "b": "trr",
+      "kind": "ridge"
+    },
+    {
+      "a": "fel",
+      "b": "ftl",
+      "kind": "ridge"
+    },
+    {
+      "a": "fel",
+      "b": "fer",
+      "kind": "ridge"
+    },
+    {
+      "a": "fer",
+      "b": "ftr",
+      "kind": "ridge"
+    },
+    {
+      "a": "trl",
+      "b": "tsl",
+      "kind": "ridge"
+    },
+    {
+      "a": "tll",
+      "b": "tsl",
+      "kind": "ridge"
+    },
+    {
+      "a": "trr",
+      "b": "tsr",
+      "kind": "ridge"
+    },
+    {
+      "a": "tlr",
+      "b": "tsr",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl0",
+      "b": "brl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl1",
+      "b": "fel1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl2",
+      "b": "fel1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl2",
+      "b": "gl0",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr1",
+      "b": "gl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr1",
+      "b": "fer1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr2",
+      "b": "fer1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr0",
+      "b": "brr2",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl1",
+      "b": "trl",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr2",
+      "b": "trr",
+      "kind": "ridge"
+    },
+    {
+      "a": "gl0",
+      "b": "nas0",
+      "kind": "ridge"
+    },
+    {
+      "a": "gl1",
+      "b": "nas1",
+      "kind": "ridge"
+    },
+    {
+      "a": "gl0",
+      "b": "gl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl0",
+      "b": "solo",
+      "kind": "ridge"
+    },
+    {
+      "a": "sollo",
+      "b": "solo",
+      "kind": "ridge"
+    },
+    {
+      "a": "solli",
+      "b": "sollo",
+      "kind": "ridge"
+    },
+    {
+      "a": "soli",
+      "b": "solli",
+      "kind": "ridge"
+    },
+    {
+      "a": "nas0",
+      "b": "soli",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr0",
+      "b": "soro",
+      "kind": "ridge"
+    },
+    {
+      "a": "sorlo",
+      "b": "soro",
+      "kind": "ridge"
+    },
+    {
+      "a": "sorli",
+      "b": "sorlo",
+      "kind": "ridge"
+    },
+    {
+      "a": "sori",
+      "b": "sorli",
+      "kind": "ridge"
+    },
+    {
+      "a": "nas1",
+      "b": "sori",
+      "kind": "ridge"
+    },
+    {
+      "a": "nas0",
+      "b": "tip0",
+      "kind": "ridge"
+    },
+    {
+      "a": "nas1",
+      "b": "tip1",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip0",
+      "b": "tip1",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip1",
+      "b": "tip2",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip2",
+      "b": "tip3",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip0",
+      "b": "tip3",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsl",
+      "b": "soli",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsl",
+      "b": "wl0",
+      "kind": "ridge"
+    },
+    {
+      "a": "wl0",
+      "b": "wl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "sub",
+      "b": "wl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "sub",
+      "b": "wr1",
+      "kind": "ridge"
+    },
+    {
+      "a": "wr0",
+      "b": "wr1",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsr",
+      "b": "wr0",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsr",
+      "b": "sori",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip3",
+      "b": "wl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "tip2",
+      "b": "wr1",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsl",
+      "b": "tip3",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsr",
+      "b": "tip2",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckl",
+      "b": "solo",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckl",
+      "b": "hol",
+      "kind": "ridge"
+    },
+    {
+      "a": "eal",
+      "b": "hol",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckr",
+      "b": "soro",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckr",
+      "b": "hor",
+      "kind": "ridge"
+    },
+    {
+      "a": "ear",
+      "b": "hor",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckl",
+      "b": "sollo",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckr",
+      "b": "sorlo",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsl",
+      "b": "solli",
+      "kind": "ridge"
+    },
+    {
+      "a": "nsr",
+      "b": "sorli",
+      "kind": "ridge"
+    },
+    {
+      "a": "nll",
+      "b": "nsl",
+      "kind": "ridge"
+    },
+    {
+      "a": "mcl",
+      "b": "nll",
+      "kind": "ridge"
+    },
+    {
+      "a": "nlr",
+      "b": "nsr",
+      "kind": "ridge"
+    },
+    {
+      "a": "mcr",
+      "b": "nlr",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckl",
+      "b": "nll",
+      "kind": "ridge"
+    },
+    {
+      "a": "ckr",
+      "b": "nlr",
+      "kind": "ridge"
+    },
+    {
+      "a": "hol",
+      "b": "mcl",
+      "kind": "ridge"
+    },
+    {
+      "a": "hor",
+      "b": "mcr",
+      "kind": "ridge"
+    },
+    {
+      "a": "lp0",
+      "b": "sub",
+      "kind": "ridge"
+    },
+    {
+      "a": "lpl",
+      "b": "mcl",
+      "kind": "ridge"
+    },
+    {
+      "a": "lp0",
+      "b": "lpl",
+      "kind": "ridge"
+    },
+    {
+      "a": "lp0",
+      "b": "lpr",
+      "kind": "ridge"
+    },
+    {
+      "a": "lpr",
+      "b": "mcr",
+      "kind": "ridge"
+    },
+    {
+      "a": "mcl",
+      "b": "pt",
+      "kind": "ridge"
+    },
+    {
+      "a": "mcr",
+      "b": "pt",
+      "kind": "ridge"
+    },
+    {
+      "a": "lll",
+      "b": "mcl",
+      "kind": "ridge"
+    },
+    {
+      "a": "ll0",
+      "b": "lll",
+      "kind": "ridge"
+    },
+    {
+      "a": "ll0",
+      "b": "llr",
+      "kind": "ridge"
+    },
+    {
+      "a": "llr",
+      "b": "mcr",
+      "kind": "ridge"
+    },
+    {
+      "a": "lll",
+      "b": "ml0",
+      "kind": "ridge"
+    },
+    {
+      "a": "ml0",
+      "b": "ml1",
+      "kind": "ridge"
+    },
+    {
+      "a": "llr",
+      "b": "ml1",
+      "kind": "ridge"
+    },
+    {
+      "a": "chl",
+      "b": "mcl",
+      "kind": "ridge"
+    },
+    {
+      "a": "chr",
+      "b": "mcr",
+      "kind": "ridge"
+    },
+    {
+      "a": "chl",
+      "b": "ml0",
+      "kind": "ridge"
+    },
+    {
+      "a": "chr",
+      "b": "ml1",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbl",
+      "b": "chl",
+      "kind": "ridge"
+    },
+    {
+      "a": "cb0",
+      "b": "cbl",
+      "kind": "ridge"
+    },
+    {
+      "a": "cb0",
+      "b": "cbr",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbr",
+      "b": "chr",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbl",
+      "b": "ml0",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbr",
+      "b": "ml1",
+      "kind": "ridge"
+    },
+    {
+      "a": "tll",
+      "b": "zal",
+      "kind": "ridge"
+    },
+    {
+      "a": "eal",
+      "b": "zal",
+      "kind": "ridge"
+    },
+    {
+      "a": "eal",
+      "b": "jal",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbl",
+      "b": "jal",
+      "kind": "ridge"
+    },
+    {
+      "a": "tlr",
+      "b": "zar",
+      "kind": "ridge"
+    },
+    {
+      "a": "ear",
+      "b": "zar",
+      "kind": "ridge"
+    },
+    {
+      "a": "ear",
+      "b": "jar",
+      "kind": "ridge"
+    },
+    {
+      "a": "cbr",
+      "b": "jar",
+      "kind": "ridge"
+    },
+    {
+      "a": "hol",
+      "b": "jal",
+      "kind": "ridge"
+    },
+    {
+      "a": "hor",
+      "b": "jar",
+      "kind": "ridge"
+    },
+    {
+      "a": "jal",
+      "b": "nkl",
+      "kind": "ridge"
+    },
+    {
+      "a": "jar",
+      "b": "nkr",
+      "kind": "ridge"
+    },
+    {
+      "a": "fel",
+      "b": "fel1",
+      "kind": "ridge"
+    },
+    {
+      "a": "fer",
+      "b": "fer1",
+      "kind": "ridge"
+    },
+    {
+      "a": "skl",
+      "b": "skr",
+      "kind": "ridge"
+    },
+    {
+      "a": "ftl",
+      "b": "skl",
+      "kind": "ridge"
+    },
+    {
+      "a": "ftr",
+      "b": "skr",
+      "kind": "ridge"
+    },
+    {
+      "a": "skl",
+      "b": "tsl",
+      "kind": "ridge"
+    },
+    {
+      "a": "skr",
+      "b": "tsr",
+      "kind": "ridge"
+    },
+    {
+      "a": "jal",
+      "b": "mcl",
+      "kind": "ridge"
+    },
+    {
+      "a": "jar",
+      "b": "mcr",
+      "kind": "ridge"
+    },
+    {
+      "a": "ph0",
+      "b": "ph1",
+      "kind": "ridge"
+    },
+    {
+      "a": "ph2",
+      "b": "ph3",
+      "kind": "ridge"
+    },
+    {
+      "a": "solo",
+      "b": "zal",
+      "kind": "ridge"
+    },
+    {
+      "a": "soro",
+      "b": "zar",
+      "kind": "ridge"
+    },
+    {
+      "a": "jal",
+      "b": "sjl",
+      "kind": "ridge"
+    },
+    {
+      "a": "sjc",
+      "b": "sjl",
+      "kind": "ridge"
+    },
+    {
+      "a": "sjc",
+      "b": "sjr",
+      "kind": "ridge"
+    },
+    {
+      "a": "jar",
+      "b": "sjr",
+      "kind": "ridge"
+    },
+    {
+      "a": "elo",
+      "b": "elu1",
+      "kind": "ridge"
+    },
+    {
+      "a": "elu",
+      "b": "elu1",
+      "kind": "ridge"
+    },
+    {
+      "a": "elu",
+      "b": "elu2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eli",
+      "b": "elu2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eli",
+      "b": "ell2",
+      "kind": "ridge"
+    },
+    {
+      "a": "ell",
+      "b": "ell2",
+      "kind": "ridge"
+    },
+    {
+      "a": "ell",
+      "b": "ell1",
+      "kind": "ridge"
+    },
+    {
+      "a": "ell1",
+      "b": "elo",
+      "kind": "ridge"
+    },
+    {
+      "a": "ero",
+      "b": "eru1",
+      "kind": "ridge"
+    },
+    {
+      "a": "eru",
+      "b": "eru1",
+      "kind": "ridge"
+    },
+    {
+      "a": "eru",
+      "b": "eru2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eri",
+      "b": "eru2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eri",
+      "b": "erl2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erl",
+      "b": "erl2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erl",
+      "b": "erl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "erl1",
+      "b": "ero",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf0",
+      "b": "elf1",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf1",
+      "b": "elf2",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf2",
+      "b": "elf3",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf3",
+      "b": "elf4",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf0",
+      "b": "elo",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf1",
+      "b": "elu1",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf2",
+      "b": "elu",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf3",
+      "b": "elu2",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf4",
+      "b": "eli",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf0",
+      "b": "erf1",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf1",
+      "b": "erf2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf2",
+      "b": "erf3",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf3",
+      "b": "erf4",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf0",
+      "b": "ero",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf1",
+      "b": "eru1",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf2",
+      "b": "eru",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf3",
+      "b": "eru2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf4",
+      "b": "eri",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg1",
+      "b": "elo",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg1",
+      "b": "elg2",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg2",
+      "b": "elg3",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg3",
+      "b": "eli",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg1",
+      "b": "ell1",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg2",
+      "b": "ell",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg3",
+      "b": "ell2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eli",
+      "b": "soli",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf4",
+      "b": "soli",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg1",
+      "b": "ero",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg1",
+      "b": "erg2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg2",
+      "b": "erg3",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg3",
+      "b": "eri",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg1",
+      "b": "erl1",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg2",
+      "b": "erl",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg3",
+      "b": "erl2",
+      "kind": "ridge"
+    },
+    {
+      "a": "eri",
+      "b": "sori",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf4",
+      "b": "sori",
+      "kind": "ridge"
+    },
+    {
+      "a": "elf0",
+      "b": "solo",
+      "kind": "ridge"
+    },
+    {
+      "a": "brl1",
+      "b": "elf2",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg1",
+      "b": "sollo",
+      "kind": "ridge"
+    },
+    {
+      "a": "elg3",
+      "b": "solli",
+      "kind": "ridge"
+    },
+    {
+      "a": "erf0",
+      "b": "soro",
+      "kind": "ridge"
+    },
+    {
+      "a": "brr2",
+      "b": "erf2",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg1",
+      "b": "sorlo",
+      "kind": "ridge"
+    },
+    {
+      "a": "erg3",
+      "b": "sorli",
+      "kind": "ridge"
+    }
+  ],
+  "source": {
+    "commit": "8146135b80ed2acdbf74087da97c0ba9a2bb24dc",
+    "geometry": "planes-art/data3d.json",
+    "pins": "face-riki-scan/planes-edits/20261121-1620/0001.json",
+    "status": "single-subject drawing construction; not anatomical registration"
+  }
+}

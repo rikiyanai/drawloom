@@ -18,8 +18,8 @@ async function createSegmenter(mode: Mode): Promise<ImageSegmenter> {
         "https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite",
       delegate: "GPU",
     },
-    outputCategoryMask: true,
-    outputConfidenceMasks: false,
+    outputCategoryMask: mode === "VIDEO",
+    outputConfidenceMasks: mode === "IMAGE",
     runningMode: mode,
   });
 }
@@ -60,4 +60,11 @@ export async function segmentVideo(video: HTMLVideoElement, timestampMs: number)
 
 export async function warmupSegmenter(): Promise<void> {
   await init("VIDEO");
+}
+export async function segmentImage(image:HTMLImageElement):Promise<{labels:Uint8Array;width:number;height:number}> {
+  const segmenter=await init('IMAGE'),result=segmenter.segment(image);
+  // The binary model has one foreground-probability channel. Category output
+  // in this Tasks build uses 0/255, not a reliable 0/1 person label.
+  try {const mask=result.confidenceMasks?.[0];if(!mask)throw Error('Subject segmentation did not return a foreground mask.');return {labels:Uint8Array.from(mask.getAsFloat32Array(),p=>p>=.5?1:0),width:mask.width,height:mask.height};}
+  finally {result.close();}
 }

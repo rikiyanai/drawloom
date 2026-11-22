@@ -1,10 +1,13 @@
- planes-feature: 3D plane head (Asaro manner) + fitted Loomis sphere/neck, planned not built.
- research in RESEARCH.md (part 2 adds Loomis, Krita plugin, Loomism, canons, neck); plan in PLAN.md.
- fix for the failed 2D warp: lift corrected front vertices to 3D, rigid per-frame landmark fit, depth-buffer occlusion, 3D iris discs.
- user corrections on any angle are 2D observations that triangulate vertices; canon layer measures only; ships behind a build flag (FL-015).
- validation planned against the user's 4 angles by leave-one-view-out reprojection vs the 2D-warp baseline; no registration claims.
- priority 1: automatic public deployment on every passing commit pushed to main, following Shallot's Actions trigger; publish to rikiyanai.github.io/drawloom/ (D0 in PLAN.md).
- review in REVIEW.md: reconcile exact pins with the solver, persist topology and 3D edits, define face regeneration and interaction checks.
- M0 still needs the final working scripts, 3D head build and topology recovered from the originating machine; private face fixtures stay outside the public repo.
- implementation status and measured deployment evidence: IMPLEMENTATION.md; M0 math foundations tested, real-fixture gate still open.
-DONE
+# Head planes feature
+
+Automatic deployment is live and verified. Every passing commit pushed to main updates the existing public endpoint. A separate labelled [experimental editor](https://rikiworld.com/drawloom/experimental/) is checked and deployed alongside the default six-overlay surface.
+
+The editor includes shared 3D geometry, exact photo pins, visible-only dragging, topology tools, notes, undo, zoom/pinch, a linked orbitable mesh, editable construction, version-2 backups and aligned Hatch exports. Your recovered four-angle placements and the Shallot head recording are integrated. Accuracy and cross-subject gates remain open; this is a review tool rather than anatomical registration.
+
+- `PLAN.md`: requirements, automatic deployment first, validation gates.
+- `IMPLEMENTATION.md`: implemented behavior, evidence, remaining work and commands.
+- `MEASUREMENTS.json`: reproduced V1 registration baseline.
+- `EDITOR-MEASUREMENTS.json`: held-out manual-placement scores.
+- `RECORDING-MEASUREMENTS.json`: all usable head-recording frames and method comparisons.
+- `REVIEW.md`: historical plan review and resolved contracts.
+- `work/README.md`: recovered authoring snapshot and provenance.

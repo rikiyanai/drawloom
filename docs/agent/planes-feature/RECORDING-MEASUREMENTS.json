@@ -1,0 +1,747 @@
+{
+  "schema": "drawloom.planes.recording-validation.v1",
+  "source": {
+    "at": "2026-11-09T00:46:21-0500",
+    "duration_s": 46.223333,
+    "frames": 90,
+    "max_dim": 2048,
+    "sample_fps": 1.9470685941232322,
+    "sampler": "ffmpeg",
+    "source": "video",
+    "source_name": "IMG_4288.MOV",
+    "source_sha256": "d4312c4d6afc691c112f630854ef5db7e404a621d01607ab9150dbce0922b841",
+    "swift_sha256": "4a1a1821a279f70c39a6c864fa0548f9c19b092a750a289922b56d33961393d3",
+    "tool_sha256": "dc1ef48205b60de38bdab28793f5b4de13df9b73b45ba288946591d1eac83572"
+  },
+  "reference": "0001",
+  "totalFrames": 90,
+  "usableFrames": 39,
+  "failedDetectionIds": [
+    "0011",
+    "0012",
+    "0013",
+    "0014",
+    "0015",
+    "0016",
+    "0017",
+    "0018",
+    "0019",
+    "0020",
+    "0021",
+    "0022",
+    "0023",
+    "0024",
+    "0025",
+    "0039",
+    "0040",
+    "0041",
+    "0042",
+    "0043",
+    "0044",
+    "0045",
+    "0046",
+    "0047",
+    "0048",
+    "0049",
+    "0050",
+    "0051",
+    "0052",
+    "0053",
+    "0054",
+    "0055",
+    "0069",
+    "0070",
+    "0071",
+    "0072",
+    "0073",
+    "0074",
+    "0075",
+    "0076",
+    "0077",
+    "0078",
+    "0079",
+    "0080",
+    "0081",
+    "0082",
+    "0083",
+    "0084",
+    "0085",
+    "0087",
+    "0088"
+  ],
+  "scores": {
+    "all468Median3dPx": 7.305283290373495,
+    "stableSubsetMedian3dPx": 12.057685107291572,
+    "chainedMedian3dPx": 10.176700583942033
+  },
+  "rows": [
+    {
+      "id": "0001",
+      "yaw": 1.2413996621098744,
+      "pitch": -7.830432922310463,
+      "roll": 3.083922967117185,
+      "all468Median3dPx": 0,
+      "stableSubsetMedian3dPx": 0,
+      "chainedMedian3dPx": 0,
+      "visibility": {
+        "visible": 134,
+        "occluded": 3,
+        "back": 0,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0002",
+      "yaw": 1.2682833481169267,
+      "pitch": -6.979030277002239,
+      "roll": 2.943174287532026,
+      "all468Median3dPx": 0.7121829247166294,
+      "stableSubsetMedian3dPx": 0.8335388964103775,
+      "chainedMedian3dPx": 0.7121829247166294,
+      "visibility": {
+        "visible": 131,
+        "occluded": 6,
+        "back": 0,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0003",
+      "yaw": 4.979028916952216,
+      "pitch": -7.061769973081393,
+      "roll": 3.3576900892965367,
+      "all468Median3dPx": 1.1002469375318624,
+      "stableSubsetMedian3dPx": 1.2564793040970827,
+      "chainedMedian3dPx": 1.105107127255947,
+      "visibility": {
+        "visible": 133,
+        "occluded": 4,
+        "back": 0,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "pitch": -8.20248279550046,
+      "roll": 3.7073860410532578,
+      "all468Median3dPx": 2.5543676355775187,
+      "stableSubsetMedian3dPx": 3.650218339938651,
+      "chainedMedian3dPx": 2.592816098405219,
+      "visibility": {
+        "visible": 122,
+        "occluded": 11,
+        "back": 2,
+        "grazing": 4,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0005",
+      "yaw": 22.55484757767301,
+      "pitch": -8.759499081397166,
+      "roll": 3.1838287628941475,
+      "all468Median3dPx": 3.380442478274992,
+      "stableSubsetMedian3dPx": 5.038146514791669,
+      "chainedMedian3dPx": 3.4706574027767223,
+      "visibility": {
+        "visible": 118,
+        "occluded": 13,
+        "back": 6,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0006",
+      "yaw": 30.10324180423544,
+      "pitch": -9.709590346436531,
+      "roll": 2.450195773818543,
+      "all468Median3dPx": 5.466582212909163,
+      "stableSubsetMedian3dPx": 7.953196535295691,
+      "chainedMedian3dPx": 5.501489873295466,
+      "visibility": {
+        "visible": 108,
+        "occluded": 21,
+        "back": 8,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "pitch": -5.7975020500292915,
+      "roll": 5.33402686624464,
+      "all468Median3dPx": 7.445415117670861,
+      "stableSubsetMedian3dPx": 14.555241255772618,
+      "chainedMedian3dPx": 7.713649810632516,
+      "visibility": {
+        "visible": 97,
+        "occluded": 27,
+        "back": 10,
+        "grazing": 5,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0008",
+      "yaw": 45.0274173097895,
+      "pitch": -7.084959503787731,
+      "roll": 4.48209469759513,
+      "all468Median3dPx": 7.561042933933283,
+      "stableSubsetMedian3dPx": 13.038839236801905,
+      "chainedMedian3dPx": 8.090864800713918,
+      "visibility": {
+        "visible": 93,
+        "occluded": 30,
+        "back": 10,
+        "grazing": 6,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0009",
+      "yaw": 53.851295207728114,
+      "pitch": -5.816726088380443,
+      "roll": 6.076826527381488,
+      "all468Median3dPx": 8.758308030690113,
+      "stableSubsetMedian3dPx": 17.05733308732345,
+      "chainedMedian3dPx": 9.629834014123798,
+      "visibility": {
+        "visible": 74,
+        "occluded": 28,
+        "back": 18,
+        "grazing": 12,
+        "uncertain": 7
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "pitch": -6.172821864462622,
+      "roll": 5.187094996096482,
+      "all468Median3dPx": 9.54560071982916,
+      "stableSubsetMedian3dPx": 23.184760901254513,
+      "chainedMedian3dPx": 10.713603398656081,
+      "visibility": {
+        "visible": 68,
+        "occluded": 30,
+        "back": 29,
+        "grazing": 8,
+        "uncertain": 4
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0026",
+      "yaw": -59.307153159239654,
+      "pitch": -6.18597124795171,
+      "roll": 1.3228909050738424,
+      "all468Median3dPx": 11.11215032460667,
+      "stableSubsetMedian3dPx": 18.169139969510887,
+      "chainedMedian3dPx": 11.59263994628683,
+      "visibility": {
+        "visible": 73,
+        "occluded": 28,
+        "back": 16,
+        "grazing": 13,
+        "uncertain": 9
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0027",
+      "yaw": -47.153912719940124,
+      "pitch": -12.56298359728688,
+      "roll": 7.003840093181959,
+      "all468Median3dPx": 11.054788087239778,
+      "stableSubsetMedian3dPx": 11.81355641534129,
+      "chainedMedian3dPx": 11.594011789884034,
+      "visibility": {
+        "visible": 95,
+        "occluded": 28,
+        "back": 13,
+        "grazing": 3,
+        "uncertain": 0
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0028",
+      "yaw": -30.011426582149404,
+      "pitch": -13.326629808301423,
+      "roll": 9.357474607899483,
+      "all468Median3dPx": 8.890054190047117,
+      "stableSubsetMedian3dPx": 9.140493571951998,
+      "chainedMedian3dPx": 10.414773803357827,
+      "visibility": {
+        "visible": 116,
+        "occluded": 15,
+        "back": 7,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0029",
+      "yaw": -12.577283083588128,
+      "pitch": -11.050296991162922,
+      "roll": 9.632656333961139,
+      "all468Median3dPx": 4.866718715931944,
+      "stableSubsetMedian3dPx": 5.012473104690687,
+      "chainedMedian3dPx": 7.026008451627117,
+      "visibility": {
+        "visible": 124,
+        "occluded": 9,
+        "back": 1,
+        "grazing": 5,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0030",
+      "yaw": -3.800623307982459,
+      "pitch": -10.404748384402993,
+      "roll": 6.542424337154464,
+      "all468Median3dPx": 4.051778750591417,
+      "stableSubsetMedian3dPx": 4.347270708496691,
+      "chainedMedian3dPx": 6.583372256603253,
+      "visibility": {
+        "visible": 130,
+        "occluded": 7,
+        "back": 1,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0031",
+      "yaw": 1.5092347193255866,
+      "pitch": -3.988061109703784,
+      "roll": 5.316705148250654,
+      "all468Median3dPx": 2.916045428292593,
+      "stableSubsetMedian3dPx": 3.6808870676694863,
+      "chainedMedian3dPx": 5.427416201799035,
+      "visibility": {
+        "visible": 136,
+        "occluded": 3,
+        "back": 0,
+        "grazing": 0,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0032",
+      "yaw": 5.592819103936721,
+      "pitch": 1.5531648817873929,
+      "roll": 5.030360909196543,
+      "all468Median3dPx": 3.6647226601896428,
+      "stableSubsetMedian3dPx": 5.6350463580106975,
+      "chainedMedian3dPx": 5.883742054451985,
+      "visibility": {
+        "visible": 135,
+        "occluded": 3,
+        "back": 0,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0033",
+      "yaw": 7.9243825115229285,
+      "pitch": 3.3377132134315373,
+      "roll": 4.947477935680497,
+      "all468Median3dPx": 4.011553217903032,
+      "stableSubsetMedian3dPx": 6.828170523536069,
+      "chainedMedian3dPx": 5.8173265024981085,
+      "visibility": {
+        "visible": 133,
+        "occluded": 5,
+        "back": 0,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0034",
+      "yaw": 13.445552628832852,
+      "pitch": 2.948034385669051,
+      "roll": 5.772098791626518,
+      "all468Median3dPx": 4.8479655035242235,
+      "stableSubsetMedian3dPx": 7.543458801745827,
+      "chainedMedian3dPx": 6.155231690641239,
+      "visibility": {
+        "visible": 127,
+        "occluded": 8,
+        "back": 1,
+        "grazing": 3,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0035",
+      "yaw": 21.55227806902304,
+      "pitch": 2.056075267686853,
+      "roll": 7.961267951937481,
+      "all468Median3dPx": 6.2880296631663235,
+      "stableSubsetMedian3dPx": 9.055411230252728,
+      "chainedMedian3dPx": 7.595536828445254,
+      "visibility": {
+        "visible": 121,
+        "occluded": 11,
+        "back": 3,
+        "grazing": 4,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0036",
+      "yaw": 34.73769737055742,
+      "pitch": 1.0119038277114174,
+      "roll": 10.405257248702851,
+      "all468Median3dPx": 10.412507046985244,
+      "stableSubsetMedian3dPx": 15.45982642209541,
+      "chainedMedian3dPx": 11.056121570294227,
+      "visibility": {
+        "visible": 101,
+        "occluded": 22,
+        "back": 9,
+        "grazing": 7,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0037",
+      "yaw": 44.95436800146363,
+      "pitch": -4.2315069271516625,
+      "roll": 12.368361582417917,
+      "all468Median3dPx": 17.630220133735648,
+      "stableSubsetMedian3dPx": 37.93779050779753,
+      "chainedMedian3dPx": 18.614771745833224,
+      "visibility": {
+        "visible": 89,
+        "occluded": 30,
+        "back": 14,
+        "grazing": 6,
+        "uncertain": 0
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0038",
+      "yaw": 55.780042531939266,
+      "pitch": -11.587172567456669,
+      "roll": 7.070377921341065,
+      "all468Median3dPx": 14.56595611313832,
+      "stableSubsetMedian3dPx": 37.06792170546875,
+      "chainedMedian3dPx": 16.762051706618834,
+      "visibility": {
+        "visible": 72,
+        "occluded": 33,
+        "back": 17,
+        "grazing": 10,
+        "uncertain": 7
+      },
+      "irisCount": 0
+    },
+    {
+      "id": "0056",
+      "yaw": -58.87501958541941,
+      "pitch": 10.765787841000586,
+      "roll": 6.373455866618676,
+      "all468Median3dPx": 14.732701932346673,
+      "stableSubsetMedian3dPx": 41.78549201130622,
+      "chainedMedian3dPx": 17.8238055018081,
+      "visibility": {
+        "visible": 70,
+        "occluded": 32,
+        "back": 20,
+        "grazing": 13,
+        "uncertain": 4
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0057",
+      "yaw": -48.58541522893286,
+      "pitch": 12.30754545471028,
+      "roll": 5.659721931343368,
+      "all468Median3dPx": 17.600442198671075,
+      "stableSubsetMedian3dPx": 27.601407749961375,
+      "chainedMedian3dPx": 19.223517817871524,
+      "visibility": {
+        "visible": 92,
+        "occluded": 27,
+        "back": 13,
+        "grazing": 7,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0058",
+      "yaw": -34.98263604228487,
+      "pitch": 8.503541376886552,
+      "roll": 8.741090755222071,
+      "all468Median3dPx": 17.828717808952298,
+      "stableSubsetMedian3dPx": 21.65215993377263,
+      "chainedMedian3dPx": 20.228792014862236,
+      "visibility": {
+        "visible": 108,
+        "occluded": 18,
+        "back": 6,
+        "grazing": 7,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0059",
+      "yaw": -25.140688328953818,
+      "pitch": 7.181923512600814,
+      "roll": 12.470184771300069,
+      "all468Median3dPx": 10.370152004696028,
+      "stableSubsetMedian3dPx": 12.301813799241852,
+      "chainedMedian3dPx": 14.723836712938308,
+      "visibility": {
+        "visible": 117,
+        "occluded": 15,
+        "back": 5,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0060",
+      "yaw": -15.933815884352555,
+      "pitch": 1.6440605677339908,
+      "roll": 13.22506690570593,
+      "all468Median3dPx": 7.847394712575406,
+      "stableSubsetMedian3dPx": 12.61122671293186,
+      "chainedMedian3dPx": 13.75189632318316,
+      "visibility": {
+        "visible": 124,
+        "occluded": 9,
+        "back": 3,
+        "grazing": 3,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0061",
+      "yaw": -4.6565669034265404,
+      "pitch": -4.992191269785342,
+      "roll": 11.478001433599868,
+      "all468Median3dPx": 5.515964208307949,
+      "stableSubsetMedian3dPx": 7.208308928452965,
+      "chainedMedian3dPx": 10.753227150872275,
+      "visibility": {
+        "visible": 133,
+        "occluded": 5,
+        "back": 0,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0062",
+      "yaw": 2.2569564125130688,
+      "pitch": -12.259547993314817,
+      "roll": 7.929300554964289,
+      "all468Median3dPx": 3.6244249338107783,
+      "stableSubsetMedian3dPx": 2.8414922483688168,
+      "chainedMedian3dPx": 8.548867940528968,
+      "visibility": {
+        "visible": 131,
+        "occluded": 6,
+        "back": 0,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0063",
+      "yaw": 2.241501718360283,
+      "pitch": -23.399244814683122,
+      "roll": 3.5790768393138275,
+      "all468Median3dPx": 3.8576228552487155,
+      "stableSubsetMedian3dPx": 7.637536980293433,
+      "chainedMedian3dPx": 8.727307461812263,
+      "visibility": {
+        "visible": 129,
+        "occluded": 8,
+        "back": 2,
+        "grazing": 0,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0064",
+      "yaw": 6.195959537091615,
+      "pitch": -33.020783124236914,
+      "roll": 0.28415762674967127,
+      "all468Median3dPx": 6.342225522726501,
+      "stableSubsetMedian3dPx": 15.479820845255855,
+      "chainedMedian3dPx": 10.143255766832008,
+      "visibility": {
+        "visible": 120,
+        "occluded": 13,
+        "back": 2,
+        "grazing": 4,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0065",
+      "yaw": 9.492182991251783,
+      "pitch": -34.12670224567997,
+      "roll": -1.2285704549635508,
+      "all468Median3dPx": 6.264549258654521,
+      "stableSubsetMedian3dPx": 14.545651816557829,
+      "chainedMedian3dPx": 10.16740376325642,
+      "visibility": {
+        "visible": 124,
+        "occluded": 9,
+        "back": 2,
+        "grazing": 4,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0066",
+      "yaw": 14.91750995844256,
+      "pitch": -32.788134622115614,
+      "roll": -2.711508374247604,
+      "all468Median3dPx": 5.863166240705869,
+      "stableSubsetMedian3dPx": 9.616248679089452,
+      "chainedMedian3dPx": 10.185997404627644,
+      "visibility": {
+        "visible": 118,
+        "occluded": 13,
+        "back": 4,
+        "grazing": 4,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0067",
+      "yaw": 25.256827722394238,
+      "pitch": -30.02283498068246,
+      "roll": -0.6815334936737439,
+      "all468Median3dPx": 8.238906395131291,
+      "stableSubsetMedian3dPx": 10.878025485799322,
+      "chainedMedian3dPx": 12.184340225055793,
+      "visibility": {
+        "visible": 109,
+        "occluded": 19,
+        "back": 9,
+        "grazing": 2,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0068",
+      "yaw": 35.08832801818734,
+      "pitch": -25.170608707982534,
+      "roll": 2.841767523531135,
+      "all468Median3dPx": 10.72613155502507,
+      "stableSubsetMedian3dPx": 17.204641242333075,
+      "chainedMedian3dPx": 14.521901971755184,
+      "visibility": {
+        "visible": 86,
+        "occluded": 36,
+        "back": 12,
+        "grazing": 5,
+        "uncertain": 0
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0086",
+      "yaw": -49.91635719633529,
+      "pitch": -6.466718299225152,
+      "roll": -3.0166697790960093,
+      "all468Median3dPx": 17.346862091046532,
+      "stableSubsetMedian3dPx": 24.375423752198582,
+      "chainedMedian3dPx": 20.64517726064954,
+      "visibility": {
+        "visible": 90,
+        "occluded": 27,
+        "back": 13,
+        "grazing": 9,
+        "uncertain": 0
+      },
+      "irisCount": 1
+    },
+    {
+      "id": "0089",
+      "yaw": -7.659499117291799,
+      "pitch": -20.690264411875233,
+      "roll": 9.705883466545414,
+      "all468Median3dPx": 10.406496893867999,
+      "stableSubsetMedian3dPx": 12.691957796287838,
+      "chainedMedian3dPx": 18.32270641934535,
+      "visibility": {
+        "visible": 121,
+        "occluded": 15,
+        "back": 2,
+        "grazing": 1,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    },
+    {
+      "id": "0090",
+      "yaw": -3.5090364363577184,
+      "pitch": -21.968044604882298,
+      "roll": 8.00735668067551,
+      "all468Median3dPx": 7.165151463076128,
+      "stableSubsetMedian3dPx": 13.807967781653122,
+      "chainedMedian3dPx": 17.85831129398401,
+      "visibility": {
+        "visible": 125,
+        "occluded": 12,
+        "back": 2,
+        "grazing": 0,
+        "uncertain": 0
+      },
+      "irisCount": 2
+    }
+  ],
+  "limitations": [
+    "One subject from one recording; additional poses do not establish cross-subject generalization.",
+    "Unlabelled frames test numerical stability and rendering, not plane-placement or visibility accuracy.",
+    "Stable subset and chained methods are compared on the same full 468-landmark residual; the current runtime uses direct robust 468 registration."
+  ]
+}

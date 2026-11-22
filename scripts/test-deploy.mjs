@@ -53,3 +53,14 @@ test('public verification requires the exact source receipt and all app assets',
   assert.notEqual(missing.code, 0);
   assert.match(missing.output, /Asset HTTP 404/);
 }));
+
+test('experimental export mounts only at its configured nested path', () => fixture(async ({ root }) => {
+  const server=staticServer(root,'/drawloom/experimental').listen(0,'127.0.0.1');
+  await once(server,'listening');const endpoint=`http://127.0.0.1:${server.address().port}`;
+  try {
+    assert.equal((await fetch(endpoint+'/drawloom/experimental/')).status,200);
+    assert.equal((await fetch(endpoint+'/drawloom/experimental/_next/app.js')).status,200);
+    assert.equal((await fetch(endpoint+'/drawloom/')).status,404);
+    assert.equal((await fetch(endpoint+'/drawloom/experimental/%2e%2e%5cprivate.txt')).status,404);
+  }finally{await new Promise(resolve=>server.close(resolve));}
+}));

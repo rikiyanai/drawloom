@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 20
     outputs:
       sha: ${{ steps.source.outputs.sha }}
+      preview: ${{ steps.source.outputs.preview }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -39,7 +40,9 @@ jobs:
             src
             public
       - id: source
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if [ -f scripts/test-planes-ui.mjs ]; then echo 'preview=true' >> "$GITHUB_OUTPUT"; fi
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
@@ -73,6 +76,39 @@ jobs:
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: error
+      # The immutable public artifact above was built with planes disabled.
+      # Exercise the experimental editor separately before releasing that artifact.
+      - name: Build experimental editor for interaction checks
+        if: steps.source.outputs.preview == 'true'
+        run: npm run build
+        env:
+          NEXT_PUBLIC_DRAWLOOM_PLANES: '1'
+          DRAWLOOM_BASE_PATH: /drawloom/experimental
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Check experimental editor
+        if: steps.source.outputs.preview == 'true'
+        env:
+          DRAWLOOM_BASE_PATH: /drawloom/experimental
+        run: |
+          node scripts/serve-static.mjs > /tmp/drawloom-planes.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/drawloom/experimental/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:planes-ui -- http://127.0.0.1:3000/drawloom/experimental/
+          npm run test:study -- http://127.0.0.1:3000/drawloom/experimental/
+      - run: node scripts/build-info.mjs
+        if: steps.source.outputs.preview == 'true'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.source.outputs.preview == 'true'
+        with:
+          name: drawloom-experimental
+          path: out/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
 
   publish:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -94,6 +130,11 @@ jobs:
         with:
           name: drawloom-public
           path: publish-artifact
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: needs.build.outputs.preview == 'true'
+        with:
+          name: drawloom-experimental
+          path: publish-artifact/experimental
       - name: Checkout the existing publication repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -112,6 +153,9 @@ jobs:
           node-version: '24'
       - name: Wait for Pages and verify the public SHA and assets
         run: node scripts/verify-deployment.mjs '${{ needs.build.outputs.sha }}'
+      - name: Verify the experimental preview
+        if: needs.build.outputs.preview == 'true'
+        run: node scripts/verify-deployment.mjs '${{ needs.build.outputs.sha }}' https://rikiworld.com/drawloom/experimental/
       - name: Record publication
         env:
           SOURCE_SHA: ${{ needs.build.outputs.sha }}

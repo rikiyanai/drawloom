@@ -1,5 +1,7 @@
 # Wire mesh UX plan review
 
+Implementation follow-up: D0 is complete and the editor contracts below are implemented in the experimental preview. See `IMPLEMENTATION.md` for tests and remaining accuracy gates. The rest of this document preserves the original pre-implementation review; its missing-source/dependency findings were resolved by recovery commit `8146135`, Next.js 16.4.6 and the deployment workflow.
+
 Reviewed 2026-11-21 against `be56382` (editor UX), including `8a6a15c` (planes plan), the current application and Shallot's Pages workflow. This is a plan review; the mesh editor and automatic deployment are not implemented by this update.
 
 ## Priority order

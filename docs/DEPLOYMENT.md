@@ -12,10 +12,12 @@ The destination requires its “AI attribution policy” check before `main` acc
 
 Run `npm ci`, `npm run test:deploy`, `npm run build`, and `npx tsc --noEmit`. Start the exported site with `npm run serve:static`, then run `npm run test:surface` and `npm run test:study` against `http://localhost:3000/drawloom/`.
 
-The workflow runs the public build with experimental planes disabled. It does not include portrait captures, private validation fixtures, notes or local IndexedDB studies in the artifact. Publishing at the same origin preserves device studies.
+The workflow builds the default page with experimental planes disabled, uploads that immutable artifact, then separately builds and tests a labelled preview at `/drawloom/experimental/`. Publication nests the second artifact under the first and verifies the SHA and assets at both URLs. A failing preview check also prevents publication. It does not include portrait captures, private validation fixtures, notes or local IndexedDB studies in the artifact. Publishing at the same origin preserves device studies.
 
 ## Rollback
 
 Use Actions → Drawloom public deployment → Run workflow on `main`. Set `ref` to a source SHA from a previous successful deployment. The workflow rebuilds and checks that revision, publishes it through the same path, and verifies the public receipt. Use a known-good revision that contains the deployment scripts. Source history is not rewritten. To restore the latest version, dispatch with `ref: main` or push the next commit to `main`.
 
 The public receipt records the application source SHA and build time. The workflow summary links the public endpoint. Check the deployment logs if the destination commit succeeds but the Pages build or cached public endpoint does not update; that condition fails verification rather than claiming success.
+
+The preview remains gated for default-on accuracy. Its UI and study-recovery instructions are in [the implementation record](agent/planes-feature/IMPLEMENTATION.md). Both URLs share the origin and existing device study storage.

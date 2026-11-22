@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { PLANES_ENABLED } from '@/lib/planes/solve';
 import { StudyBoard } from "./StudyBoard";
 import { useStudies } from "@/lib/capture/study-store";
 import { UploadDropzone } from "./UploadDropzone";
@@ -96,6 +97,12 @@ export function Studio() {
               export for Hatch Studio
             </button>
           )}
+          {PLANES_ENABLED && mode === "upload" && image && pose && <button className="text-xs px-3 py-1.5 rounded border border-cyan-700" onClick={() => {
+            const canvas = document.createElement('canvas'); canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+            canvas.getContext('2d')!.drawImage(image, 0, 0);
+            useStudies.getState().importSession({id:crypto.randomUUID(),name:'Portrait construction',shots:{front:{dataUrl:canvas.toDataURL('image/jpeg',.94),capturedAt:Date.now(),...pose.angles,pose}},order:['front'],layout:'grid'});
+            setMode('study');
+          }}>Edit portrait construction</button>}
           {(image || mode === "webcam") && (
             <button
               onClick={reset}
@@ -107,6 +114,7 @@ export function Studio() {
         </div>
       </header>
 
+      {PLANES_ENABLED && <p className="px-6 pt-3 text-sm text-amber-300">Experimental construction editor · placement and visibility need review. Import a study or upload a portrait to begin.</p>}
       <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         <section className="min-w-0">
           {mode === "study" ? <StudyBoard /> : layout === "split" ? (

@@ -10,6 +10,10 @@
     "test:study": "node scripts/test-study.mjs",
     "test:deploy": "node --test scripts/test-deploy.mjs",
     "test:planes": "tsx --test scripts/test-planes.ts",
+    "test:planes-ui": "node scripts/test-planes-ui.mjs",
+    "measure:planes": "tsx scripts/measure-planes.ts",
+    "validate:planes": "tsx scripts/validate-planes-study.ts",
+    "build:study": "tsx scripts/build-study-from-packets.ts",
     "serve:static": "node scripts/serve-static.mjs",
     "export:underdrawing": "node scripts/export-underdrawing.mjs"
   },

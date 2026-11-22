@@ -1,6 +1,6 @@
 # Plan: 3D head planes, Loomis construction and editable corrections for Drawloom
 
-Status: deployment is live and verified; M0 geometry foundations are implemented with synthetic tests. Real-fixture M0 validation and M1–M5 remain open. Current evidence and remaining gates: `IMPLEMENTATION.md`. Revised 2026-11-21 after the hand workflow in section 1 failed on turned views. Supersedes Muse's first draft, whose geometry was 2D offsets from landmark-derived defaults (see section 11 for what changed). Research and sources: `RESEARCH.md`. Reference script (early version, 102 vertices, 70 polylines): `reference-planes0001.py`.
+Status: D0 is complete and verified, including successive automatic updates, a failing-check test and rollback. M0–M4 experimental functionality is implemented; V1 passes, but placement/visibility/generalization gates remain open and M5 is not passed. A separately built, clearly labelled preview is published at `/drawloom/experimental/`; the default public surface retains its six overlays. Implementation contracts, measured results and reproduction steps: `IMPLEMENTATION.md`. Research: `RESEARCH.md`. Recovered authoring snapshot: `work/README.md`.
 
 ## First priority: automatic public deployment (D0)
 
@@ -19,7 +19,7 @@ Implementation:
 
 Exit gate: push two successive commits to `main` and confirm each triggers a successful unattended deployment to the same public URL. Fetch `/drawloom/build-info.json` without cache and match each SHA; verify assets and the six-overlay public surface. Confirm a failed required check does not publish, and demonstrate rollback/redeployment. Local studies must survive an update at the same origin. If hosting access or route configuration is missing, D0 stays open with the exact missing dependency recorded.
 
-Implementation: `.github/workflows/drawloom-pages.yml` and `docs/DEPLOYMENT.md`. Actions are enabled, a dedicated destination-repo write key is registered, and its private key is stored in the source repository's `DRAWLOOM_PUBLISH_KEY` secret. The workflow builds the public artifact, checks it, publishes only the destination `drawloom/` directory and waits for the public SHA receipt. Local build, TypeScript, deployment-helper, surface and study checks pass. Next.js is patched to 16.4.6 and the dependency audit is clean. The skull reference now renders on changes instead of continuously; this resolved the local interaction stalls. Complete the live exit gate before marking D0 done. `REVIEW.md` records the mesh implementation blockers.
+Implementation: `.github/workflows/drawloom-pages.yml` and `docs/DEPLOYMENT.md`. Actions are enabled, a dedicated destination-repo write key is registered, and its private key is stored in the source repository's `DRAWLOOM_PUBLISH_KEY` secret. The workflow builds the public artifact, checks it, publishes only the destination `drawloom/` directory and waits for the public SHA receipt. Local build, TypeScript, deployment-helper, surface and study checks pass. Next.js is patched to 16.4.6 and the dependency audit is clean. The skull reference now renders on changes instead of continuously; this resolved the local interaction stalls. The live exit gate passed; see IMPLEMENTATION.md for exact runs and rollback/persistence evidence. `REVIEW.md` records the mesh implementation blockers.
 
 ## 0. Honesty boundary and the FL-015 constraint
 
@@ -296,6 +296,9 @@ Caveats written into the results: the ground truth is the same person who placed
 
 ## 7. Milestones
 
+Implementation update: reusable source and the user-authorized capture snapshot were recovered in `8146135`. The requested Shallot recording supplies additional angles of the same subject, not the two independent subjects required by V9. `IMPLEMENTATION.md` distinguishes implemented functionality from incomplete accuracy gates. Earlier private-fixture wording below records the original intended storage boundary; the user subsequently explicitly published the recovered snapshot. Do not add further recordings or private assets to publication artifacts.
+
+
 0. **D0 automatic public deployment, first priority.** Complete the workflow, existing-domain routing and exit gate above before mesh implementation. Every passing commit pushed to `main` updates the public endpoint without a separate manual upload.
 1. **M0 data and measurement, no UI.** Recover the final working scripts, the 3D head build and face topology from the originating machine's scratchpad before it disappears. Put reusable code and topology in versioned repo paths with provenance; keep face photos, capture packets, corrections and any subject-specific geometry in an external private fixture. Record durable locations and fail with a useful missing-fixture message on this PC. The early reference script is not a replacement for the final build. Then port the vertices into `topology.ts` (kinds, regions, mirrors, seeds); review the face list on the front frame; implement registration and the mesh triangle list; build the study backup from the 90 frames; extract the user-corrections fixture; reproduce V1. Exit: required assets are recoverable, V1 passes, the topology validator passes, mirroring and left/right naming verified on the capture.
 2. **M1 3D plane head, read-only.** Lift, project, visibility, iris discs. Exit: V3 and V4 on the four angles; B1 numbers recorded.
@@ -339,7 +342,7 @@ Caveats written into the results: the ground truth is the same person who placed
 
 Risks:
 - **Far-side landmarks are unreliable at high yaw** (session: residual 11.4 px at 61 degrees, and the far-side z is a network guess). Mitigation: facing test plus depth test, the `uncertain` flag, user observations override the prior, and V3 measures it.
-- **The registration floor bounds every method.** A rigid transfer cannot beat the landmark residual (8 to 11 px at 39 to 61 degrees on this capture); the gate is set relative to B0, and bundle adjustment is a later option.
+- **Landmark residual is a warning, not a hard error bound.** A fitted vertex can have lower or higher error than aggregate landmark residuals. Evaluate held-out user placements directly; do not claim that the registration residual proves a placement gate impossible.
 - **Sphere and neck have no landmarks.** Without two corrected views they are priors only and are labelled "estimated". The user's 200 px moves show the prior is poor, so the handles are first-class.
 - **Face polygons are new authoring.** The early script drew polylines only. Mitigation: M0 review on the front frame, validator tests, hover highlight.
 - **FL-015 regression.** Mitigation: build flag, no banned strings, measure-only canon, gate commit that updates `test-surface.mjs`.
@@ -350,11 +353,11 @@ Risks:
 - **Image-side naming.** `L`/`R` are image sides; webcam mirroring unverified.
 
 Open decisions for Riki:
-- D0 dependency: configure narrowly scoped cross-repository publication access from Drawloom to `rikiyanai.github.io`; the destination and public route are verified. Automatic deployment remains the first priority while this is resolved.
+- D0 resolved: narrowly scoped cross-repository publication, successive updates, protected destination checks, failure protection and rollback are verified.
 - D1: keyframe selection for the 90-frame capture (the proposed cap of 12 and which yaws).
-- D2: how to run pure TypeScript math tests (add `tsx` as a dev dependency, or enable `allowImportingTsExtensions` and Node's built-in type stripping, or run them in Playwright). Recommendation: `tsx`, one small dev dependency.
+- D2 resolved: exact dev dependency `tsx` runs Node math tests in CI.
 - D3: confirm the proposed thresholds in section 6 before M2 ends.
-- D4: whether Hatch Studio should receive `planes` by default or behind an export option.
+- D4 resolved: geometry metadata is opt-in; actual Hatch importer compatibility passed.
 
 ## 10. Non-goals
 

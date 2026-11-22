@@ -1,0 +1,387 @@
+{
+  "schema": "drawloom.planes.measurements.v1",
+  "sourceCommit": "8146135b80ed2acdbf74087da97c0ba9a2bb24dc",
+  "zSweep": "Scale only reference landmark z; compare to unchanged target landmarks in image-pixel units.",
+  "v1": [
+    {
+      "id": "0004",
+      "expectedMedianPx": 2.6,
+      "actualMedianPx": 2.6494447876830516,
+      "withinTenPercent": true
+    },
+    {
+      "id": "0007",
+      "expectedMedianPx": 8.1,
+      "actualMedianPx": 8.1171820321237,
+      "withinTenPercent": true
+    },
+    {
+      "id": "0010",
+      "expectedMedianPx": 11.4,
+      "actualMedianPx": 11.369608150923163,
+      "withinTenPercent": true
+    }
+  ],
+  "measurements": [
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 11.730933370086051,
+      "median2dPx": 5.090217523570707,
+      "rms3dPx": 21.175239469168964
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 2.6494447876830516,
+      "median2dPx": 2.2125526997532727,
+      "rms3dPx": 3.7474594310794345
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 11.146090605113038,
+      "median2dPx": 7.797199625097077,
+      "rms3dPx": 17.219073915540424
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 10.494287279105126,
+      "median2dPx": 4.3806320056273425,
+      "rms3dPx": 21.437293789354705
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 2.596832679606298,
+      "median2dPx": 2.135040235284113,
+      "rms3dPx": 3.7568104081859257
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 9.261794364986219,
+      "median2dPx": 5.968391563201239,
+      "rms3dPx": 17.601622975338085
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 11.99896906386821,
+      "median2dPx": 5.331566228401453,
+      "rms3dPx": 21.375860856691595
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 2.6706637393718275,
+      "median2dPx": 2.219623563743143,
+      "rms3dPx": 3.7519908644369258
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 11.209781480596405,
+      "median2dPx": 7.868370369435429,
+      "rms3dPx": 17.351530935181135
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 10.697356109211537,
+      "median2dPx": 4.459262285278356,
+      "rms3dPx": 21.644941949573113
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 2.5543676355775187,
+      "median2dPx": 2.150268776846773,
+      "rms3dPx": 3.76229869922236
+    },
+    {
+      "id": "0004",
+      "yaw": 15.448089482055265,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 9.301073986062724,
+      "median2dPx": 5.998232021236808,
+      "rms3dPx": 17.745275619157404
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 19.284410249812268,
+      "median2dPx": 16.088620726365143,
+      "rms3dPx": 30.89739985931552
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 8.1171820321237,
+      "median2dPx": 7.049741258245465,
+      "rms3dPx": 11.055972069779745
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.858911750733224,
+      "median2dPx": 8.723485291539635,
+      "rms3dPx": 19.9673150503113
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 17.70842520106318,
+      "median2dPx": 14.323029494646637,
+      "rms3dPx": 31.324313244629007
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 7.496188631381548,
+      "median2dPx": 6.249540578782982,
+      "rms3dPx": 11.143239554539146
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 11.644923166425858,
+      "median2dPx": 7.753688167913479,
+      "rms3dPx": 20.19566585307632
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 20.032648643392914,
+      "median2dPx": 16.211924600388897,
+      "rms3dPx": 31.184869663924857
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 8.091437359498393,
+      "median2dPx": 7.07017512534199,
+      "rms3dPx": 11.053795323574851
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.722034727454421,
+      "median2dPx": 8.734788007051016,
+      "rms3dPx": 20.020498316030846
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 18.002337446932927,
+      "median2dPx": 14.82341895635916,
+      "rms3dPx": 31.617162681828294
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 7.445415117670861,
+      "median2dPx": 6.286456266911751,
+      "rms3dPx": 11.143368846439099
+    },
+    {
+      "id": "0007",
+      "yaw": 38.96025413318532,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 11.570918440909209,
+      "median2dPx": 7.747627606295829,
+      "rms3dPx": 20.25880140487979
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 24.690005803026267,
+      "median2dPx": 22.798492904108095,
+      "rms3dPx": 38.729198288987945
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 11.369608150923163,
+      "median2dPx": 10.111371075398242,
+      "rms3dPx": 17.335399799235777
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.569820268461868,
+      "median2dPx": 9.957563307951718,
+      "rms3dPx": 20.570467867994516
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 20.850393324419265,
+      "median2dPx": 18.412715526561197,
+      "rms3dPx": 39.74987086012825
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 9.554889904655472,
+      "median2dPx": 8.582657262587908,
+      "rms3dPx": 17.851304351273846
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 478,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.139437791650256,
+      "median2dPx": 9.316420260931533,
+      "rms3dPx": 20.677045192180927
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 0.5,
+      "median3dPx": 24.884330481370814,
+      "median2dPx": 23.167230004943256,
+      "rms3dPx": 39.059418802762764
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1,
+      "median3dPx": 11.29768356910797,
+      "median2dPx": 9.948922953709904,
+      "rms3dPx": 17.246870913818952
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": false,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.275395819149596,
+      "median2dPx": 9.890858226166134,
+      "rms3dPx": 20.37146383044436
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 0.5,
+      "median3dPx": 20.819125882389294,
+      "median2dPx": 18.968609839889336,
+      "rms3dPx": 40.10312924271719
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1,
+      "median3dPx": 9.54560071982916,
+      "median2dPx": 8.559063965746095,
+      "rms3dPx": 17.77751844909785
+    },
+    {
+      "id": "0010",
+      "yaw": 61.42226692100206,
+      "landmarkCount": 468,
+      "robust": true,
+      "referenceZScale": 1.5,
+      "median3dPx": 12.060328827345185,
+      "median2dPx": 9.135667613998823,
+      "rms3dPx": 20.483153812507616
+    }
+  ]
+}

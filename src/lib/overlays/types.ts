@@ -1,5 +1,6 @@
 import type { PoseResult } from "../pose/detect";
 import type { BodyPoseResult } from "../pose/body";
+import type { PlanesFrame } from '../planes/solve';
 
 export type OverlayContext = {
   ctx: CanvasRenderingContext2D;
@@ -9,6 +10,7 @@ export type OverlayContext = {
   width: number;
   height: number;
   params: Record<string, number | boolean>;
+  planes?:PlanesFrame;
 };
 
 export type OverlayParam =

@@ -1,9 +1,10 @@
 "use client";
 import { create } from "zustand";
 import type { PoseResult } from "../pose/detect";
+import type { HeadPlanesState } from '../planes/state';
 
 export type StudyShot = { dataUrl: string; yaw: number; pitch: number; roll: number; capturedAt: number; pose: PoseResult };
-export type StudySession = { id: string; name: string; shots: Record<string, StudyShot>; order: string[]; layout: "grid" | "strip" };
+export type StudySession = { id: string; name: string; shots: Record<string, StudyShot>; order: string[]; layout: "grid" | "strip"; planes?:HeadPlanesState };
 type State = {
   sessions: StudySession[]; activeId: string | null; hydrated: boolean; storageError: string | null;
   hydrate: () => Promise<void>; newSession: () => void;

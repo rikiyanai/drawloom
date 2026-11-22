@@ -4,6 +4,11 @@ set -euo pipefail
 [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo 'Invalid source SHA'; exit 1; }
 node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync("publish-artifact/build-info.json"));if(r.sha!==process.env.SOURCE_SHA)throw Error("Artifact SHA mismatch");if(!fs.existsSync("publish-artifact/index.html"))throw Error("Missing app");'
 
+# A preview, when present, must have been built from the same source revision.
+if [[ -d publish-artifact/experimental ]]; then
+  node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync("publish-artifact/experimental/build-info.json"));if(r.sha!==process.env.SOURCE_SHA)throw Error("Preview SHA mismatch");if(!fs.existsSync("publish-artifact/experimental/index.html"))throw Error("Missing preview");'
+fi
+
 # Main may have advanced while the build ran. Never let an older automatic run
 # replace a newer source. Manual dispatch intentionally permits rollback.
 if [[ "$EVENT_NAME" == push ]]; then

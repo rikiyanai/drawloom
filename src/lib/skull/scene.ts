@@ -15,7 +15,7 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 // plus dim fill so the form reads as 3D and recessed features cast dark
 // accents.
 
-function createProceduralSkull(): THREE.Group {
+export function createProceduralSkull(): THREE.Group {
   const group = new THREE.Group();
   const boneColor = 0xf5ecd9;
   const cavityColor = 0x0d0d0d;
