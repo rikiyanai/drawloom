@@ -29,28 +29,31 @@ for attempt in 1 2 3 4 5; do
   git -C publication-site commit -m "deploy: Drawloom ${SOURCE_SHA}"
   destination_sha=$(git -C publication-site rev-parse HEAD)
   candidate="drawloom-publication/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${attempt}"
-  git -C publication-site push origin "HEAD:refs/heads/$candidate"
+  # The publication repository intentionally permits only its main branch.
+  # Its policy workflow also checks tag pushes, so validate through a temporary
+  # tag without creating a forbidden branch or weakening either ruleset.
+  git -C publication-site push origin "HEAD:refs/tags/$candidate"
   passed=false
   for check_attempt in $(seq 1 60); do
     result=$(gh api "repos/rikiyanai/rikiyanai.github.io/commits/$destination_sha/check-runs" --jq '.check_runs[] | select(.name == "AI attribution policy") | [.status,.conclusion] | @tsv')
     if [[ "$result" == *$'completed\tsuccess'* ]]; then passed=true; break; fi
     if [[ "$result" == *completed* ]]; then
       echo 'Destination attribution policy did not pass.' >&2
-      git -C publication-site push origin --delete "$candidate"
+      git -C publication-site push origin ":refs/tags/$candidate"
       exit 1
     fi
     sleep 5
   done
   if [[ "$passed" != true ]]; then
     echo 'Timed out waiting for the destination attribution policy.' >&2
-    git -C publication-site push origin --delete "$candidate"
+    git -C publication-site push origin ":refs/tags/$candidate"
     exit 1
   fi
   if git -C publication-site push origin HEAD:main; then
-    git -C publication-site push origin --delete "$candidate"
+    git -C publication-site push origin ":refs/tags/$candidate"
     exit 0
   fi
-  git -C publication-site push origin --delete "$candidate"
+  git -C publication-site push origin ":refs/tags/$candidate"
   echo "Destination advanced; retrying publication ($attempt/5)."
 done
 echo 'Could not publish without overwriting concurrent destination edits.' >&2
