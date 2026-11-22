@@ -1,0 +1,47 @@
+{
+ "riki-0001": {
+  "id": "79afa871-b88e-41f1-983a-30f61030fb76"
+ },
+ "riki-0004": {
+  "id": "9553c2a9-98eb-4f2b-ada5-2d3c2d19bc7b"
+ },
+ "riki-0007": {
+  "id": "fcc5bb5e-33a1-40b6-bdca-bf707ae5dae6"
+ },
+ "riki-0010": {
+  "id": "1f462f68-9dec-4456-a6c2-0058ce02da69"
+ },
+ "riki-0016": {
+  "id": "1146d3a7-d7de-4b8a-9a64-6b8a9611d579"
+ },
+ "riki-0025": {
+  "id": null,
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/angles/riki-0025.jpg",
+  "submitted": "2026-11-17T19:34:28.201Z"
+ },
+ "line-0003": {
+  "id": "48fb9c48-37ad-4eca-8f41-990c5c6bef2d",
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/linein/line-0003.png",
+  "submitted": "2026-11-18T19:41:54.123Z"
+ },
+ "line-0003-half": {
+  "id": "5dcbb266-6e53-45cf-a47f-894c25a8f2c0",
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/lowres/line-0003-half.png",
+  "submitted": "2026-11-18T19:42:04.085Z"
+ },
+ "line-0003-third": {
+  "id": "53125bb1-7470-49cf-934e-eb308c89abeb",
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/lowres/line-0003-third.png",
+  "submitted": "2026-11-18T19:42:13.855Z"
+ },
+ "line-0007": {
+  "id": "731a922c-3fdf-42b4-931c-d56d01acb92b",
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/linein/line-0007.png",
+  "submitted": "2026-11-18T19:42:23.697Z"
+ },
+ "line-0007-half": {
+  "id": "779efcde-8aa6-4f68-837b-4578b1d12f95",
+  "img": "/private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/lowres/line-0007-half.png",
+  "submitted": "2026-11-18T19:44:05.960Z"
+ }
+}

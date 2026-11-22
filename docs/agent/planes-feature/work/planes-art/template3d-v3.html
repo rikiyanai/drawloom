@@ -1,0 +1,432 @@
+<title>Riki Head Planes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: drafting table. The drawing sheet fills the left; a narrow instrument rail sits on the right and stacks on phones. */
+:root {
+  --paper: #f6f4ef; --sheet: #fffdf8; --ink: #23211d; --muted: #6b665c; --rule: #d9d3c6; --chip: #ece7dc;
+  --loomis: #1d5fb8; --cut: #0d8a72; --neck: #8a3fc4; --edited: #e07a00; --hidden: #9c968a; --sel: #111; --prop: #b8860b;
+  --g-forehead: #c0392b; --g-temple: #a0522d; --g-brow: #9b2c8f; --g-socket: #2f6fb5; --g-eye: #1546a8; --g-nose: #d47a00;
+  --g-cheek: #1f8a55; --g-mouth: #c2185b; --g-chin: #6a3fbf; --g-jaw: #4a4a4a; --g-neck: #7b1fa2;
+  --f-display: "Fraunces", Georgia, serif; --f-ui: "Atkinson Hyperlegible", system-ui, sans-serif; --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #191816; --sheet: #22201d; --ink: #ece8df; --muted: #a39d90; --rule: #3a3731; --chip: #2d2a26;
+  --loomis: #6fa8ff; --cut: #3fd3b0; --neck: #c493ff; --edited: #ffb04a; --hidden: #6d685f; --sel: #fff; --prop: #f0c14b;
+  --g-forehead: #ff7a6b; --g-temple: #e19a6a; --g-brow: #e58ad9; --g-socket: #7fb3ff; --g-eye: #9cc0ff; --g-nose: #ffb24d;
+  --g-cheek: #5fd39a; --g-mouth: #ff7aa8; --g-chin: #b79bff; --g-jaw: #c8c3ba; --g-neck: #d59bff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #191816; --sheet: #22201d; --ink: #ece8df; --muted: #a39d90; --rule: #3a3731; --chip: #2d2a26;
+  --loomis: #6fa8ff; --cut: #3fd3b0; --neck: #c493ff; --edited: #ffb04a; --hidden: #6d685f; --sel: #fff; --prop: #f0c14b;
+  --g-forehead: #ff7a6b; --g-temple: #e19a6a; --g-brow: #e58ad9; --g-socket: #7fb3ff; --g-eye: #9cc0ff; --g-nose: #ffb24d;
+  --g-cheek: #5fd39a; --g-mouth: #ff7aa8; --g-chin: #b79bff; --g-jaw: #c8c3ba; --g-neck: #d59bff; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-ui); font-size: 15px; padding-inline: 16px; padding-block: 12px 32px }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.5rem; margin: 0; text-wrap: balance }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 8px }
+.sub { color: var(--muted); font-size: .9rem; max-width: 70ch }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px }
+.tab { font: inherit; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); border-radius: 6px; padding: 6px 10px; cursor: pointer }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink) }
+.tab small { font-family: var(--f-mono); opacity: .75; margin-left: 4px }
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr) } }
+.stage { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; overflow: auto; max-height: 84vh; min-width: 0 }
+.stage svg { display: block; touch-action: pan-x pan-y }
+.rail { display: flex; flex-direction: column; gap: 12px; min-width: 0 }
+.box { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px }
+.box h2 { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 }
+.row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center }
+label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer }
+button.b, .chipb { font: inherit; font-size: .86rem; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); border-radius: 6px; padding: 5px 9px; cursor: pointer }
+.chipb { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 99px }
+.chipb[aria-pressed="false"] { opacity: .45 }
+.chipb i { width: 10px; height: 10px; border-radius: 50% }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--loomis); outline-offset: 2px }
+textarea, input[type=text] { font: inherit; width: 100%; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px }
+textarea { min-height: 90px; resize: vertical }
+.mono { font-family: var(--f-mono); font-size: .8rem; font-variant-numeric: tabular-nums }
+.status { font-family: var(--f-mono); font-size: .78rem; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--muted) }
+.status.ok { color: var(--cut) } .status.warn { color: var(--edited) }
+.badge { font-size: .72rem; padding: 1px 6px; border-radius: 99px; background: var(--edited); color: var(--sheet) }
+.hint { font-size: .82rem; color: var(--muted); margin: 0 }
+table.pr { border-collapse: collapse; width: 100%; font-size: .82rem }
+table.pr td { padding: 3px 4px; border-top: 1px solid var(--rule); vertical-align: top }
+table.pr td.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+svg .ln { fill: none; stroke-linecap: round }
+svg .hid { stroke: var(--hidden); stroke-dasharray: 3 3; opacity: .7 }
+svg .iris { fill: none; stroke: var(--g-eye) }
+svg .lm { fill: none; stroke: var(--loomis) } svg .cut { fill: none; stroke: var(--cut) } svg .nk { fill: none; stroke: var(--neck) }
+svg .pr { fill: none; stroke: var(--prop); stroke-dasharray: 6 3 }
+svg .face { cursor: pointer } svg .face.sel { stroke: var(--sel); stroke-width: 2 } svg .nrm { stroke: var(--ink); fill: none }
+svg .h { stroke-width: 1.2; cursor: grab } svg .h.off { fill: var(--hidden); stroke: none; cursor: default }
+svg .h.ed { fill: var(--edited) } svg .h.sel { stroke: var(--sel); stroke-width: 2.4 }
+svg .hit { fill: transparent; cursor: grab } svg .hit.off { cursor: default; pointer-events: none }
+svg .old { stroke: var(--edited); fill: none }
+svg text.lab { font-family: var(--f-mono); fill: var(--ink); paint-order: stroke; stroke: var(--sheet); stroke-width: 3px }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="top">
+  <h1>Riki Head Planes</h1>
+  <span id="status" class="status">Loading…</span>
+</div>
+<p class="sub">One 3D head, seen from four captures. Drag a point on any angle and its 3D position is solved from every angle you have placed it on, so the fix carries to the other views. Grey points are hidden behind the head from this angle and can't be dragged here.</p>
+<div class="tabs" id="tabs" role="tablist"></div>
+<div class="main">
+  <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div class="rail">
+    <div class="box">
+      <h2>Selected point</h2>
+      <p class="hint" id="selNone">Tap a point to select it. Arrow keys nudge it by 1 px (Shift: 5 px).</p>
+      <div id="selBox" hidden>
+        <div class="row"><strong id="selName"></strong><span class="badge" id="selEd" hidden>placed here</span></div>
+        <div class="mono" id="selKey"></div>
+        <div class="mono" id="selXY"></div>
+        <div class="mono" id="selViews"></div>
+        <input type="text" id="selNote" placeholder="Note on this point">
+        <div class="row"><button class="b" id="selReset">Undo my placement on this angle</button></div>
+      </div>
+    </div>
+    <div class="box">
+      <h2>Selected plane</h2>
+      <p class="hint" id="faceNone">Tap inside a shaded plane.</p>
+      <div id="faceBox" hidden><strong id="faceName"></strong><div class="mono" id="faceOri"></div><div class="hint" id="faceCorners"></div></div>
+    </div>
+    <div class="box">
+      <h2>Regions</h2>
+      <div class="row" id="groups"></div>
+      <div class="row">
+        <label><input type="checkbox" id="lyHidden"> Hidden lines</label>
+        <label><input type="checkbox" id="lyLabels"> Names on points</label>
+        <label><input type="checkbox" id="lyOld" checked> My earlier drags</label>
+      </div>
+    </div>
+    <div class="box">
+      <h2>Construction</h2>
+      <div class="row">
+        <label><input type="checkbox" id="lyPlanes" checked> Plane edges</label>
+        <label><input type="checkbox" id="lyFaces" checked> Plane shading</label>
+        <label><input type="checkbox" id="lyNormals"> Normals</label>
+        <label><input type="checkbox" id="lyOldSolve" checked> Use my earlier drags in the 3D solve</label>
+        <label><input type="checkbox" id="lyLoomis" checked> Loomis ball</label>
+        <label><input type="checkbox" id="lyNeck" checked> Neck</label>
+        <label><input type="checkbox" id="lyProp"> Proportion check</label>
+      </div>
+      <p class="hint">Shading: each plane is lit by one key light from the upper front left, so its tone shows which way it faces. Tap inside a plane to read its orientation. Moving a corner point re-tilts every plane that uses it.</p>
+      <p class="hint">Loomis ball: radius = brow to nose base, centred at the brow. Drag its centre, its edge, the neck pit, neck edge or the mastoids; they are one head shared by every angle.</p>
+    </div>
+    <div class="box">
+      <h2>Underlay</h2>
+      <div class="row">
+        <label><input type="radio" name="bg" id="bgPhoto" checked> Photo</label>
+        <label><input type="radio" name="bg" id="bgLine"> Line drawing</label>
+      </div>
+      <label>Fade <input type="range" id="fade" min="0" max="90" value="40"></label>
+      <div class="row">
+        <button class="b" id="zoomOut" aria-label="Zoom out">−</button><span class="mono" id="zoomLbl">1×</span>
+        <button class="b" id="zoomIn" aria-label="Zoom in">+</button><button class="b" id="zoomFit">Fit</button>
+      </div>
+    </div>
+    <div class="box">
+      <h2>Notes for this angle</h2>
+      <textarea id="notes" placeholder="What is wrong here, what to change next…"></textarea>
+      <div class="row"><button class="b" id="resetAngle">Undo all my placements on this angle</button><button class="b" id="copyJson">Copy JSON</button></div>
+      <p class="hint" id="angleInfo"></p>
+    </div>
+    <div class="box">
+      <h2>Your proportions (front, measured)</h2>
+      <table class="pr" id="propTable"></table>
+    </div>
+  </div>
+</div>
+
+<script id="planes-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById('planes-data').textContent);
+const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id), svg = $('svg');
+const GROUPS = ['forehead', 'temple', 'brow', 'socket', 'eye', 'nose', 'cheek', 'mouth', 'chin', 'jaw', 'neck'];
+const GLABEL = { forehead: 'Forehead & skull', temple: 'Temples', brow: 'Brow ridge', socket: 'Eye sockets', eye: 'Eyes', nose: 'Nose', cheek: 'Cheeks', mouth: 'Mouth', chin: 'Chin', jaw: 'Jaw', neck: 'Neck' };
+let cur = 0, zoom = 1, sel = null, db = null, saveTimer = null, armed = false;
+const shown = Object.fromEntries(GROUPS.map(g => [g, true]));
+// state: per angle {pts:{key:[x,y]}, notes, pnotes}; head: Loomis overrides in canonical space
+const st = {}; D.angles.forEach(a => st[a.id] = { pts: {}, notes: a.notes || '', pnotes: {} });
+let head = {};
+
+// ---------- 3D ----------
+const V0 = D.verts, LAM = 0.02, OLD_W = 0.3;   // earlier drags (made on the old 2D graph) guide the solve at 30% weight
+let selFace = null;
+const ang = () => D.angles[cur], S = () => st[ang().id];
+const mul = (M, X) => [M[0][0] * X[0] + M[0][1] * X[1] + M[0][2] * X[2], M[1][0] * X[0] + M[1][1] * X[1] + M[1][2] * X[2]];
+const proj = (a, X) => { const p = mul(a.M, X); return [p[0] + a.c[0], p[1] + a.c[1]] };
+const depth = (a, X) => a.drow[0] * X[0] + a.drow[1] * X[1] + a.drow[2] * X[2] + a.d0;
+const add = (a, b) => a.map((v, i) => v + b[i]), sub = (a, b) => a.map((v, i) => v - b[i]), sc = (a, s) => a.map(v => v * s);
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], norm = a => Math.hypot(...a);
+function solve3(A, b) {   // 3x3 Cramer
+  const d = m => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  const det = d(A); return [0, 1, 2].map(i => d(A.map((r, j) => r.map((v, k) => k === i ? b[j] : v))) / det);
+}
+const cache = {};
+function X(key) {   // vertex in canonical 3D, solved from every placement across angles + the front-derived prior
+  if (cache[key]) return cache[key];
+  const P = V0[key]; const A = [[LAM, 0, 0], [0, LAM, 0], [0, 0, LAM]], b = sc(P, LAM); let n = 0;
+  const useOld = $('lyOldSolve').checked;
+  D.angles.forEach(a => { let o = st[a.id].pts[key], w = 1;
+    if (!Array.isArray(o)) { o = useOld && a.legacyEdits ? a.legacyEdits[key] : null; w = OLD_W; }
+    if (!o) return; n++;
+    const M = a.M, r = [o[0] - a.c[0], o[1] - a.c[1]];
+    for (let i = 0; i < 3; i++) { for (let j = 0; j < 3; j++) A[i][j] += w * (M[0][i] * M[0][j] + M[1][i] * M[1][j]); b[i] += w * (M[0][i] * r[0] + M[1][i] * r[1]); } });
+  return (cache[key] = n ? solve3(A, b) : P);
+}
+// iris discs and Loomis primitives as named 3D points
+const IR = D.iris.map((ir, j) => ({ key: 'iris' + j, c: ir.c, r: ir.r, eye: D.irisEye[j] }));
+IR.forEach(ir => { V0[ir.key] = ir.c; });
+const L0 = D.loomis;
+function H(k) { return head[k] !== undefined ? head[k] : L0[k] }
+// depth buffers
+D.angles.forEach(a => { const z = a.zb, raw = atob(z.data), u = new Uint16Array(raw.length / 2);
+  for (let i = 0; i < u.length; i++) u[i] = raw.charCodeAt(2 * i) | (raw.charCodeAt(2 * i + 1) << 8); z.u = u; });
+function visible(a, Xp) {
+  const z = a.zb, p = proj(a, Xp), i = Math.floor(p[1] / z.k), j = Math.floor(p[0] / z.k);
+  if (i < 0 || j < 0 || i >= z.h || j >= z.w) return true;
+  const q = z.u[i * z.w + j]; if (q === 65535) return true;
+  const zz = z.lo + q / 65534 * (z.hi - z.lo);
+  return depth(a, Xp) <= zz + 0.2 * H('sphR') * a.scale;   // tolerance covers chord sag across curved planes; the nose still hides the far cheek
+}
+const group = k => (D.names[k] || {}).group || 'jaw';
+const gvar = g => `var(--g-${g})`;
+
+// ---------- drawing ----------
+function el(tag, at, parent) { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e }
+const P = pts => pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+function strokePath3(a, pts3, cls, color, sw, hiddenToo) {   // split a 3D polyline into visible / hidden runs
+  let run = [], vis = null; const flush = () => { if (run.length > 1) {
+    if (vis) el('polyline', { class: 'ln ' + cls, points: P(run), stroke: color, 'stroke-width': sw });
+    else if (hiddenToo) el('polyline', { class: 'ln hid', points: P(run), 'stroke-width': sw * .8 }); } };
+  for (let i = 0; i < pts3.length; i++) { const v = visible(a, pts3[i]), p = proj(a, pts3[i]);
+    if (vis === null || v === vis) { run.push(p); vis = v } else { run.push(p); flush(); run = [p]; vis = v } }
+  flush();
+}
+function segs(Xa, Xb, n = 10) { const o = []; for (let i = 0; i <= n; i++) o.push(add(Xa, sc(sub(Xb, Xa), i / n))); return o }
+function ring(C, U, Vv, r, n = 96) { const o = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 * Math.PI; o.push(add(C, add(sc(U, r * Math.cos(t)), sc(Vv, r * Math.sin(t))))) } return o }
+function render() {
+  for (const k in cache) delete cache[k];
+  const a = ang(), sw = 1.5 / zoom, hid = $('lyHidden').checked;
+  svg.innerHTML = '';
+  svg.setAttribute('viewBox', `0 0 ${a.w} ${a.h}`); svg.setAttribute('width', a.w * zoom); svg.setAttribute('height', a.h * zoom);
+  el('image', { href: $('bgLine').checked ? a.line : a.photo, x: 0, y: 0, width: a.w, height: a.h });
+  el('rect', { x: 0, y: 0, width: a.w, height: a.h, fill: 'var(--sheet)', opacity: $('fade').value / 100 });
+  if ($('lyProp').checked) Object.entries(D.propLines).forEach(([k, pts]) => {
+    strokePath3(a, pts, 'pr', 'var(--prop)', sw, false);
+    const v = pts.filter(p => visible(a, p)); if (v.length) { const p = proj(a, v[k.startsWith('h_') ? v.length - 1 : 0]);
+      const t = el('text', { class: 'lab', x: p[0] + 4 / zoom, y: p[1] - 3 / zoom, 'font-size': 10 / zoom }); t.textContent = k.slice(2); }
+  });
+  if ($('lyFaces').checked || $('lyNormals').checked) drawFaces(a, sw);
+  if ($('lyPlanes').checked) {
+    D.poly.forEach(pl => { const g = group(pl[0]); if (!shown[g]) return;
+      for (let i = 0; i + 1 < pl.length; i++) strokePath3(a, segs(X(pl[i]), X(pl[i + 1])), '', gvar(g), sw, hid); });
+    if (shown.eye) { const defs = el('defs', {});
+      IR.forEach((ir, j) => { const c = X(ir.key); if (!visible(a, c)) return;
+        const cp = el('clipPath', { id: 'ec' + j }, defs); el('polygon', { points: P(ir.eye.map(k => proj(a, X(k)))) }, cp);
+        el('polyline', { class: 'iris', points: P(ring(c, [1, 0, 0], [0, 1, 0], ir.r, 64).map(p => proj(a, p))), 'stroke-width': sw * 1.2, 'clip-path': `url(#ec${j})` }); }); }
+  }
+  if ($('lyLoomis').checked) {
+    const C = H('sphC'), R = H('sphR'), rt = L0.right, up = L0.up, bk = L0.back, k = L0.cutK, cp = proj(a, C);
+    el('circle', { class: 'lm', cx: cp[0], cy: cp[1], r: R * a.scale, 'stroke-width': sw });
+    const front = p => dot(sub(p, C), a.view) < 0;
+    const ringFB = (pts, cls) => { let run = [], f = null; const fl = () => { if (run.length > 1) el('polyline', { class: 'ln ' + (f ? cls : 'hid'), points: P(run), 'stroke-width': sw }); };
+      pts.forEach(p => { const v = front(p), q = proj(a, p); if (f === null || v === f) { run.push(q); f = v } else { run.push(q); fl(); run = [q]; f = v } }); fl(); };
+    [-1, 1].forEach(s => ringFB(ring(add(C, sc(rt, s * k * R)), up, bk, R * Math.sqrt(1 - k * k)), 'cut'));
+    ringFB(ring(C, rt, bk, R), 'lm');            // brow line
+    ringFB(ring(C, up, bk, R), 'lm');            // centre line
+    strokePath3(a, D.midline, 'lm', 'var(--loomis)', sw, false);
+    strokePath3(a, D.jaw, 'lm', 'var(--loomis)', sw, false);
+  }
+  if ($('lyNeck').checked) {
+    const nc = H('neckC'), nd = L0.neckDir, nr = H('neckR'), len = L0.neckLen;
+    let sd = [nd[1] * a.view[2] - nd[2] * a.view[1], nd[2] * a.view[0] - nd[0] * a.view[2], nd[0] * a.view[1] - nd[1] * a.view[0]]; sd = sc(sd, 1 / norm(sd));
+    [-1, 1].forEach(s => { const p0 = proj(a, add(nc, sc(sd, s * nr))), p1 = proj(a, add(add(nc, sc(nd, len)), sc(sd, s * nr))); el('line', { class: 'nk', x1: p0[0], y1: p0[1], x2: p1[0], y2: p1[1], 'stroke-width': sw * 1.3 }); });
+    const pit = H('pit'), pp = proj(a, pit);
+    ['mastoidL', 'mastoidR'].forEach(m => { const pm = proj(a, H(m)); el('line', { class: 'nk', x1: pm[0], y1: pm[1], x2: pp[0], y2: pp[1], 'stroke-width': sw, 'stroke-dasharray': visible(a, H(m)) ? '' : '4 3' }); });
+  }
+  if ($('lyOld').checked) Object.entries(a.legacyEdits || {}).forEach(([k, p]) => { if (!shown[group(k)]) return;
+    const r = 4 / zoom; el('path', { class: 'old', d: `M${p[0] - r},${p[1] - r}L${p[0] + r},${p[1] + r}M${p[0] - r},${p[1] + r}L${p[0] + r},${p[1] - r}`, 'stroke-width': 1.3 / zoom }); });
+  drawHandles();
+}
+// ---------- plane faces ----------
+const RT = D.loomis.right, UPv = D.loomis.up, BKv = D.loomis.back;
+const LIGHT = (() => { const l = add(add(sc(RT, -0.45), sc(UPv, 0.55)), sc(BKv, -0.7)); return sc(l, 1 / norm(l)) })();
+function newell(ks) { const n = [0, 0, 0], P3 = ks.map(X);
+  P3.forEach((p, i) => { const q = P3[(i + 1) % P3.length]; n[0] += (p[1] - q[1]) * (p[2] + q[2]); n[1] += (p[2] - q[2]) * (p[0] + q[0]); n[2] += (p[0] - q[0]) * (p[1] + q[1]); });
+  const l = norm(n) || 1; return sc(n, FSIGN / l); }
+let FSIGN = 1;
+function faceGroup(f) { const c = {}; f.forEach(k => { const g = group(k); c[g] = (c[g] || 0) + 1 }); return Object.entries(c).sort((x, y) => y[1] - x[1])[0][0] }
+function faceInfo(f) {
+  const n = newell(f), r = dot(n, RT), u = dot(n, UPv), f2 = -dot(n, BKv);
+  const yaw = Math.atan2(r, f2) * 180 / Math.PI, pitch = Math.atan2(u, Math.hypot(r, f2)) * 180 / Math.PI;
+  const side = Math.abs(yaw) < 3 ? 'straight forward' : `${Math.abs(yaw).toFixed(0)}° toward the viewer's ${yaw > 0 ? 'right' : 'left'}`;
+  const tilt = Math.abs(pitch) < 3 ? 'level' : `${Math.abs(pitch).toFixed(0)}° ${pitch > 0 ? 'up' : 'down'}`;
+  return { n, text: `Faces ${side}, tilted ${tilt}.` };
+}
+function drawFaces(a, sw) {
+  const g = el('g', {}), R = H('sphR');
+  D.faces.forEach((f, i) => {
+    const grp = faceGroup(f); if (!shown[grp]) return;
+    const n = newell(f); if (dot(n, a.view) > 0) return;              // back-facing from this angle
+    const P3 = f.map(X), cen = sc(P3.reduce(add, [0, 0, 0]), 1 / P3.length);
+    if (!visible(a, cen)) return;                                       // behind the nose, cheek or skull
+    if ($('lyFaces').checked) {
+      const shade = Math.max(0, dot(n, LIGHT));
+      // fixed light/shadow pair: these sit on the photo, which looks the same in either theme
+      const lit = shade > 0.55, op = lit ? (shade - 0.55) * 0.9 : (0.55 - shade) * 0.95;
+      const poly = el('polygon', { class: 'face' + (selFace === i ? ' sel' : ''), points: P(P3.map(p => proj(a, p))), fill: lit ? '#fffaf0' : '#14110d', 'fill-opacity': op.toFixed(3), stroke: 'none' }, g);
+      poly.addEventListener('click', () => { selFace = i; showFace(); render() });
+    }
+    if ($('lyNormals').checked) { const p0 = proj(a, cen), p1 = proj(a, add(cen, sc(n, 0.2 * R)));
+      el('line', { class: 'nrm', x1: p0[0], y1: p0[1], x2: p1[0], y2: p1[1], 'stroke-width': sw }, g);
+      el('circle', { cx: p0[0], cy: p0[1], r: 1.6 / zoom, fill: 'var(--ink)' }, g); }
+  });
+}
+function showFace() {
+  $('faceNone').hidden = selFace !== null; $('faceBox').hidden = selFace === null; if (selFace === null) return;
+  const f = D.faces[selFace], fi = faceInfo(f);
+  $('faceName').textContent = GLABEL[faceGroup(f)] + ' plane ' + (selFace + 1);
+  $('faceOri').textContent = fi.text;
+  $('faceCorners').textContent = 'Corners: ' + [...new Set(f.map(k => (D.names[k] || { name: k }).name))].join(' · ');
+}
+function handleList() {
+  const a = ang(), out = [];
+  if ($('lyPlanes').checked) Object.keys(D.verts).forEach(k => { if (shown[group(k)]) out.push([k, 'v']); });
+  if ($('lyLoomis').checked) { out.push(['sphC', 'l']); out.push(['sphEdge', 'l']); }
+  if ($('lyNeck').checked) ['pit', 'mastoidL', 'mastoidR', 'neckC', 'neckEdge'].forEach(k => out.push([k, 'n']));
+  return out;
+}
+function hpos(k) {   // 3D position of a handle
+  if (k === 'sphEdge') return add(H('sphC'), sc(L0.right, H('sphR')));
+  if (k === 'neckEdge') return add(H('neckC'), sc(L0.right, H('neckR')));
+  return D.verts[k] || IR.find(i => i.key === k) ? X(k) : H(k);
+}
+function drawHandles() {
+  const a = ang(), r = 3.4 / zoom, g = el('g', {});
+  for (const [k, kind] of handleList()) {
+    const X3 = hpos(k), p = proj(a, X3), vis = kind !== 'v' || visible(a, X3);
+    if (!vis && !$('lyHidden').checked) continue;
+    const col = kind === 'v' ? gvar(group(k)) : kind === 'l' ? 'var(--loomis)' : 'var(--neck)';
+    const placed = !!S().pts[k];
+    el('circle', { class: 'h' + (vis ? '' : ' off') + (placed ? ' ed' : '') + (sel === k ? ' sel' : ''), cx: p[0], cy: p[1], r, fill: vis ? 'var(--sheet)' : '', stroke: col, 'stroke-width': 1.3 / zoom }, g);
+    if ($('lyLabels').checked && vis) { const t = el('text', { class: 'lab', x: p[0] + 5 / zoom, y: p[1] - 4 / zoom, 'font-size': 9 / zoom }, g); t.textContent = (D.names[k] || { name: k }).name; }
+    const hit = el('circle', { class: 'hit' + (vis ? '' : ' off'), cx: p[0], cy: p[1], r: 11 / zoom, 'data-k': k, tabindex: vis ? 0 : -1, role: 'button', 'aria-label': (D.names[k] || { name: k }).name }, g);
+    const t = document.createElementNS(NS, 'title'); t.textContent = (D.names[k] || { name: k }).name; hit.appendChild(t);
+    if (vis) { hit.addEventListener('pointerdown', ev => startDrag(ev, k)); hit.addEventListener('focus', () => { if (sel !== k) { sel = k; showSel(); } }); }
+  }
+}
+// ---------- interaction ----------
+function svgPoint(ev) { const r = svg.getBoundingClientRect(), a = ang(); return [(ev.clientX - r.left) * a.w / r.width, (ev.clientY - r.top) * a.h / r.height] }
+let drag = null;
+function startDrag(ev, k) { ev.preventDefault(); sel = k; showSel(); const p0 = svgPoint(ev), q = proj(ang(), hpos(k)); drag = { k, dx: q[0] - p0[0], dy: q[1] - p0[1], id: ev.pointerId, moved: false }; svg.setPointerCapture(ev.pointerId); render() }
+svg.addEventListener('pointermove', ev => { if (!drag || ev.pointerId !== drag.id) return; const p = svgPoint(ev); place(drag.k, [p[0] + drag.dx, p[1] + drag.dy], false); drag.moved = true });
+const endDrag = ev => { if (!drag) return; const m = drag.moved; drag = null; try { svg.releasePointerCapture(ev.pointerId) } catch (e) {} if (m) queueSave() };
+svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
+function viewDelta(a, dp) {   // smallest 3D move whose projection is dp (in this view's image plane)
+  const M = a.M, G = [[dot(M[0], M[0]), dot(M[0], M[1])], [dot(M[1], M[0]), dot(M[1], M[1])]], det = G[0][0] * G[1][1] - G[0][1] * G[1][0];
+  const y = [(G[1][1] * dp[0] - G[0][1] * dp[1]) / det, (-G[1][0] * dp[0] + G[0][0] * dp[1]) / det];
+  return add(sc(M[0], y[0]), sc(M[1], y[1]));
+}
+function place(k, xy, save = true) {
+  const a = ang(), r1 = v => Math.round(v * 10) / 10;
+  if (D.verts[k] || IR.find(i => i.key === k)) { S().pts[k] = [r1(xy[0]), r1(xy[1])]; }
+  else {
+    const cur3 = hpos(k), d3 = viewDelta(a, sub(xy, proj(a, cur3)));
+    if (k === 'sphEdge') head.sphR = Math.max(10, norm(sub(add(cur3, d3), H('sphC'))));
+    else if (k === 'neckEdge') head.neckR = Math.max(10, norm(sub(add(cur3, d3), H('neckC'))));
+    else head[k] = add(H(k), d3);
+    S().pts[k] = true;
+  }
+  render(); showSel(); if (save) queueSave();
+}
+function showSel() {
+  $('selNone').hidden = !!sel; $('selBox').hidden = !sel; if (!sel) return;
+  const a = ang(), p = proj(a, hpos(sel)), nm = D.names[sel] || { name: { sphC: 'Loomis ball centre', sphEdge: 'Loomis ball edge (radius)', pit: 'Pit of the neck', mastoidL: 'Mastoid behind the ear (viewer left)', mastoidR: 'Mastoid behind the ear (viewer right)', neckC: 'Neck axis, top', neckEdge: 'Neck edge (radius)' }[sel] || sel, group: '' };
+  $('selName').textContent = nm.name; $('selKey').textContent = (nm.group ? GLABEL[nm.group] + ' · ' : '') + sel;
+  $('selXY').textContent = `x ${p[0].toFixed(1)}  y ${p[1].toFixed(1)}`;
+  const where = D.angles.filter(b => st[b.id].pts[sel]).map(b => b.label);
+  $('selViews').textContent = where.length ? 'Placed by you on: ' + where.join(', ') : 'Not placed by you yet (front default)';
+  $('selEd').hidden = !S().pts[sel];
+  if (document.activeElement !== $('selNote')) $('selNote').value = S().pnotes[sel] || '';
+}
+document.addEventListener('keydown', ev => {
+  if (!sel || /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  const s = ev.shiftKey ? 5 : 1, d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] }[ev.key];
+  if (!d) return; ev.preventDefault(); const p = proj(ang(), hpos(sel)); place(sel, [p[0] + d[0], p[1] + d[1]]);
+});
+$('selReset').onclick = () => { if (!sel) return; delete S().pts[sel];
+  if (!D.verts[sel] && !IR.find(i => i.key === sel)) { const map = { sphEdge: 'sphR', neckEdge: 'neckR' }; delete head[map[sel] || sel]; }
+  render(); showSel(); queueSave(); };
+$('selNote').addEventListener('input', () => { if (!sel) return; const v = $('selNote').value; if (v) S().pnotes[sel] = v; else delete S().pnotes[sel]; queueSave() });
+$('notes').addEventListener('input', () => { S().notes = $('notes').value; queueSave() });
+$('resetAngle').onclick = () => {
+  if (!armed) { armed = true; $('resetAngle').textContent = 'Click again to undo'; setTimeout(() => { armed = false; $('resetAngle').textContent = 'Undo all my placements on this angle' }, 3000); return; }
+  armed = false; $('resetAngle').textContent = 'Undo all my placements on this angle'; S().pts = {}; render(); showSel(); queueSave();
+};
+$('copyJson').onclick = async () => {
+  const a = ang(), pts = {}; Object.keys(D.verts).forEach(k => { const X3 = X(k); pts[k] = { page: proj(a, X3).map(v => +v.toFixed(1)), visible: visible(a, X3) } });
+  const txt = JSON.stringify({ angle: a.id, points: pts, placed: S().pts, notes: S().notes, pointNotes: S().pnotes, head }, null, 1);
+  try { await navigator.clipboard.writeText(txt); setStatus('Copied', 'ok') } catch (e) { setStatus('Copy blocked by the browser', 'warn') }
+};
+['lyFaces', 'lyNormals', 'lyOldSolve', 'bgPhoto', 'bgLine', 'fade', 'lyPlanes', 'lyLoomis', 'lyNeck', 'lyProp', 'lyHidden', 'lyLabels', 'lyOld'].forEach(id => $(id).addEventListener('input', render));
+function setZoom(z) { zoom = Math.max(.5, Math.min(6, z)); $('zoomLbl').textContent = (Math.round(zoom * 10) / 10) + '×'; render() }
+$('zoomIn').onclick = () => setZoom(zoom * 1.4); $('zoomOut').onclick = () => setZoom(zoom / 1.4); $('zoomFit').onclick = fit;
+function fit() { setZoom(Math.min(($('stage').clientWidth - 2) / ang().w, 2.5)) }
+function groupsUI() { const g = $('groups'); g.innerHTML = '';
+  GROUPS.forEach(k => { const b = document.createElement('button'); b.className = 'chipb'; b.setAttribute('aria-pressed', shown[k]);
+    b.innerHTML = `<i style="background:var(--g-${k})"></i>${GLABEL[k]}`; b.onclick = () => { shown[k] = !shown[k]; b.setAttribute('aria-pressed', shown[k]); render() }; g.appendChild(b) });
+  const only = document.createElement('button'); only.className = 'chipb'; only.textContent = 'All'; only.onclick = () => { GROUPS.forEach(k => shown[k] = true); groupsUI(); render() }; g.appendChild(only);
+}
+function tabs() { const t = $('tabs'); t.innerHTML = '';
+  D.angles.forEach((a, i) => { const b = document.createElement('button'); b.className = 'tab'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', i === cur);
+    b.innerHTML = `${a.label}<small>${a.id} · ${a.yaw}°</small>`; b.onclick = () => { cur = i; sel = null; loadUI(); fit(); showSel() }; t.appendChild(b) }); }
+function info() { const a = ang(), n = Object.keys(S().pts).length;
+  $('angleInfo').textContent = `Capture ${a.id}, head turned ${a.yaw}°. ${n} point${n === 1 ? '' : 's'} placed by you here. 3D fit of this capture to the front: median ${a.fitResidualMedian} px.` }
+function loadUI() { tabs(); $('notes').value = S().notes || ''; info(); try { localStorage.setItem('planes3d-tab', String(cur)) } catch (e) {} }
+function propTable() {
+  const p = D.prop, eye = (p.eye_widths[0] + p.eye_widths[1]) / 2, t = p.thirds_px, tt = t[0] + t[1] + t[2];
+  const rows = [
+    ['Thirds: hairline–brow / brow–nose base / nose base–chin', t.map(v => Math.round(v / tt * 100) + '%').join(' / '), 'Canon 33 / 33 / 33. Your lower third is longer.'],
+    ['Gap between the eyes, in eye widths', (p.inner_gap / eye).toFixed(2), 'Canon 1.00'],
+    ['Head width at the ears, in eye widths', p.face_width_in_eyes.toFixed(2), 'Canon 5'],
+    ['Mouth width / distance between pupils', (p.mouth_width / p.pupil_gap).toFixed(2), 'Canon about 1 (corners under the pupils)'],
+    ['Loomis ball radius / half the temple width', (D.loomis.sphR / D.loomis.templeHalf).toFixed(2), 'Brow-to-nose-base unit against head width'],
+  ];
+  $('propTable').innerHTML = rows.map(r => `<tr><td>${r[0]}<br><span class="hint">${r[2]}</span></td><td class="n">${r[1]}</td></tr>`).join('');
+}
+// ---------- storage ----------
+function setStatus(t, c) { const s = $('status'); s.textContent = t; s.className = 'status' + (c ? ' ' + c : '') }
+function queueSave() { info(); const id = ang().id; clearTimeout(saveTimer); setStatus('Saving…'); saveTimer = setTimeout(() => save(id), 600) }
+async function save(id) {
+  const s = st[id], pts = {}; Object.entries(s.pts).forEach(([k, v]) => { if (Array.isArray(v)) pts[k] = v });
+  const doc = { placed: pts, notes: s.notes, pointNotes: s.pnotes, updatedAt: new Date().toISOString() };
+  const hd = { head: JSON.parse(JSON.stringify(head)), touched: Object.fromEntries(D.angles.map(a => [a.id, Object.keys(st[a.id].pts).filter(k => st[a.id].pts[k] === true)])), updatedAt: doc.updatedAt };
+  if (!db) { try { localStorage.setItem('planes3d-' + id, JSON.stringify(doc)); localStorage.setItem('planes3d-head', JSON.stringify(hd)); setStatus('Saved in this browser only', 'warn') } catch (e) { setStatus('Not saved', 'warn') } return }
+  try { await db.doc('planes3d/' + id).set(doc); await db.doc('planes3d/head').set(hd); setStatus('Saved', 'ok') } catch (e) { setStatus('Save failed: ' + (e && e.code || 'error'), 'warn') }
+}
+function absorb(id, d) { if (!d) return; d = JSON.parse(JSON.stringify(d)); st[id].pts = d.placed || {}; if (d.notes !== undefined) st[id].notes = d.notes; st[id].pnotes = d.pointNotes || {} }
+function absorbHead(h) { if (!h) return; h = JSON.parse(JSON.stringify(h)); head = h.head || {}; Object.entries(h.touched || {}).forEach(([id, ks]) => { if (st[id]) ks.forEach(k => st[id].pts[k] = true) }) }
+try { const t = +localStorage.getItem('planes3d-tab'); if (t >= 0 && t < D.angles.length) cur = t } catch (e) {}
+{ let s = 0; const a0 = D.angles[0]; D.faces.forEach(f => { FSIGN = 1; s += Math.sign(dot(newell(f), a0.view)) }); FSIGN = s > 0 ? -1 : 1; }
+groupsUI(); propTable(); loadUI(); requestAnimationFrame(fit); showSel(); setStatus('Connecting…');
+const local = () => { D.angles.forEach(a => { try { absorb(a.id, JSON.parse(localStorage.getItem('planes3d-' + a.id) || 'null')) } catch (e) {} }); try { absorbHead(JSON.parse(localStorage.getItem('planes3d-head') || 'null')) } catch (e) {} loadUI(); render() };
+const timer = setTimeout(() => { if (!db) { setStatus('Offline: edits stay in this browser', 'warn'); local() } }, 10000);
+(async () => {
+  let d = null; try { d = window.claude && await window.claude.use('db') } catch (e) {}
+  if (!d) { clearTimeout(timer); setStatus('Offline: edits stay in this browser', 'warn'); local(); return }
+  db = d;
+  try {
+    const snaps = await Promise.all([...D.angles.map(a => db.doc('planes3d/' + a.id).get().catch(() => null)), db.doc('planes3d/head').get().catch(() => null)]);
+    snaps.slice(0, -1).forEach((s, i) => { if (s && s.exists) absorb(D.angles[i].id, s.data()) });
+    const h = snaps[snaps.length - 1]; if (h && h.exists) absorbHead(h.data());
+    clearTimeout(timer); setStatus('Saved', 'ok'); loadUI(); render(); showSel();
+  } catch (e) { clearTimeout(timer); setStatus('Could not load saved edits', 'warn'); render() }
+})();
+})();
+</script>

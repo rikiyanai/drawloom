@@ -1,0 +1,20 @@
+{
+ "id": "9553c2a9-98eb-4f2b-ada5-2d3c2d19bc7b",
+ "status": "done",
+ "error": null,
+ "metrics": {
+  "p_ink": 0.987,
+  "r_sil": 0.979,
+  "r_int": 0.857,
+  "solid_pct": 0,
+  "off_corpus_pct": 11.48,
+  "passed": true
+ },
+ "meta": {
+  "nlines": 32,
+  "scale_w": 0.975,
+  "y_off": 9
+ },
+ "createdAt": "2026-11-17T19:28:08.213Z",
+ "updatedAt": "2026-11-17T19:31:37.704Z"
+}

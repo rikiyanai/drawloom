@@ -1,0 +1,577 @@
+<title>Riki Head Planes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: drafting table. The drawing sheet fills the left with its tool strip above; a narrow instrument rail sits on the right and stacks on phones. */
+:root {
+  --paper: #f6f4ef; --sheet: #fffdf8; --ink: #23211d; --muted: #6b665c; --rule: #d9d3c6; --chip: #ece7dc;
+  --loomis: #1d5fb8; --cut: #0d8a72; --neck: #8a3fc4; --edited: #e07a00; --hidden: #9c968a; --sel: #111; --prop: #b8860b; --new: #d81b60;
+  --g-forehead: #c0392b; --g-temple: #a0522d; --g-brow: #9b2c8f; --g-socket: #2f6fb5; --g-eye: #1546a8; --g-nose: #d47a00;
+  --g-cheek: #1f8a55; --g-mouth: #c2185b; --g-chin: #6a3fbf; --g-jaw: #4a4a4a; --g-neck: #7b1fa2;
+  --f-display: "Fraunces", Georgia, serif; --f-ui: "Atkinson Hyperlegible", system-ui, sans-serif; --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #191816; --sheet: #22201d; --ink: #ece8df; --muted: #a39d90; --rule: #3a3731; --chip: #2d2a26;
+  --loomis: #6fa8ff; --cut: #3fd3b0; --neck: #c493ff; --edited: #ffb04a; --hidden: #6d685f; --sel: #fff; --prop: #f0c14b; --new: #ff6fa3;
+  --g-forehead: #ff7a6b; --g-temple: #e19a6a; --g-brow: #e58ad9; --g-socket: #7fb3ff; --g-eye: #9cc0ff; --g-nose: #ffb24d;
+  --g-cheek: #5fd39a; --g-mouth: #ff7aa8; --g-chin: #b79bff; --g-jaw: #c8c3ba; --g-neck: #d59bff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #191816; --sheet: #22201d; --ink: #ece8df; --muted: #a39d90; --rule: #3a3731; --chip: #2d2a26;
+  --loomis: #6fa8ff; --cut: #3fd3b0; --neck: #c493ff; --edited: #ffb04a; --hidden: #6d685f; --sel: #fff; --prop: #f0c14b; --new: #ff6fa3;
+  --g-forehead: #ff7a6b; --g-temple: #e19a6a; --g-brow: #e58ad9; --g-socket: #7fb3ff; --g-eye: #9cc0ff; --g-nose: #ffb24d;
+  --g-cheek: #5fd39a; --g-mouth: #ff7aa8; --g-chin: #b79bff; --g-jaw: #c8c3ba; --g-neck: #d59bff; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-ui); font-size: 15px; padding-inline: 16px; padding-block: 12px 32px }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: 1.5rem; margin: 0; text-wrap: balance }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 8px }
+.sub { color: var(--muted); font-size: .9rem; max-width: 70ch; margin: 0 0 4px }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px }
+.tab { font: inherit; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); border-radius: 6px; padding: 6px 10px; cursor: pointer }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink) }
+.tab small { font-family: var(--f-mono); opacity: .75; margin-left: 4px }
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr) } }
+.board { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+@media (min-width: 861px) { .board { position: sticky; top: env(safe-area-inset-top, 0px) } }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 6px }
+.tools .sep { width: 1px; align-self: stretch; background: var(--rule); margin: 0 2px }
+.mode { font: inherit; font-size: .88rem; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); border-radius: 6px; padding: 5px 9px; cursor: pointer }
+.mode[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink) }
+.mode kbd { font-family: var(--f-mono); font-size: .7rem; opacity: .6; margin-left: 4px }
+.modehint { font-size: .84rem; color: var(--muted); margin: 0; min-height: 1.2em }
+.stage { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; overflow: auto; height: min(84vh, 900px); min-width: 0; overscroll-behavior: contain }
+.stage svg { display: block; touch-action: none; user-select: none; -webkit-user-select: none }
+.stage.add svg, .stage.cut svg { cursor: crosshair }
+.rail { display: flex; flex-direction: column; gap: 12px; min-width: 0 }
+.box { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px }
+.box h2 { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 }
+.row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center }
+label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer }
+button.b, .chipb { font: inherit; font-size: .86rem; border: 1px solid var(--rule); background: var(--chip); color: var(--ink); border-radius: 6px; padding: 5px 9px; cursor: pointer }
+button.b:disabled { opacity: .45; cursor: default }
+.chipb { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 99px }
+.chipb[aria-pressed="false"] { opacity: .45 }
+.chipb i { width: 10px; height: 10px; border-radius: 50% }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--loomis); outline-offset: 2px }
+textarea, input[type=text] { font: inherit; width: 100%; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 8px }
+textarea { min-height: 90px; resize: vertical }
+.mono { font-family: var(--f-mono); font-size: .8rem; font-variant-numeric: tabular-nums }
+.status { font-family: var(--f-mono); font-size: .78rem; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--muted) }
+.status.ok { color: var(--cut) } .status.warn { color: var(--edited) }
+.badge { font-size: .72rem; padding: 1px 6px; border-radius: 99px; background: var(--edited); color: var(--sheet) }
+.hint { font-size: .82rem; color: var(--muted); margin: 0 }
+table.pr { border-collapse: collapse; width: 100%; font-size: .82rem }
+table.pr td { padding: 3px 4px; border-top: 1px solid var(--rule); vertical-align: top }
+table.pr td.n { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap }
+svg .ln { fill: none; stroke-linecap: round }
+svg .hid { stroke: var(--hidden); stroke-dasharray: 3 3; opacity: .7 }
+svg .iris { fill: none; stroke: var(--g-eye) }
+svg .lm { fill: none; stroke: var(--loomis) } svg .cut { fill: none; stroke: var(--cut) } svg .nk { fill: none; stroke: var(--neck) }
+svg .pr { fill: none; stroke: var(--prop); stroke-dasharray: 6 3 }
+svg .face { cursor: pointer } svg .face.sel { stroke: var(--sel); stroke-width: 2 } svg .nrm { stroke: var(--ink); fill: none }
+svg .h { stroke-width: 1.2 } svg .h.off { fill: var(--hidden); stroke: none }
+svg .h.ed { fill: var(--edited) } svg .h.sel { stroke: var(--sel); stroke-width: 2.4 } svg .h.from { stroke: var(--new); stroke-width: 3 }
+svg .hit { fill: transparent; cursor: grab } svg .hit.off { cursor: default; pointer-events: none }
+svg .ehit { fill: none; stroke: transparent; pointer-events: stroke }
+.stage.add svg .ehit, .stage.cut svg .ehit { cursor: copy } .stage.cut svg .ehit { cursor: not-allowed }
+svg .ehit:hover { stroke: var(--new); stroke-opacity: .35 }
+svg .rubber { stroke: var(--new); stroke-dasharray: 5 4; fill: none }
+svg text.lab { font-family: var(--f-mono); fill: var(--ink); paint-order: stroke; stroke: var(--sheet); stroke-width: 3px }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="top">
+  <h1>Riki Head Planes</h1>
+  <span id="status" class="status">Loading…</span>
+</div>
+<p class="sub">One 3D head seen from four captures. Every point you dragged before sits exactly where you put it on that angle (orange). The other angles get those points from the 3D solve. Zoom with the buttons, pinch, or Ctrl/⌘ + scroll; drag empty paper to pan.</p>
+<div class="tabs" id="tabs" role="tablist"></div>
+<div class="main">
+  <div class="board">
+    <div class="tools" role="toolbar" aria-label="Drawing tools">
+      <button class="mode" data-mode="move" aria-pressed="true">Move<kbd>V</kbd></button>
+      <button class="mode" data-mode="add" aria-pressed="false">Add point<kbd>A</kbd></button>
+      <button class="mode" data-mode="connect" aria-pressed="false">Connect<kbd>C</kbd></button>
+      <button class="mode" data-mode="cut" aria-pressed="false">Remove line<kbd>X</kbd></button>
+      <span class="sep"></span>
+      <button class="b" id="undo" disabled>Undo</button>
+      <span class="sep"></span>
+      <button class="b" id="zoomOut" aria-label="Zoom out">−</button><span class="mono" id="zoomLbl">100%</span>
+      <button class="b" id="zoomIn" aria-label="Zoom in">+</button><button class="b" id="zoomFit">Fit</button>
+    </div>
+    <p class="modehint" id="modeHint"></p>
+    <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  </div>
+  <div class="rail">
+    <div class="box">
+      <h2>Selected point</h2>
+      <p class="hint" id="selNone">Tap a point to select it. Arrow keys nudge it by 1 px (Shift: 5 px).</p>
+      <div id="selBox" hidden>
+        <div class="row"><strong id="selName"></strong><span class="badge" id="selEd" hidden>placed here</span></div>
+        <input type="text" id="selRename" placeholder="Name this point" hidden>
+        <div class="mono" id="selKey"></div>
+        <div class="mono" id="selXY"></div>
+        <div class="mono" id="selViews"></div>
+        <input type="text" id="selNote" placeholder="Note on this point">
+        <div class="row"><button class="b" id="selReset">Unpin on this angle</button><button class="b" id="selDel">Delete point</button></div>
+      </div>
+    </div>
+    <div class="box">
+      <h2>Selected plane</h2>
+      <p class="hint" id="faceNone">Tap inside a shaded plane.</p>
+      <div id="faceBox" hidden><strong id="faceName"></strong><div class="mono" id="faceOri"></div><div class="hint" id="faceCorners"></div></div>
+    </div>
+    <div class="box">
+      <h2>Regions</h2>
+      <div class="row" id="groups"></div>
+      <div class="row">
+        <label><input type="checkbox" id="lyHidden"> Hidden lines</label>
+        <label><input type="checkbox" id="lyLabels"> Names on points</label>
+      </div>
+    </div>
+    <div class="box">
+      <h2>Construction</h2>
+      <div class="row">
+        <label><input type="checkbox" id="lyPlanes" checked> Plane edges</label>
+        <label><input type="checkbox" id="lyFaces" checked> Plane shading</label>
+        <label><input type="checkbox" id="lyNormals"> Normals</label>
+        <label><input type="checkbox" id="lyLoomis" checked> Loomis ball</label>
+        <label><input type="checkbox" id="lyNeck" checked> Neck</label>
+        <label><input type="checkbox" id="lyProp"> Proportion check</label>
+      </div>
+      <p class="hint">Shading: one key light from the upper front left, so each plane's tone shows which way it faces. Tap inside a plane to read its orientation. Moving a corner re-tilts every plane that uses it.</p>
+      <p class="hint">Loomis ball, side planes, centre/brow/jaw lines and neck keep your earlier handles per angle: centre, top (radius), side-plane centre, width and height, chin, jaw corners, ears, neck sides and pit.</p>
+    </div>
+    <div class="box">
+      <h2>Underlay</h2>
+      <div class="row">
+        <label><input type="radio" name="bg" id="bgPhoto" checked> Photo</label>
+        <label><input type="radio" name="bg" id="bgLine"> Line drawing</label>
+      </div>
+      <label>Fade <input type="range" id="fade" min="0" max="90" value="40"></label>
+    </div>
+    <div class="box">
+      <h2>Notes for this angle</h2>
+      <textarea id="notes" placeholder="What is wrong here, what to change next…"></textarea>
+      <div class="row"><button class="b" id="resetAngle">Unpin everything on this angle</button><button class="b" id="copyJson">Copy JSON</button></div>
+      <p class="hint" id="angleInfo"></p>
+    </div>
+    <div class="box">
+      <h2>Your proportions (front, measured)</h2>
+      <table class="pr" id="propTable"></table>
+    </div>
+  </div>
+</div>
+
+<script id="planes-data" type="application/json">__DATA__</script>
+<script>
+(() => {
+const D = JSON.parse(document.getElementById('planes-data').textContent);
+const NS = 'http://www.w3.org/2000/svg', $ = id => document.getElementById(id), svg = $('svg'), stage = $('stage');
+const GROUPS = ['forehead', 'temple', 'brow', 'socket', 'eye', 'nose', 'cheek', 'mouth', 'chin', 'jaw', 'neck'];
+const GLABEL = { forehead: 'Forehead & skull', temple: 'Temples', brow: 'Brow ridge', socket: 'Eye sockets', eye: 'Eyes', nose: 'Nose', cheek: 'Cheeks', mouth: 'Mouth', chin: 'Chin', jaw: 'Jaw', neck: 'Neck', loomis: 'Loomis', neckc: 'Neck construction' };
+const CNAME = { sphC: 'Loomis ball centre', sphR: 'Loomis ball top (sets the radius)', lmTop: 'Top of the head, centre line', lmBrow: 'Brow line on the centre line',
+  lmNose: 'Nose base on the centre line', lmChin: 'Chin (centre line end)', lmEarL: 'Ear, viewer left', lmEarR: 'Ear, viewer right', lmJawL: 'Jaw corner, viewer left', lmJawR: 'Jaw corner, viewer right',
+  cutLC: 'Side plane centre, viewer left', cutLA: 'Side plane width, viewer left', cutLB: 'Side plane height, viewer left',
+  cutRC: 'Side plane centre, viewer right', cutRA: 'Side plane width, viewer right', cutRB: 'Side plane height, viewer right',
+  nkL0: 'Neck side top, viewer left', nkL1: 'Neck side bottom, viewer left', nkR0: 'Neck side top, viewer right', nkR1: 'Neck side bottom, viewer right',
+  nkPit: 'Pit of the neck', mastoidL: 'Mastoid behind the ear, viewer left', mastoidR: 'Mastoid behind the ear, viewer right',
+  iris0: 'Iris centre, viewer left', iris1: 'Iris centre, viewer right', iris0R: 'Iris edge, viewer left (sets the size)', iris1R: 'Iris edge, viewer right (sets the size)' };
+const LOOMIS_LINES = [['lmTop', 'lmBrow', 'lmNose', 'lmChin'], ['cutLC', 'lmBrow', 'cutRC'], ['lmEarL', 'lmNose', 'lmEarR'], ['lmEarL', 'lmJawL', 'lmChin', 'lmJawR', 'lmEarR']];
+const NECK_LINES = [['nkL0', 'nkL1'], ['nkR0', 'nkR1'], ['nkL1', 'nkPit', 'nkR1'], ['mastoidL', 'nkPit'], ['mastoidR', 'nkPit']];
+const HINT = { move: 'Drag a point to pin it on this angle. Drag empty paper to pan.', add: 'Tap a line to split it with a new point, or tap empty paper to add a free point on the head surface.',
+  connect: 'Tap one point, then another, to draw a line between them. Keep tapping to chain. Esc or empty paper stops.', cut: 'Tap a line to remove it.' };
+let cur = 0, zoom = 1, sel = null, db = null, armed = false, mode = 'move', from = null, selFace = null;
+const shown = Object.fromEntries(GROUPS.map(g => [g, true]));
+// state: per angle {pts:{key:[x,y]}, notes, pnotes}. Seeds = the user's drags from the first editor, exact.
+const st = {}; D.angles.forEach(a => st[a.id] = { pts: JSON.parse(JSON.stringify(a.seed || {})), notes: a.notes || '', pnotes: {} });
+let topo = { added: {}, addE: [], delE: [], delV: [] };
+const dirty = new Set();
+
+// ---------- 3D ----------
+const LAM = 0.02, A0 = D.angles[0];
+const V0 = Object.assign({}, D.verts, D.cverts); D.iris.forEach((ir, j) => V0['iris' + j] = ir.c);
+const ang = () => D.angles[cur], S = () => st[ang().id];
+const mul = (M, X) => [M[0][0] * X[0] + M[0][1] * X[1] + M[0][2] * X[2], M[1][0] * X[0] + M[1][1] * X[1] + M[1][2] * X[2]];
+const proj = (a, X) => { const p = mul(a.M, X); return [p[0] + a.c[0], p[1] + a.c[1]] };
+const depth = (a, X) => a.drow[0] * X[0] + a.drow[1] * X[1] + a.drow[2] * X[2] + a.d0;
+const add = (a, b) => a.map((v, i) => v + b[i]), sub = (a, b) => a.map((v, i) => v - b[i]), sc = (a, s) => a.map(v => v * s);
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], norm = a => Math.hypot(...a), lerp = (a, b, t) => add(a, sc(sub(b, a), t));
+function solve3(A, b) {
+  const d = m => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  const det = d(A); return [0, 1, 2].map(i => d(A.map((r, j) => r.map((v, k) => k === i ? b[j] : v))) / det);
+}
+const isAdded = k => !!topo.added[k], isVert = k => (k in D.verts || isAdded(k)) && !topo.delV.includes(k);
+const isCons = k => k in D.cverts, isIris = k => /^iris\d$/.test(k), isRim = k => /^iris\dR$/.test(k);
+const prior = k => isAdded(k) ? topo.added[k].X : V0[k];
+// what the user fixed on angle a: an explicit pin, or on the front the accepted front position of every original point
+function obs(a, k) { const p = st[a.id].pts[k]; if (Array.isArray(p)) return p; if (a === A0 && V0[k]) return proj(A0, V0[k]); return null }
+const pinned = (a, k) => Array.isArray(st[a.id].pts[k]);
+const cache = {};
+function X(k) {   // vertex in canonical 3D, least squares over every angle it is fixed on, plus a weak prior
+  if (cache[k]) return cache[k];
+  const P = prior(k), A = [[LAM, 0, 0], [0, LAM, 0], [0, 0, LAM]], b = sc(P, LAM); let n = 0;
+  D.angles.forEach(a => { const o = obs(a, k); if (!o) return; n++;
+    const M = a.M, r = [o[0] - a.c[0], o[1] - a.c[1]];
+    for (let i = 0; i < 3; i++) { for (let j = 0; j < 3; j++) A[i][j] += M[0][i] * M[0][j] + M[1][i] * M[1][j]; b[i] += M[0][i] * r[0] + M[1][i] * r[1]; } });
+  return (cache[k] = n ? solve3(A, b) : P);
+}
+const disp = (a, k) => obs(a, k) || proj(a, X(k));
+const off = (a, k) => { const o = obs(a, k); return o ? sub(o, proj(a, X(k))) : [0, 0] };
+// depth buffers
+D.angles.forEach(a => { const z = a.zb, raw = atob(z.data), u = new Uint16Array(raw.length / 2);
+  for (let i = 0; i < u.length; i++) u[i] = raw.charCodeAt(2 * i) | (raw.charCodeAt(2 * i + 1) << 8); z.u = u; });
+const R3 = () => norm(sub(X('sphR'), X('sphC')));
+function zAt(a, p) { const z = a.zb, i = Math.floor(p[1] / z.k), j = Math.floor(p[0] / z.k);
+  if (i < 0 || j < 0 || i >= z.h || j >= z.w) return null; const q = z.u[i * z.w + j]; return q === 65535 ? null : z.lo + q / 65534 * (z.hi - z.lo) }
+function visible(a, Xp) { const zz = zAt(a, proj(a, Xp)); return zz === null || depth(a, Xp) <= zz + 0.2 * D.loomis.sphR * a.scale }
+const vis = (a, k) => !!obs(a, k) || !(isVert(k) || isIris(k)) || visible(a, X(k));
+const NM = k => isAdded(k) ? (topo.added[k].name || 'New point') : (D.names[k] || {}).name || CNAME[k] || k;
+const group = k => isAdded(k) ? topo.added[k].group : (D.names[k] || {}).group || 'jaw';
+const gvar = g => `var(--g-${g})`;
+
+// ---------- topology ----------
+const ek = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+function edges() {
+  const E = new Set(); D.poly.forEach(pl => { for (let i = 0; i + 1 < pl.length; i++) if (pl[i] !== pl[i + 1]) E.add(ek(pl[i], pl[i + 1])) });
+  topo.delE.forEach(e => E.delete(e)); topo.addE.forEach(e => E.add(e));
+  return [...E].map(e => e.split('|')).filter(([a, b]) => isVert(a) && isVert(b));
+}
+let FACES = [], FSIGN = 1;
+function buildFaces() {   // regions of the planar line graph, laid out on the front view
+  const E = edges(), nbr = {};
+  E.forEach(([u, v]) => { (nbr[u] = nbr[u] || []).push(v); (nbr[v] = nbr[v] || []).push(u) });
+  const FP = {}; Object.keys(nbr).forEach(k => FP[k] = disp(A0, k));
+  const an = (u, v) => Math.atan2(FP[v][1] - FP[u][1], FP[v][0] - FP[u][0]);
+  for (const k in nbr) nbr[k].sort((p, q) => an(k, p) - an(k, q));
+  const used = new Set(), out = [];
+  E.forEach(([p, q]) => [[p, q], [q, p]].forEach(([u0, v0]) => {
+    if (used.has(u0 + '>' + v0)) return; const cyc = [u0]; let u = u0, v = v0;
+    while (!used.has(u + '>' + v)) { used.add(u + '>' + v); cyc.push(v); const l = nbr[v], i = l.indexOf(u), w = l[(i - 1 + l.length) % l.length]; u = v; v = w; if (cyc.length > 400) break; }
+    if (cyc[cyc.length - 1] === cyc[0]) cyc.pop();
+    let ar = 0; cyc.forEach((k, i) => { const P1 = FP[k], Q = FP[cyc[(i + 1) % cyc.length]]; ar += P1[0] * Q[1] - Q[0] * P1[1] }); out.push([cyc, ar / 2]);
+  }));
+  const pos = out.filter(f => f[1] > 0).length, sg = pos * 2 >= out.length ? 1 : -1;
+  const big = out.reduce((m, f) => Math.abs(f[1]) > Math.abs(m[1]) ? f : m, out[0] || [[], 0]);
+  FACES = out.filter(f => f !== big && Math.sign(f[1]) === sg && Math.abs(f[1]) > 4 && new Set(f[0]).size >= 3).map(f => f[0]);
+  for (const k in cache) delete cache[k];
+  let s = 0; FSIGN = 1; FACES.forEach(f => s += Math.sign(dot(newell(f), A0.view))); FSIGN = s > 0 ? -1 : 1;
+}
+const fkey = f => [...f].sort().join(',');
+
+// ---------- drawing ----------
+function el(tag, at, parent) { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e }
+const P = pts => pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+function edgePts(a, ka, kb, n = 10) {   // a line between two points, through their pins on this angle, with per-sample visibility
+  const Xa = X(ka), Xb = X(kb), oa = off(a, ka), ob = off(a, kb), va = vis(a, ka), vb = vis(a, kb), o = [];
+  for (let i = 0; i <= n; i++) { const t = i / n, X3 = lerp(Xa, Xb, t);
+    const v = (t < .5 ? va : vb) && ((va && vb && (pinned(a, ka) || pinned(a, kb))) || visible(a, X3));
+    o.push([add(proj(a, X3), lerp(oa, ob, t)), v]); }
+  return o;
+}
+function strokeRuns(samples, cls, color, sw, hiddenToo, parent) {
+  let run = [], v0 = null; const flush = () => { if (run.length > 1) {
+    if (v0) el('polyline', { class: 'ln ' + cls, points: P(run), stroke: color, 'stroke-width': sw }, parent);
+    else if (hiddenToo) el('polyline', { class: 'ln hid', points: P(run), 'stroke-width': sw * .8 }, parent); } };
+  samples.forEach(([p, v]) => { if (v0 === null || v === v0) { run.push(p); v0 = v } else { run.push(p); flush(); run = [p]; v0 = v } }); flush();
+}
+function ring(C, U, Vv, r, n = 96) { const o = []; for (let i = 0; i <= n; i++) { const t = i / n * 2 * Math.PI; o.push(add(C, add(sc(U, r * Math.cos(t)), sc(Vv, r * Math.sin(t))))) } return o }
+function irisR3(j) { const k = 'iris' + j; let s = 0, n = 0;
+  D.angles.forEach(a => { const r = st[a.id].pts[k + 'R']; if (Array.isArray(r)) { const c = disp(a, k); s += Math.hypot(r[0] - c[0], r[1] - c[1]) / a.scale; n++ } });
+  return n ? s / n : D.iris[j].r }
+function rimPos(a, j) { const r = st[a.id].pts['iris' + j + 'R']; if (Array.isArray(r)) return r; const c = disp(a, 'iris' + j); return [c[0], c[1] - irisR3(j) * a.scale] }
+let EH = [];
+function render() {
+  for (const k in cache) delete cache[k];
+  const a = ang(), sw = 1.5 / zoom, hid = $('lyHidden').checked;
+  svg.innerHTML = ''; EH = [];
+  svg.setAttribute('viewBox', `0 0 ${a.w} ${a.h}`); svg.setAttribute('width', a.w * zoom); svg.setAttribute('height', a.h * zoom);
+  el('image', { href: $('bgLine').checked ? a.line : a.photo, x: 0, y: 0, width: a.w, height: a.h });
+  el('rect', { x: 0, y: 0, width: a.w, height: a.h, fill: 'var(--sheet)', opacity: $('fade').value / 100 });
+  if ($('lyProp').checked) Object.entries(D.propLines).forEach(([k, pts]) => {
+    strokeRuns(pts.map(p => [proj(a, p), visible(a, p)]), 'pr', 'var(--prop)', sw, false);
+    const v = pts.filter(p => visible(a, p)); if (v.length) { const p = proj(a, v[k.startsWith('h_') ? v.length - 1 : 0]);
+      const t = el('text', { class: 'lab', x: p[0] + 4 / zoom, y: p[1] - 3 / zoom, 'font-size': 10 / zoom }); t.textContent = k.slice(2); }
+  });
+  if ($('lyFaces').checked || $('lyNormals').checked) drawFaces(a, sw);
+  if ($('lyLoomis').checked) drawLoomis(a, sw);
+  if ($('lyNeck').checked) NECK_LINES.forEach(l => { for (let i = 0; i + 1 < l.length; i++) { const p = disp(a, l[i]), q = disp(a, l[i + 1]);
+    el('line', { class: 'nk', x1: p[0], y1: p[1], x2: q[0], y2: q[1], 'stroke-width': sw * 1.3, 'stroke-dasharray': l[0].startsWith('mastoid') ? '5 3' : '' }); } });
+  if ($('lyPlanes').checked) {
+    const eg = el('g', {}), hg = el('g', {});
+    edges().forEach(([ka, kb]) => { const g = group(ka); if (!shown[g] && !shown[group(kb)]) return;
+      const s = edgePts(a, ka, kb); strokeRuns(s, '', gvar(g), sw, hid, eg);
+      if (s.some(x => x[1])) { const pts = s.map(x => x[0]); EH.push({ e: ek(ka, kb), a: ka, b: kb, pts });
+        el('polyline', { class: 'ehit', points: P(pts), 'stroke-width': 12 / zoom, 'data-e': ek(ka, kb) }, hg); } });
+    if (shown.eye) { const defs = el('defs', {});
+      [0, 1].forEach(j => { const k = 'iris' + j; if (!vis(a, k)) return;
+        const c3 = X(k), pc = proj(a, c3), dc = disp(a, k), r3 = irisR3(j), rp = st[a.id].pts[k + 'R'];
+        const f = Array.isArray(rp) ? Math.hypot(rp[0] - dc[0], rp[1] - dc[1]) / (r3 * a.scale) : 1;
+        const cp = el('clipPath', { id: 'ec' + j }, defs); el('polygon', { points: P(D.irisEye[j].map(q => disp(a, q))) }, cp);
+        el('polyline', { class: 'iris', points: P(ring(c3, D.loomis.right, D.loomis.up, r3, 64).map(p => add(dc, sc(sub(proj(a, p), pc), f)))), 'stroke-width': sw * 1.2, 'clip-path': `url(#ec${j})` }); }); }
+  }
+  if (mode === 'connect' && from && hover) { const p = disp(a, from); el('line', { class: 'rubber', x1: p[0], y1: p[1], x2: hover[0], y2: hover[1], 'stroke-width': sw }); }
+  drawHandles();
+}
+function drawLoomis(a, sw) {
+  const C3 = X('sphC'), r3 = R3(), pc = proj(a, C3), dc = disp(a, 'sphC'), dr = disp(a, 'sphR'), rd = Math.hypot(dr[0] - dc[0], dr[1] - dc[1]);
+  const f = rd / (r3 * a.scale), T = p => add(dc, sc(sub(proj(a, p), pc), f));   // 3D rings follow the ball as you placed it here
+  el('circle', { class: 'lm', cx: dc[0], cy: dc[1], r: rd, 'stroke-width': sw });
+  const rt = D.loomis.right, up = D.loomis.up, bk = D.loomis.back;
+  const front = p => dot(sub(p, C3), a.view) < 0;
+  const ringFB = (pts, cls) => { let run = [], fr = null; const fl = () => { if (run.length > 1) el('polyline', { class: 'ln ' + (fr ? cls : 'hid'), points: P(run), 'stroke-width': sw }); };
+    pts.forEach(p => { const v = front(p), q = T(p); if (fr === null || v === fr) { run.push(q); fr = v } else { run.push(q); fl(); run = [q]; fr = v } }); fl(); };
+  ringFB(ring(C3, rt, bk, r3), 'lm'); ringFB(ring(C3, up, bk, r3), 'lm');
+  ['L', 'R'].forEach(s => { const c = disp(a, 'cut' + s + 'C'), u = sub(disp(a, 'cut' + s + 'A'), c), v = sub(disp(a, 'cut' + s + 'B'), c), pts = [];
+    for (let i = 0; i <= 72; i++) { const t = i / 72 * 2 * Math.PI; pts.push(add(c, add(sc(u, Math.cos(t)), sc(v, Math.sin(t))))) }
+    el('polyline', { class: 'ln cut', points: P(pts), 'stroke-width': sw * 1.2 }); });
+  LOOMIS_LINES.forEach(l => el('polyline', { class: 'ln lm', points: P(l.map(k => disp(a, k))), 'stroke-width': sw, 'stroke-dasharray': '6 3' }));
+}
+// ---------- plane faces ----------
+const RT = D.loomis.right, UPv = D.loomis.up, BKv = D.loomis.back;
+const LIGHT = (() => { const l = add(add(sc(RT, -0.45), sc(UPv, 0.55)), sc(BKv, -0.7)); return sc(l, 1 / norm(l)) })();
+function newell(ks) { const n = [0, 0, 0], P3 = ks.map(X);
+  P3.forEach((p, i) => { const q = P3[(i + 1) % P3.length]; n[0] += (p[1] - q[1]) * (p[2] + q[2]); n[1] += (p[2] - q[2]) * (p[0] + q[0]); n[2] += (p[0] - q[0]) * (p[1] + q[1]); });
+  const l = norm(n) || 1; return sc(n, FSIGN / l); }
+function faceGroup(f) { const c = {}; f.forEach(k => { const g = group(k); c[g] = (c[g] || 0) + 1 }); return Object.entries(c).sort((x, y) => y[1] - x[1])[0][0] }
+function faceInfo(f) {
+  const n = newell(f), r = dot(n, RT), u = dot(n, UPv), f2 = -dot(n, BKv);
+  const yaw = Math.atan2(r, f2) * 180 / Math.PI, pitch = Math.atan2(u, Math.hypot(r, f2)) * 180 / Math.PI;
+  const side = Math.abs(yaw) < 3 ? 'straight forward' : `${Math.abs(yaw).toFixed(0)}° toward the viewer's ${yaw > 0 ? 'right' : 'left'}`;
+  const tilt = Math.abs(pitch) < 3 ? 'level' : `${Math.abs(pitch).toFixed(0)}° ${pitch > 0 ? 'up' : 'down'}`;
+  return `Faces ${side}, tilted ${tilt}.`;
+}
+function drawFaces(a, sw) {
+  const g = el('g', {}), R = D.loomis.sphR;
+  FACES.forEach(f => {
+    const grp = faceGroup(f); if (!shown[grp]) return;
+    const allPinned = f.every(k => pinned(a, k)), allSeen = f.every(k => obs(a, k));
+    const n = newell(f); if (!allPinned && dot(n, a.view) > 0) return;
+    const P3 = f.map(X), cen = sc(P3.reduce(add, [0, 0, 0]), 1 / P3.length);
+    if (!allSeen && !visible(a, cen)) return;
+    const pts = f.map(k => disp(a, k)), key = fkey(f);
+    if ($('lyFaces').checked) {
+      const shade = Math.max(0, dot(n, LIGHT)), lit = shade > 0.55, op = lit ? (shade - 0.55) * 0.9 : (0.55 - shade) * 0.95;
+      el('polygon', { class: 'face' + (selFace === key ? ' sel' : ''), points: P(pts), fill: lit ? '#fffaf0' : '#14110d', 'fill-opacity': op.toFixed(3), stroke: 'none', 'data-f': key }, g);
+    }
+    if ($('lyNormals').checked) { const p0 = sc(pts.reduce(add, [0, 0]), 1 / pts.length), d = sub(proj(a, add(cen, sc(n, 0.2 * R))), proj(a, cen)), p1 = add(p0, d);
+      el('line', { class: 'nrm', x1: p0[0], y1: p0[1], x2: p1[0], y2: p1[1], 'stroke-width': sw }, g);
+      el('circle', { cx: p0[0], cy: p0[1], r: 1.6 / zoom, fill: 'var(--ink)' }, g); }
+  });
+}
+function showFace() {
+  const f = FACES.find(x => fkey(x) === selFace);
+  $('faceNone').hidden = !!f; $('faceBox').hidden = !f; if (!f) return;
+  $('faceName').textContent = GLABEL[faceGroup(f)] + ' plane';
+  $('faceOri').textContent = faceInfo(f);
+  $('faceCorners').textContent = 'Corners: ' + [...new Set(f.map(NM))].join(' · ');
+}
+// ---------- handles ----------
+function handleList() {
+  const out = [];
+  if ($('lyPlanes').checked) {
+    [...Object.keys(D.verts), ...Object.keys(topo.added)].forEach(k => { if (isVert(k) && shown[group(k)]) out.push(k) });
+    if (shown.eye) out.push('iris0', 'iris1', 'iris0R', 'iris1R');
+  }
+  if ($('lyLoomis').checked) out.push('sphC', 'sphR', 'cutLC', 'cutLA', 'cutLB', 'cutRC', 'cutRA', 'cutRB', 'lmTop', 'lmBrow', 'lmNose', 'lmChin', 'lmEarL', 'lmEarR', 'lmJawL', 'lmJawR');
+  if ($('lyNeck').checked) out.push('nkL0', 'nkL1', 'nkR0', 'nkR1', 'nkPit', 'mastoidL', 'mastoidR');
+  return out;
+}
+const hp = (a, k) => isRim(k) ? rimPos(a, +k[4]) : disp(a, k);
+function hcolor(k) { if (isAdded(k)) return 'var(--new)'; if (isVert(k) || isIris(k) || isRim(k)) return gvar(isVert(k) ? group(k) : 'eye');
+  return /^(nk|mastoid)/.test(k) ? 'var(--neck)' : /^cut/.test(k) ? 'var(--cut)' : 'var(--loomis)' }
+function drawHandles() {
+  const a = ang(), r = 3.4 / zoom, g = el('g', {});
+  for (const k of handleList()) {
+    const p = hp(a, k), v = isRim(k) ? vis(a, 'iris' + k[4]) : vis(a, k);
+    if (!v && !$('lyHidden').checked) continue;
+    const cls = 'h' + (v ? '' : ' off') + (pinned(a, k) ? ' ed' : '') + (sel === k ? ' sel' : '') + (from === k ? ' from' : '');
+    el(isRim(k) ? 'rect' : 'circle', isRim(k) ? { class: cls, x: p[0] - r, y: p[1] - r, width: 2 * r, height: 2 * r, fill: v ? 'var(--sheet)' : '', stroke: hcolor(k), 'stroke-width': 1.3 / zoom }
+      : { class: cls, cx: p[0], cy: p[1], r: isCons(k) ? r * 1.15 : r, fill: v ? 'var(--sheet)' : '', stroke: hcolor(k), 'stroke-width': 1.3 / zoom }, g);
+    if ($('lyLabels').checked && v) { const t = el('text', { class: 'lab', x: p[0] + 5 / zoom, y: p[1] - 4 / zoom, 'font-size': 9 / zoom }, g); t.textContent = NM(k); }
+    const hit = el('circle', { class: 'hit' + (v ? '' : ' off'), cx: p[0], cy: p[1], r: 10 / zoom, 'data-k': k, tabindex: v ? 0 : -1, role: 'button', 'aria-label': NM(k) }, g);
+    const t = document.createElementNS(NS, 'title'); t.textContent = NM(k); hit.appendChild(t);
+    if (v) hit.addEventListener('focus', () => { if (sel !== k) { sel = k; showSel(); } });
+  }
+}
+// ---------- undo ----------
+const undoStack = [];
+function snap() { undoStack.push(JSON.stringify({ pts: D.angles.map(a => st[a.id].pts), topo })); if (undoStack.length > 80) undoStack.shift(); $('undo').disabled = false }
+function undo() { const s = undoStack.pop(); if (!s) return; const o = JSON.parse(s); D.angles.forEach((a, i) => { st[a.id].pts = o.pts[i]; dirty.add(a.id) }); topo = o.topo; dirty.add('topology');
+  $('undo').disabled = !undoStack.length; from = null; if (sel && !isVert(sel) && !V0[sel] && !isRim(sel)) sel = null; buildFaces(); render(); showSel(); queueSave() }
+$('undo').onclick = undo;
+// ---------- edits ----------
+function place(k, xy) { const r1 = v => Math.round(v * 10) / 10; S().pts[k] = [r1(xy[0]), r1(xy[1])]; dirty.add(ang().id) }
+function unproject(a, p) {   // page point on this angle -> 3D on the head surface (depth buffer), else on the front of the ball
+  let d = zAt(a, p); if (d === null) d = depth(a, X('sphC')) - 0.6 * R3() * a.scale;
+  return solve3([a.M[0], a.M[1], a.drow], [p[0] - a.c[0], p[1] - a.c[1], d - a.d0]);
+}
+function nearestGroup(a, p) { let best = 'cheek', bd = 1e9; Object.keys(D.verts).forEach(k => { if (!isVert(k)) return; const q = disp(a, k), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = group(k) } }); return best }
+function newKey() { let i = 1; while (topo.added['u' + i] || V0['u' + i]) i++; return 'u' + i }
+function addPoint(p, edge) {
+  const a = ang(); snap(); const k = newKey(); let X3;
+  if (edge) { const pa = disp(a, edge.a), pb = disp(a, edge.b), d = sub(pb, pa), t = Math.max(0, Math.min(1, dot([...sub(p, pa), 0], [...d, 0]) / (dot([...d, 0], [...d, 0]) || 1)));
+    X3 = lerp(X(edge.a), X(edge.b), t); }
+  else X3 = unproject(a, p);
+  const n = Object.keys(topo.added).length + 1;
+  topo.added[k] = { X: X3.map(v => Math.round(v * 100) / 100), group: edge ? group(edge.a) : nearestGroup(a, p), name: 'New point ' + n };
+  if (edge) { rmEdge(edge.e); addEdge(edge.a, k); addEdge(k, edge.b); }
+  place(k, p); dirty.add('topology'); sel = k; buildFaces(); render(); showSel(); queueSave();
+}
+function addEdge(a, b) { const e = ek(a, b); topo.delE = topo.delE.filter(x => x !== e); if (!topo.addE.includes(e) && !edges().some(([u, v]) => ek(u, v) === e)) topo.addE.push(e) }
+function rmEdge(e) { if (topo.addE.includes(e)) topo.addE = topo.addE.filter(x => x !== e); else if (!topo.delE.includes(e)) topo.delE.push(e) }
+function delPoint(k) {
+  if (!isVert(k)) return; snap();
+  if (isAdded(k)) { delete topo.added[k]; topo.addE = topo.addE.filter(e => !e.split('|').includes(k)); D.angles.forEach(a => { delete st[a.id].pts[k]; dirty.add(a.id) }) }
+  else topo.delV.push(k);
+  dirty.add('topology'); if (sel === k) sel = null; if (from === k) from = null; buildFaces(); render(); showSel(); queueSave();
+}
+// ---------- pointer: drag points, pan, pinch, tools ----------
+function svgPoint(cx, cy) { const r = svg.getBoundingClientRect(), a = ang(); return [(cx - r.left) * a.w / r.width, (cy - r.top) * a.h / r.height] }
+const ptrs = new Map(); let gest = null, drag = null, hover = null, raf = 0;
+const later = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); showSel() }) };
+svg.addEventListener('pointerdown', ev => {
+  ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]); try { svg.setPointerCapture(ev.pointerId) } catch (e) {}
+  if (ptrs.size === 2) { drag = null; const [p, q] = [...ptrs.values()]; gest = { type: 'pinch', d0: Math.hypot(p[0] - q[0], p[1] - q[1]), z0: zoom }; return }
+  if (ptrs.size > 2) return;
+  const k = ev.target.dataset && ev.target.dataset.k, e = ev.target.dataset && ev.target.dataset.e;
+  if (k) {
+    ev.preventDefault(); sel = k; showSel();
+    if (mode === 'connect' && isVert(k)) { if (from && from !== k) { snap(); addEdge(from, k); dirty.add('topology'); buildFaces(); queueSave() } from = k; render(); return }
+    if (mode === 'move' || mode === 'add') { const p0 = svgPoint(ev.clientX, ev.clientY), q = hp(ang(), k); drag = { k, dx: q[0] - p0[0], dy: q[1] - p0[1], id: ev.pointerId, moved: false } }
+    render(); return;
+  }
+  gest = { type: 'bg', x0: ev.clientX, y0: ev.clientY, sl: stage.scrollLeft, st: stage.scrollTop, moved: false, id: ev.pointerId, e, f: ev.target.dataset && ev.target.dataset.f };
+});
+svg.addEventListener('pointermove', ev => {
+  if (ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId, [ev.clientX, ev.clientY]);
+  if (gest && gest.type === 'pinch' && ptrs.size === 2) { const [p, q] = [...ptrs.values()]; setZoom(gest.z0 * Math.hypot(p[0] - q[0], p[1] - q[1]) / gest.d0, (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); return }
+  if (drag && ev.pointerId === drag.id) { const p = svgPoint(ev.clientX, ev.clientY); if (!drag.moved) snap(); drag.moved = true; place(drag.k, [p[0] + drag.dx, p[1] + drag.dy]); later(); return }
+  if (gest && gest.type === 'bg' && ev.pointerId === gest.id) { const dx = ev.clientX - gest.x0, dy = ev.clientY - gest.y0;
+    if (Math.hypot(dx, dy) > 5) gest.moved = true; if (gest.moved) { stage.scrollLeft = gest.sl - dx; stage.scrollTop = gest.st - dy } return }
+  if (mode === 'connect' && from && ev.pointerType === 'mouse') { hover = svgPoint(ev.clientX, ev.clientY); later() }
+});
+function endPtr(ev) {
+  ptrs.delete(ev.pointerId);
+  if (drag && ev.pointerId === drag.id) { if (drag.moved) queueSave(); drag = null; return }
+  if (gest && gest.type === 'bg' && ev.pointerId === gest.id && !gest.moved && ev.type === 'pointerup') {
+    const p = svgPoint(ev.clientX, ev.clientY), e = gest.e && EH.find(h => h.e === gest.e);
+    if (mode === 'add') addPoint(p, e || null);
+    else if (mode === 'cut' && e) { snap(); rmEdge(e.e); dirty.add('topology'); buildFaces(); render(); queueSave() }
+    else if (mode === 'connect') { from = null; hover = null; render() }
+    else if (mode === 'move' && gest.f) { selFace = gest.f; showFace(); render() }
+  }
+  if (!ptrs.size) gest = null;
+}
+svg.addEventListener('pointerup', endPtr); svg.addEventListener('pointercancel', endPtr);
+stage.addEventListener('wheel', ev => { if (!ev.ctrlKey && !ev.metaKey) return; ev.preventDefault(); setZoom(zoom * Math.exp(-ev.deltaY * 0.01), ev.clientX, ev.clientY) }, { passive: false });
+let gz = 1; stage.addEventListener('gesturestart', ev => { ev.preventDefault(); gz = zoom });
+stage.addEventListener('gesturechange', ev => { ev.preventDefault(); setZoom(gz * ev.scale, ev.clientX, ev.clientY) });
+function setZoom(z, cx, cy) {
+  const r = stage.getBoundingClientRect(); if (cx === undefined) { cx = r.left + stage.clientWidth / 2; cy = r.top + stage.clientHeight / 2 }
+  const ux = (stage.scrollLeft + cx - r.left) / zoom, uy = (stage.scrollTop + cy - r.top) / zoom;
+  zoom = Math.max(.3, Math.min(12, z)); $('zoomLbl').textContent = Math.round(zoom * 100) + '%';
+  render(); stage.scrollLeft = ux * zoom - (cx - r.left); stage.scrollTop = uy * zoom - (cy - r.top);
+}
+$('zoomIn').onclick = () => setZoom(zoom * 1.4); $('zoomOut').onclick = () => setZoom(zoom / 1.4); $('zoomFit').onclick = fit;
+function fit() { const a = ang(); setZoom(Math.min((stage.clientWidth - 2) / a.w, (stage.clientHeight - 2) / a.h, 3)); stage.scrollLeft = 0; stage.scrollTop = 0 }
+function setMode(m) { mode = m; from = null; hover = null; document.querySelectorAll('.mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  stage.className = 'stage ' + m; $('modeHint').textContent = HINT[m]; render() }
+document.querySelectorAll('.mode').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+// ---------- side panel ----------
+function showSel() {
+  $('selNone').hidden = !!sel; $('selBox').hidden = !sel; if (!sel) return;
+  const a = ang(), p = hp(a, sel), g = isVert(sel) ? group(sel) : null;
+  $('selName').textContent = NM(sel); $('selKey').textContent = (g ? GLABEL[g] + ' · ' : '') + sel;
+  $('selRename').hidden = !isAdded(sel); if (isAdded(sel) && document.activeElement !== $('selRename')) $('selRename').value = topo.added[sel].name || '';
+  $('selXY').textContent = `x ${p[0].toFixed(1)}  y ${p[1].toFixed(1)}`;
+  const where = D.angles.filter(b => pinned(b, sel)).map(b => b.label);
+  $('selViews').textContent = where.length ? 'Pinned by you on: ' + where.join(', ') : 'Not pinned by you (front default / 3D solve)';
+  $('selEd').hidden = !pinned(a, sel); $('selReset').disabled = !pinned(a, sel); $('selDel').hidden = !isVert(sel);
+  if (document.activeElement !== $('selNote')) $('selNote').value = S().pnotes[sel] || '';
+}
+document.addEventListener('keydown', ev => {
+  if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === 'z') { ev.preventDefault(); undo(); return }
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const m = { v: 'move', a: 'add', c: 'connect', x: 'cut' }[ev.key.toLowerCase()]; if (m) { setMode(m); return }
+  if (ev.key === 'Escape') { from = null; hover = null; render(); return }
+  if (!sel) return;
+  if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); delPoint(sel); return }
+  const s = ev.shiftKey ? 5 : 1, d = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] }[ev.key];
+  if (!d) return; ev.preventDefault(); snap(); const p = hp(ang(), sel); place(sel, [p[0] + d[0], p[1] + d[1]]); render(); showSel(); queueSave();
+});
+$('selReset').onclick = () => { if (!sel || !pinned(ang(), sel)) return; snap(); delete S().pts[sel]; dirty.add(ang().id); render(); showSel(); queueSave() };
+$('selDel').onclick = () => sel && delPoint(sel);
+$('selRename').addEventListener('input', () => { if (!sel || !isAdded(sel)) return; topo.added[sel].name = $('selRename').value; dirty.add('topology'); $('selName').textContent = NM(sel); queueSave() });
+$('selNote').addEventListener('input', () => { if (!sel) return; const v = $('selNote').value; if (v) S().pnotes[sel] = v; else delete S().pnotes[sel]; dirty.add(ang().id); queueSave() });
+$('notes').addEventListener('input', () => { S().notes = $('notes').value; dirty.add(ang().id); queueSave() });
+$('resetAngle').onclick = () => {
+  if (!armed) { armed = true; $('resetAngle').textContent = 'Click again to unpin all'; setTimeout(() => { armed = false; $('resetAngle').textContent = 'Unpin everything on this angle' }, 3000); return; }
+  armed = false; $('resetAngle').textContent = 'Unpin everything on this angle'; snap(); S().pts = {}; dirty.add(ang().id); render(); showSel(); queueSave();
+};
+$('copyJson').onclick = async () => {
+  const a = ang(), pts = {}; [...Object.keys(D.verts), ...Object.keys(topo.added)].filter(isVert).forEach(k => { pts[k] = { page: disp(a, k).map(v => +v.toFixed(1)), visible: vis(a, k), xyz: X(k).map(v => +v.toFixed(2)) } });
+  const planes = FACES.map(f => ({ corners: f, normal: newell(f).map(v => +v.toFixed(3)), orientation: faceInfo(f) }));
+  const txt = JSON.stringify({ angle: a.id, points: pts, pinned: S().pts, notes: S().notes, pointNotes: S().pnotes, topology: topo, planes }, null, 1);
+  try { await navigator.clipboard.writeText(txt); setStatus('Copied', 'ok') } catch (e) { setStatus('Copy blocked by the browser', 'warn') }
+};
+['lyFaces', 'lyNormals', 'bgPhoto', 'bgLine', 'fade', 'lyPlanes', 'lyLoomis', 'lyNeck', 'lyProp', 'lyHidden', 'lyLabels'].forEach(id => $(id).addEventListener('input', render));
+function groupsUI() { const g = $('groups'); g.innerHTML = '';
+  GROUPS.forEach(k => { const b = document.createElement('button'); b.className = 'chipb'; b.setAttribute('aria-pressed', shown[k]);
+    b.innerHTML = `<i style="background:var(--g-${k})"></i>${GLABEL[k]}`; b.onclick = () => { shown[k] = !shown[k]; b.setAttribute('aria-pressed', shown[k]); render() }; g.appendChild(b) });
+  const all = document.createElement('button'); all.className = 'chipb'; all.textContent = 'All'; all.onclick = () => { GROUPS.forEach(k => shown[k] = true); groupsUI(); render() }; g.appendChild(all);
+}
+function tabs() { const t = $('tabs'); t.innerHTML = '';
+  D.angles.forEach((a, i) => { const b = document.createElement('button'); b.className = 'tab'; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', i === cur);
+    b.innerHTML = `${a.label}<small>${a.id} · ${a.yaw}°</small>`; b.onclick = () => { cur = i; from = null; loadUI(); fit(); showSel() }; t.appendChild(b) }); }
+function info() { const a = ang(), n = Object.values(S().pts).filter(Array.isArray).length;
+  $('angleInfo').textContent = `Capture ${a.id}, head turned ${a.yaw}°. ${n} point${n === 1 ? '' : 's'} pinned by you here. 3D fit of this capture to the front: median ${a.fitResidualMedian} px. ${Object.keys(topo.added).length} points added, ${topo.addE.length} lines added, ${topo.delE.length} removed.` }
+function loadUI() { tabs(); $('notes').value = S().notes || ''; info(); try { localStorage.setItem('planes3d-tab', String(cur)) } catch (e) {} }
+function propTable() {
+  const p = D.prop, eye = (p.eye_widths[0] + p.eye_widths[1]) / 2, t = p.thirds_px, tt = t[0] + t[1] + t[2];
+  const rows = [
+    ['Thirds: hairline–brow / brow–nose base / nose base–chin', t.map(v => Math.round(v / tt * 100) + '%').join(' / '), 'Canon 33 / 33 / 33. Your lower third is longer.'],
+    ['Gap between the eyes, in eye widths', (p.inner_gap / eye).toFixed(2), 'Canon 1.00'],
+    ['Head width at the ears, in eye widths', p.face_width_in_eyes.toFixed(2), 'Canon 5'],
+    ['Mouth width / distance between pupils', (p.mouth_width / p.pupil_gap).toFixed(2), 'Canon about 1 (corners under the pupils)'],
+    ['Loomis ball radius / half the temple width', (D.loomis.sphR / D.loomis.templeHalf).toFixed(2), 'Brow-to-nose-base unit against head width'],
+  ];
+  $('propTable').innerHTML = rows.map(r => `<tr><td>${r[0]}<br><span class="hint">${r[2]}</span></td><td class="n">${r[1]}</td></tr>`).join('');
+}
+// ---------- storage ----------
+let saveTimer = null;
+function setStatus(t, c) { const s = $('status'); s.textContent = t; s.className = 'status' + (c ? ' ' + c : '') }
+function queueSave() { info(); clearTimeout(saveTimer); setStatus('Saving…'); saveTimer = setTimeout(saveAll, 600) }
+const angleDoc = id => { const s = st[id], pts = {}; Object.entries(s.pts).forEach(([k, v]) => { if (Array.isArray(v)) pts[k] = v }); return { placed: pts, notes: s.notes, pointNotes: s.pnotes, updatedAt: new Date().toISOString() } };
+const topoDoc = () => Object.assign(JSON.parse(JSON.stringify(topo)), { updatedAt: new Date().toISOString() });
+let saving = false;
+async function saveAll() {
+  if (saving) { saveTimer = setTimeout(saveAll, 400); return }
+  const ids = [...dirty]; dirty.clear(); if (!ids.length) { setStatus(db ? 'Saved' : 'Saved in this browser only', db ? 'ok' : 'warn'); return }
+  if (!db) { try { ids.forEach(id => localStorage.setItem('planes3d-' + id, JSON.stringify(id === 'topology' ? topoDoc() : angleDoc(id)))); setStatus('Saved in this browser only', 'warn') } catch (e) { setStatus('Not saved', 'warn') } return }
+  saving = true;
+  try { for (const id of ids) await db.doc('planes3d/' + id).set(id === 'topology' ? topoDoc() : angleDoc(id)); setStatus('Saved', 'ok') }
+  catch (e) { ids.forEach(id => dirty.add(id)); setStatus('Save failed: ' + (e && e.code || 'error') + ' — retrying', 'warn'); saveTimer = setTimeout(saveAll, 3000) }
+  saving = false;
+}
+function absorb(id, d) { if (!d) return; d = JSON.parse(JSON.stringify(d)); st[id].pts = d.placed || {}; if (d.notes !== undefined) st[id].notes = d.notes; st[id].pnotes = d.pointNotes || {} }
+function absorbTopo(t) { if (!t) return; t = JSON.parse(JSON.stringify(t)); topo = { added: t.added || {}, addE: t.addE || [], delE: t.delE || [], delV: t.delV || [] } }
+try { const t = +localStorage.getItem('planes3d-tab'); if (t >= 0 && t < D.angles.length) cur = t } catch (e) {}
+groupsUI(); propTable(); buildFaces(); loadUI(); setMode('move'); requestAnimationFrame(fit); showSel(); setStatus('Connecting…');
+const local = () => { D.angles.forEach(a => { try { absorb(a.id, JSON.parse(localStorage.getItem('planes3d-' + a.id) || 'null')) } catch (e) {} });
+  try { absorbTopo(JSON.parse(localStorage.getItem('planes3d-topology') || 'null')) } catch (e) {} buildFaces(); loadUI(); render() };
+const timer = setTimeout(() => { if (!db) { setStatus('Offline: edits stay in this browser', 'warn'); local() } }, 10000);
+(async () => {
+  let d = null; try { d = window.claude && await window.claude.use('db') } catch (e) {}
+  if (!d) { clearTimeout(timer); setStatus('Offline: edits stay in this browser', 'warn'); local(); return }
+  db = d;
+  try {
+    const snaps = await Promise.all([...D.angles.map(a => db.doc('planes3d/' + a.id).get().catch(() => null)), db.doc('planes3d/topology').get().catch(() => null)]);
+    snaps.slice(0, -1).forEach((s, i) => { if (s && s.exists) absorb(D.angles[i].id, s.data()); else dirty.add(D.angles[i].id) });   // no doc yet: store the seeded pins
+    const t = snaps[snaps.length - 1]; if (t && t.exists) absorbTopo(t.data());
+    clearTimeout(timer); buildFaces(); loadUI(); render(); showSel(); if (dirty.size) saveAll(); else setStatus('Saved', 'ok');
+  } catch (e) { clearTimeout(timer); setStatus('Could not load saved edits', 'warn'); render() }
+})();
+})();
+</script>

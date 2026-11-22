@@ -1,0 +1,466 @@
+{
+"ftL": {
+"name": "Forehead top corner (viewer left)",
+"group": "forehead"
+},
+"ftR": {
+"name": "Forehead top corner (viewer right)",
+"group": "forehead"
+},
+"trL": {
+"name": "Forehead edge at the brow (viewer left)",
+"group": "forehead"
+},
+"trR": {
+"name": "Forehead edge at the brow (viewer right)",
+"group": "forehead"
+},
+"tsL": {
+"name": "Temple, upper (viewer left)",
+"group": "temple"
+},
+"tsR": {
+"name": "Temple, upper (viewer right)",
+"group": "temple"
+},
+"tlL": {
+"name": "Temple, lower (front of ear) (viewer left)",
+"group": "temple"
+},
+"tlR": {
+"name": "Temple, lower (front of ear) (viewer right)",
+"group": "temple"
+},
+"brL0": {
+"name": "Brow ridge, outer end (viewer left)",
+"group": "brow"
+},
+"brL1": {
+"name": "Brow ridge, middle (viewer left)",
+"group": "brow"
+},
+"brL2": {
+"name": "Brow ridge, inner end (viewer left)",
+"group": "brow"
+},
+"gl0": {
+"name": "Glabella (between brows) (viewer left)",
+"group": "brow"
+},
+"gl1": {
+"name": "Glabella (between brows) (viewer right)",
+"group": "brow"
+},
+"brR1": {
+"name": "Brow ridge, inner end (viewer right)",
+"group": "brow"
+},
+"brR2": {
+"name": "Brow ridge, middle (viewer right)",
+"group": "brow"
+},
+"brR0": {
+"name": "Brow ridge, outer end (viewer right)",
+"group": "brow"
+},
+"nas0": {
+"name": "Nose root (nasion) (viewer left)",
+"group": "nose"
+},
+"nas1": {
+"name": "Nose root (nasion) (viewer right)",
+"group": "nose"
+},
+"soLo": {
+"name": "Eye socket, outer corner",
+"group": "socket"
+},
+"soLlo": {
+"name": "Eye socket, lower outer",
+"group": "socket"
+},
+"soLli": {
+"name": "Eye socket, lower inner",
+"group": "socket"
+},
+"soLi": {
+"name": "Eye socket, inner (by nose)",
+"group": "socket"
+},
+"soRo": {
+"name": "Eye socket, outer corner",
+"group": "socket"
+},
+"soRlo": {
+"name": "Eye socket, lower outer",
+"group": "socket"
+},
+"soRli": {
+"name": "Eye socket, lower inner",
+"group": "socket"
+},
+"soRi": {
+"name": "Eye socket, inner (by nose)",
+"group": "socket"
+},
+"tip0": {
+"name": "Nose tip, top (viewer left)",
+"group": "nose"
+},
+"tip1": {
+"name": "Nose tip, top (viewer right)",
+"group": "nose"
+},
+"tip2": {
+"name": "Nose tip, bottom (viewer right)",
+"group": "nose"
+},
+"tip3": {
+"name": "Nose tip, bottom (viewer left)",
+"group": "nose"
+},
+"nsL": {
+"name": "Nose wing, outer (viewer left)",
+"group": "nose"
+},
+"nsR": {
+"name": "Nose wing, outer (viewer right)",
+"group": "nose"
+},
+"wL0": {
+"name": "Nostril, outer (viewer left)",
+"group": "nose"
+},
+"wL1": {
+"name": "Nostril, inner (viewer left)",
+"group": "nose"
+},
+"wR0": {
+"name": "Nostril, outer (viewer right)",
+"group": "nose"
+},
+"wR1": {
+"name": "Nostril, inner (viewer right)",
+"group": "nose"
+},
+"sub": {
+"name": "Under the nose (subnasale)",
+"group": "nose"
+},
+"ckL": {
+"name": "Cheekbone, front corner (viewer left)",
+"group": "cheek"
+},
+"ckR": {
+"name": "Cheekbone, front corner (viewer right)",
+"group": "cheek"
+},
+"hoL": {
+"name": "Cheek hollow, low (viewer left)",
+"group": "cheek"
+},
+"hoR": {
+"name": "Cheek hollow, low (viewer right)",
+"group": "cheek"
+},
+"mcL": {
+"name": "Mouth corner (viewer left)",
+"group": "mouth"
+},
+"mcR": {
+"name": "Mouth corner (viewer right)",
+"group": "mouth"
+},
+"nlL": {
+"name": "Smile fold (nasolabial) (viewer left)",
+"group": "cheek"
+},
+"nlR": {
+"name": "Smile fold (nasolabial) (viewer right)",
+"group": "cheek"
+},
+"lpL": {
+"name": "Upper lip peak (viewer left)",
+"group": "mouth"
+},
+"lp0": {
+"name": "Upper lip, centre dip",
+"group": "mouth"
+},
+"lpR": {
+"name": "Upper lip peak (viewer right)",
+"group": "mouth"
+},
+"pt": {
+"name": "Lip parting, centre",
+"group": "mouth"
+},
+"llL": {
+"name": "Lower lip, side (viewer left)",
+"group": "mouth"
+},
+"llR": {
+"name": "Lower lip, side (viewer right)",
+"group": "mouth"
+},
+"ll0": {
+"name": "Lower lip, centre",
+"group": "mouth"
+},
+"ml0": {
+"name": "Under-lip fold, side (viewer left)",
+"group": "mouth"
+},
+"ml1": {
+"name": "Under-lip fold, side (viewer right)",
+"group": "mouth"
+},
+"chL": {
+"name": "Chin box, upper corner (viewer left)",
+"group": "chin"
+},
+"chR": {
+"name": "Chin box, upper corner (viewer right)",
+"group": "chin"
+},
+"cbL": {
+"name": "Chin bottom, side (viewer left)",
+"group": "chin"
+},
+"cb0": {
+"name": "Chin bottom, centre",
+"group": "chin"
+},
+"cbR": {
+"name": "Chin bottom, side (viewer right)",
+"group": "chin"
+},
+"jaL": {
+"name": "Jaw angle (viewer left)",
+"group": "jaw"
+},
+"jaR": {
+"name": "Jaw angle (viewer right)",
+"group": "jaw"
+},
+"eaL": {
+"name": "Jaw under the ear (viewer left)",
+"group": "jaw"
+},
+"eaR": {
+"name": "Jaw under the ear (viewer right)",
+"group": "jaw"
+},
+"feL": {
+"name": "Forehead plane split, top (viewer left)",
+"group": "forehead"
+},
+"feL1": {
+"name": "Forehead plane split, bottom (viewer left)",
+"group": "forehead"
+},
+"feR": {
+"name": "Forehead plane split, top (viewer right)",
+"group": "forehead"
+},
+"feR1": {
+"name": "Forehead plane split, bottom (viewer right)",
+"group": "forehead"
+},
+"skL": {
+"name": "Skull top corner (viewer left)",
+"group": "forehead"
+},
+"skR": {
+"name": "Skull top corner (viewer right)",
+"group": "forehead"
+},
+"ph0": {
+"name": "Philtrum ridge, top (viewer left)",
+"group": "mouth"
+},
+"ph1": {
+"name": "Philtrum ridge, bottom (viewer left)",
+"group": "mouth"
+},
+"ph2": {
+"name": "Philtrum ridge, top (viewer right)",
+"group": "mouth"
+},
+"ph3": {
+"name": "Philtrum ridge, bottom (viewer right)",
+"group": "mouth"
+},
+"zaL": {
+"name": "Cheekbone arch toward ear (viewer left)",
+"group": "cheek"
+},
+"zaR": {
+"name": "Cheekbone arch toward ear (viewer right)",
+"group": "cheek"
+},
+"sjL": {
+"name": "Under-jaw band (viewer left)",
+"group": "neck"
+},
+"sjC": {
+"name": "Under-jaw band, centre",
+"group": "neck"
+},
+"sjR": {
+"name": "Under-jaw band (viewer right)",
+"group": "neck"
+},
+"eLo": {
+"name": "Eye, outer corner (viewer left)",
+"group": "eye"
+},
+"eLu1": {
+"name": "Upper lid edge, outer (viewer left)",
+"group": "eye"
+},
+"eLu": {
+"name": "Upper lid edge, top (viewer left)",
+"group": "eye"
+},
+"eLu2": {
+"name": "Upper lid edge, inner (viewer left)",
+"group": "eye"
+},
+"eLi": {
+"name": "Eye, inner corner (viewer left)",
+"group": "eye"
+},
+"eLl2": {
+"name": "Lower lid edge, inner (viewer left)",
+"group": "eye"
+},
+"eLl": {
+"name": "Lower lid edge, bottom (viewer left)",
+"group": "eye"
+},
+"eLl1": {
+"name": "Lower lid edge, outer (viewer left)",
+"group": "eye"
+},
+"eRo": {
+"name": "Eye, outer corner (viewer right)",
+"group": "eye"
+},
+"eRu1": {
+"name": "Upper lid edge, outer (viewer right)",
+"group": "eye"
+},
+"eRu": {
+"name": "Upper lid edge, top (viewer right)",
+"group": "eye"
+},
+"eRu2": {
+"name": "Upper lid edge, inner (viewer right)",
+"group": "eye"
+},
+"eRi": {
+"name": "Eye, inner corner (viewer right)",
+"group": "eye"
+},
+"eRl2": {
+"name": "Lower lid edge, inner (viewer right)",
+"group": "eye"
+},
+"eRl": {
+"name": "Lower lid edge, bottom (viewer right)",
+"group": "eye"
+},
+"eRl1": {
+"name": "Lower lid edge, outer (viewer right)",
+"group": "eye"
+},
+"eLf0": {
+"name": "Lid fold, outer (viewer left)",
+"group": "eye"
+},
+"eLf1": {
+"name": "Lid fold, outer-middle (viewer left)",
+"group": "eye"
+},
+"eLf2": {
+"name": "Lid fold, top (viewer left)",
+"group": "eye"
+},
+"eLf3": {
+"name": "Lid fold, inner-middle (viewer left)",
+"group": "eye"
+},
+"eLf4": {
+"name": "Lid fold, inner (viewer left)",
+"group": "eye"
+},
+"eLg1": {
+"name": "Lower lid band, outer (viewer left)",
+"group": "eye"
+},
+"eLg2": {
+"name": "Lower lid band, bottom (viewer left)",
+"group": "eye"
+},
+"eLg3": {
+"name": "Lower lid band, inner (viewer left)",
+"group": "eye"
+},
+"eLc": {
+"name": "Inner corner wedge (canthus) (viewer left)",
+"group": "eye"
+},
+"eRf0": {
+"name": "Lid fold, outer (viewer right)",
+"group": "eye"
+},
+"eRf1": {
+"name": "Lid fold, outer-middle (viewer right)",
+"group": "eye"
+},
+"eRf2": {
+"name": "Lid fold, top (viewer right)",
+"group": "eye"
+},
+"eRf3": {
+"name": "Lid fold, inner-middle (viewer right)",
+"group": "eye"
+},
+"eRf4": {
+"name": "Lid fold, inner (viewer right)",
+"group": "eye"
+},
+"eRg1": {
+"name": "Lower lid band, outer (viewer right)",
+"group": "eye"
+},
+"eRg2": {
+"name": "Lower lid band, bottom (viewer right)",
+"group": "eye"
+},
+"eRg3": {
+"name": "Lower lid band, inner (viewer right)",
+"group": "eye"
+},
+"eRc": {
+"name": "Inner corner wedge (canthus) (viewer right)",
+"group": "eye"
+},
+"nkL": {
+"name": "Neck side (viewer left)",
+"group": "neck"
+},
+"nkR": {
+"name": "Neck side (viewer right)",
+"group": "neck"
+},
+"iris0": {
+"name": "Iris centre (viewer left)",
+"group": "eye"
+},
+"iris1": {
+"name": "Iris centre (viewer right)",
+"group": "eye"
+}
+}

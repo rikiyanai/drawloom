@@ -1,0 +1,20 @@
+# Apple ModelI/O MTL File: model.mtl
+
+newmtl material_1
+	map_Kd model.usdz[0/baked_mesh_tex0.png]
+	Kd 1 1 1
+	Ka 0 0 0
+	Ks 0
+	map_ao model.usdz[0/baked_mesh_ao0.png]
+	ao 0
+	subsurface 0
+	metallic 0
+	specularTint 0
+	map_roughness model.usdz[0/baked_mesh_roughness0.png]
+	anisotropicRotation 0
+	sheen 0.05
+	sheenTint 0
+	clearCoat 0
+	clearCoatGloss 0
+	map_tangentSpaceNormal model.usdz[0/baked_mesh_norm0.png]
+

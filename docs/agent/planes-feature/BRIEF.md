@@ -18,11 +18,11 @@ construction over a portrait:
   jaw/masseter lines, under-jaw (submental) band, neck), mostly from landmark indices,
   then hand-corrected by eye against the photo and a B/W line drawing,
 - and draws them as red polylines. A reviewer then checks the plane placement against the
-  photo. Example result (view it): /private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/scratchpad/face/local/planes-review.png
+  photo. Example result (view it): work/scratch-face/local/planes-review.png
 - The good-workflow references Riki supplied (view them):
-  /private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/images/17.webp
-  /private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/images/18.webp
-  /private/tmp/claude-501/-Users-rikihernandez/5591bff3-64a4-4eda-ad29-a402158ce2b9/images/19.jpg
+  work/reference-images/17.webp
+  work/reference-images/18.webp
+  work/reference-images/19.jpg
 
 Lessons from doing it by hand: landmark eye rings were too small and sat high; lash/lid
 strokes in a line drawing inflate the eye height, so eyes must be traced from the photo;

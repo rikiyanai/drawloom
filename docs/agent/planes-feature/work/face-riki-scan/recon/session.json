@@ -1,0 +1,19 @@
+{
+  "detail" : "full",
+  "detail_mapping" : "full",
+  "faces_max" : 80000,
+  "failure" : null,
+  "input" : "\/Users\/rikihernandez\/trueff-shallot\/.run\/face-capture\/face-riki-scan\/frames",
+  "invalid_samples" : [
+
+  ],
+  "object_masking" : true,
+  "ordering" : "sequential",
+  "poses" : "unavailable (macOS <14)",
+  "seconds" : 259.66681802272797,
+  "sensitivity" : "high",
+  "skipped_samples" : [
+    81,
+    86
+  ]
+}

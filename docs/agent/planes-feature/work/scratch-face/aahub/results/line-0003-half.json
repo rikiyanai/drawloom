@@ -1,0 +1,20 @@
+{
+ "id": "5dcbb266-6e53-45cf-a47f-894c25a8f2c0",
+ "status": "done",
+ "error": null,
+ "metrics": {
+  "p_ink": 0.99,
+  "r_sil": 0.99,
+  "r_int": 0.884,
+  "solid_pct": 6.452,
+  "off_corpus_pct": 40.323,
+  "passed": false
+ },
+ "meta": {
+  "nlines": 15,
+  "scale_w": 0.975,
+  "y_off": 11
+ },
+ "createdAt": "2026-11-18T19:41:58.591Z",
+ "updatedAt": "2026-11-18T19:43:47.974Z"
+}
