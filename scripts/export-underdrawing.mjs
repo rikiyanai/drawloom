@@ -6,7 +6,7 @@
 //
 //   npm run build
 //   npm run export:underdrawing -- portrait.jpg [more.jpg] --out ./underdrawing [--width 1024]
-//     [--only ovoid,doveline,notan] [--param edges.mode=1] [--param notan.levels=3] [--no-photo]
+//     [--only ovoid,doveline,notan] [--param edges.mode=1] [--param notan.levels=3] [--no-photo] [--keep-background]
 //     [--url http://localhost:3000/drawloom/]
 //
 // Writes <out>/<stem>/packet.json (import into Hatch Studio: Tracing guide), plus
@@ -16,10 +16,10 @@ import { readFile, mkdir, writeFile, stat } from "node:fs/promises";
 import { basename, extname, join, resolve, normalize } from "node:path";
 import { chromium } from "playwright";
 
-const usage = "usage: export-underdrawing.mjs <image...> --out <dir> [--width N] [--only id,id] [--param id.key=value]... [--no-photo] [--url URL]";
+const usage = "usage: export-underdrawing.mjs <image...> --out <dir> [--width N] [--only id,id] [--param id.key=value]... [--no-photo] [--keep-background] [--url URL]";
 const args = process.argv.slice(2);
 const images = [];
-const opts = { out: null, width: 1024, only: null, photo: true, url: null, params: {} };
+const opts = { out: null, width: 1024, only: null, photo: true, keepBackground: false, url: null, params: {} };
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === "--out") opts.out = args[++i];
@@ -33,6 +33,7 @@ for (let i = 0; i < args.length; i++) {
     (opts.params[m[1]] ??= {})[m[2]] = value;
   }
   else if (a === "--no-photo") opts.photo = false;
+  else if (a === "--keep-background") opts.keepBackground = true;
   else if (a === "--url") opts.url = args[++i];
   else if (a === "-h" || a === "--help") { console.log(usage); process.exit(0); }
   else if (a.startsWith("--")) { console.error(`unknown option ${a}\n${usage}`); process.exit(2); }
@@ -77,6 +78,8 @@ try {
     try {
       await page.goto(url, { waitUntil: "networkidle" });
       await page.waitForFunction(() => !!window.drawloom);
+      // Background first (the app default): the portrait is cut out before detection, overlays and export.
+      await page.evaluate((on) => window.drawloom.setRemoveBackground(on), !opts.keepBackground);
       await page.locator('input[type="file"]').first().setInputFiles(image);
       await page.waitForFunction(() => ["ready", "no-face", "error"].includes(window.drawloom.status()), null, { timeout: 180_000 });
       const status = await page.evaluate(() => window.drawloom.status());
@@ -95,6 +98,7 @@ try {
       const a = packet.angles;
       console.log(`${basename(image)}: ${status}; ${packet.width}x${packet.height}; ${packet.layers.length} layers` +
         (a ? `; yaw ${a.yaw.toFixed(1)} pitch ${a.pitch.toFixed(1)} roll ${a.roll.toFixed(1)}` : "") +
+        `; background ${packet.source.background ?? "unknown"}` +
         (packet.skipped.length ? `; skipped ${packet.skipped.map((s) => s.id).join(",")} (${packet.skipped[0].reason})` : "") +
         ` -> ${join(dir, "packet.json")}`);
     } catch (err) {

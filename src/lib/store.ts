@@ -29,8 +29,12 @@ type StudioState = {
   status: "idle" | "loading" | "detecting" | "ready" | "no-face" | "error";
   errorMsg: string | null;
   overlays: Record<string, OverlayState>;
+  removeBackground: boolean;
+  background: "removed" | "kept" | null;
   viewFilters: ViewFilters;
   setMode: (m: SourceMode) => void;
+  setRemoveBackground: (on: boolean) => void;
+  setBackground: (b: "removed" | "kept" | null) => void;
   setLayout: (l: LayoutMode) => void;
   setImage: (img: HTMLImageElement, url: string) => void;
   setStatus: (s: StudioState["status"], msg?: string) => void;
@@ -64,6 +68,11 @@ export const useStudio = create<StudioState>((set) => ({
   status: "idle",
   errorMsg: null,
   overlays: initialOverlays,
+  // Background first: uploads are cut out (room painted white) before detection and overlays unless switched off.
+  removeBackground: true,
+  background: null,
+  setRemoveBackground: (removeBackground) => set({ removeBackground }),
+  setBackground: (background) => set({ background }),
   viewFilters: initialViewFilters,
   setMode: (mode) =>
     set((s) => {

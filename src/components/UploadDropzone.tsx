@@ -2,16 +2,17 @@
 import { useCallback, useRef } from "react";
 import { useStudio } from "@/lib/store";
 import { detectPose } from "@/lib/pose/detect";
+import { removeImageBackground } from "@/lib/pose/segmenter";
 
 export function UploadDropzone() {
-  const { setImage, setPose, setStatus, status, imageUrl } = useStudio();
+  const { setImage, setPose, setStatus, setBackground, setRemoveBackground, removeBackground, status, imageUrl } = useStudio();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback(
     async (file: File) => {
       setStatus("loading");
       const url = URL.createObjectURL(file);
-      const img = new Image();
+      let img = new Image();
       img.src = url;
       try {
         await new Promise<void>((res, rej) => {
@@ -23,8 +24,24 @@ export function UploadDropzone() {
         setStatus("error", err instanceof Error ? err.message : "Image load failed");
         return;
       }
+      // Background first: detection, overlays and the export all read the cut-out. If segmentation cannot run,
+      // the photo is used as is and the state says so.
+      let imgUrl = url;
+      let background: "removed" | "kept" = "kept";
+      if (useStudio.getState().removeBackground) {
+        try {
+          const cut = await removeImageBackground(img);
+          URL.revokeObjectURL(url);
+          img = cut;
+          imgUrl = cut.src;
+          background = "removed";
+        } catch (err) {
+          console.warn("background removal failed; using the photo as is", err);
+        }
+      }
       if (imageUrl) URL.revokeObjectURL(imageUrl);
-      setImage(img, url);
+      setImage(img, imgUrl);
+      setBackground(background);
       try {
         const pose = await detectPose(img);
         setPose(pose);
@@ -32,7 +49,7 @@ export function UploadDropzone() {
         setStatus("error", err instanceof Error ? err.message : "Detection failed");
       }
     },
-    [setImage, setPose, setStatus, imageUrl]
+    [setImage, setPose, setStatus, setBackground, imageUrl]
   );
 
   const onDrop = (e: React.DragEvent) => {
@@ -62,6 +79,15 @@ export function UploadDropzone() {
         {status === "loading" || status === "detecting" ? "Analyzing…" : "Drop a portrait or click to upload"}
       </p>
       <p className="text-xs mt-2 opacity-60">JPG / PNG / WebP · processed entirely in your browser</p>
+      <label className="inline-flex items-center gap-2 text-xs mt-3" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          aria-label="Remove background on upload"
+          checked={removeBackground}
+          onChange={(e) => setRemoveBackground(e.target.checked)}
+        />
+        Remove background first
+      </label>
     </div>
   );
 }

@@ -39,7 +39,8 @@ export type UnderdrawingPacket = {
   width: number;
   height: number;
   scale: number;
-  source: { width: number; height: number; sha256: string };
+  // background: "removed" when the portrait was cut out (room painted white) before detection and overlays.
+  source: { width: number; height: number; sha256: string; background: "removed" | "kept" | null };
   angles: { yaw: number; pitch: number; roll: number } | null;
   pose: MediaPipeFramePacket | null;
   layers: UnderdrawingLayer[];
@@ -53,6 +54,7 @@ export type UnderdrawingOptions = {
   image: HTMLImageElement;
   pose: PoseResult;
   overlays?: OverlaySelection;
+  background?: "removed" | "kept" | null;
   sourceName?: string;
   maxWidth?: number;
   include?: string[];
@@ -186,7 +188,7 @@ export async function buildUnderdrawingPacket(options: UnderdrawingOptions): Pro
     width,
     height,
     scale,
-    source: { width: image.naturalWidth, height: image.naturalHeight, sha256: photo.sha256 },
+    source: { width: image.naturalWidth, height: image.naturalHeight, sha256: photo.sha256, background: options.background ?? null },
     angles: pose ? pose.angles : null,
     pose: makeMediaPipeFramePacket(pose),
     layers,

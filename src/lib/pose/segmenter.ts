@@ -68,3 +68,33 @@ export async function segmentImage(image:HTMLImageElement):Promise<{labels:Uint8
   try {const mask=result.confidenceMasks?.[0];if(!mask)throw Error('Subject segmentation did not return a foreground mask.');return {labels:Uint8Array.from(mask.getAsFloat32Array(),p=>p>=.5?1:0),width:mask.width,height:mask.height};}
   finally {result.close();}
 }
+
+// Background first: a still portrait with everything outside the person painted paper white, so pose detection,
+// every overlay (notan, edges, ovoid…) and the underdrawing export read the subject, never the room.
+export async function removeImageBackground(img: HTMLImageElement): Promise<HTMLImageElement> {
+  const { labels, width, height } = await segmentImage(img);
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  if (width !== w || height !== h) throw new Error("Person mask is not at the image size");
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0);
+  const pixels = ctx.getImageData(0, 0, w, h);
+  const d = pixels.data;
+  for (let i = 0; i < labels.length; i++) {
+    if (labels[i] === 1) continue;
+    const p = i * 4;
+    d[p] = d[p + 1] = d[p + 2] = d[p + 3] = 255;
+  }
+  ctx.putImageData(pixels, 0, 0);
+  const blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("Encode failed"))), "image/png"));
+  const out = new Image();
+  out.src = URL.createObjectURL(blob);
+  await new Promise<void>((res, rej) => {
+    out.onload = () => res();
+    out.onerror = () => rej(new Error("Could not load cut-out"));
+  });
+  return out;
+}

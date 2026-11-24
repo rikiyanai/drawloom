@@ -9,7 +9,9 @@ export type DrawloomApi = {
   schema: typeof UNDERDRAWING_SCHEMA;
   status: () => ReturnType<typeof useStudio.getState>["status"];
   error: () => string | null;
-  exportUnderdrawing: (options?: Omit<UnderdrawingOptions, "image" | "pose" | "overlays">) => Promise<UnderdrawingPacket>;
+  exportUnderdrawing: (options?: Omit<UnderdrawingOptions, "image" | "pose" | "overlays" | "background">) => Promise<UnderdrawingPacket>;
+  // Background first is on by default; automation can switch it off before loading an image.
+  setRemoveBackground: (on: boolean) => void;
 };
 
 declare global {
@@ -18,11 +20,11 @@ declare global {
   }
 }
 
-export function currentUnderdrawingPacket(options: Omit<UnderdrawingOptions, "image" | "pose" | "overlays"> = {}) {
-  const { image, pose, overlays, status } = useStudio.getState();
+export function currentUnderdrawingPacket(options: Omit<UnderdrawingOptions, "image" | "pose" | "overlays" | "background"> = {}) {
+  const { image, pose, overlays, status, background } = useStudio.getState();
   if (!image) throw new Error("Load a portrait first.");
   if (status !== "ready" && status !== "no-face") throw new Error(`Detection is not finished (status: ${status}).`);
-  return buildUnderdrawingPacket({ ...options, image, pose, overlays });
+  return buildUnderdrawingPacket({ ...options, image, pose, overlays, background });
 }
 
 export function installDrawloomApi() {
@@ -32,5 +34,6 @@ export function installDrawloomApi() {
     status: () => useStudio.getState().status,
     error: () => useStudio.getState().errorMsg,
     exportUnderdrawing: currentUnderdrawingPacket,
+    setRemoveBackground: (on) => useStudio.getState().setRemoveBackground(on),
   };
 }
