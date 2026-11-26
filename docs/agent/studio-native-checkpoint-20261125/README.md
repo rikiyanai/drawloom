@@ -6,6 +6,6 @@ The general portrait filter remains below the operator's AAHub reference quality
 
 The accompanying `unmerged-photo-workspace.patch` preserves an earlier standalone workspace experiment for history. It is not applied by this checkpoint and is not the requested authoring surface. Continue authoring through native Studio controls.
 
-The native Studio integration and exact exported projects are in Shallot's `checkpoint/studio-photo-20261124` branch, under `docs/agent/studio-native-checkpoint-20261125/`. The left figure has manual Studio corrections; the center and right figures remain unfinished. Do not present those manual corrections as automatic filter output or accepted finished artwork.
+The native Studio integration and exact exported projects are in Shallot under `docs/agent/studio-native-checkpoint-20261125/`. The left figure has manual Studio corrections; the center and right figures remain unfinished. Do not present those manual corrections as automatic filter output or accepted finished artwork.
 
-Checkpoint policy: commit and push each retained work checkpoint, per the operator's instruction. Keep concurrent changes and shared branches untouched.
+Checkpoint policy: commit and push each retained work checkpoint, per the operator's instruction. Both repositories enforce main-only pushes. Preserve upstream commits and combine checkpoints with the current origin/main before a normal fast-forward push; never force-push or overwrite concurrent working trees.
