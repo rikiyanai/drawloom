@@ -17,6 +17,7 @@ import {
 import { normalizePin } from "../planes/state";
 import { FONT_PROFILE } from "../portrait/types";
 import { surfaceVisibilityFrame } from "./plane-surface-visibility";
+import { rowPhaseRect, type RowAlignment } from "./native-row-layout";
 
 export type Rect = { x: number; y: number; width: number; height: number };
 export type Figure = {
@@ -37,6 +38,7 @@ export type Figure = {
   structureSummary?: string[];
   structureRecords?: unknown;
   eyePlan?: import("./plane-eye-words").PlaneEyeWordPlan;
+  rowAlignment?: RowAlignment;
   shadowMasks?: { band: number; dataUrl: string }[];
   text?: string;
   rawText?: string;
@@ -68,6 +70,7 @@ export type PhotoProject = {
     hairTone?: number;
     hairPattern?: string;
     preserveFeatures?: boolean;
+    rowPhase?: "auto" | "off" | number;
     structureDetail?: number;
     planeBands?: number;
     planeTone?: number;
@@ -773,15 +776,26 @@ export function validatePhotoProject(value: unknown): PhotoProject {
         f.seed.y > f.rect.height)
     )
       throw Error("Invalid saved person selection.");
+    const sourceFrame = f.rowAlignment?.baseRect ?? f.traceRect;
+    if (f.rowAlignment) {
+      const alignment = f.rowAlignment;
+      const expected = rowPhaseRect(alignment.baseRect, alignment.contentRows, alignment.phase);
+      if (!f.traceRect || !Array.isArray(alignment.candidates) || alignment.candidates.length > 17 ||
+          alignment.candidates.some(c => !Number.isInteger(c.phase) || c.phase < 0 || c.phase > 16 ||
+            !Number.isInteger(c.eyes) || c.eyes < 0 || c.eyes > 2 ||
+            !Number.isInteger(c.brows) || c.brows < 0 || c.brows > 2 || !Number.isFinite(c.score)) ||
+          (['x','y','width','height'] as const).some(k => Math.abs(expected[k] - f.traceRect![k]) > 1e-6))
+        throw Error("Invalid saved native row alignment.");
+    }
     if (
-      f.traceRect &&
-      (!Object.values(f.traceRect).every(Number.isFinite) ||
-        f.traceRect.x < 0 ||
-        f.traceRect.y < 0 ||
-        f.traceRect.width < 8 ||
-        f.traceRect.height < 8 ||
-        f.traceRect.x + f.traceRect.width > f.rect.width ||
-        f.traceRect.y + f.traceRect.height > f.rect.height)
+      sourceFrame &&
+      (!Object.values(sourceFrame).every(Number.isFinite) ||
+        sourceFrame.x < 0 ||
+        sourceFrame.y < 0 ||
+        sourceFrame.width < 8 ||
+        sourceFrame.height < 8 ||
+        sourceFrame.x + sourceFrame.width > f.rect.width ||
+        sourceFrame.y + sourceFrame.height > f.rect.height)
     )
       throw Error("Invalid saved trace framing.");
     if (
@@ -819,6 +833,8 @@ export function validatePhotoProject(value: unknown): PhotoProject {
           !/^[^\s　]{1,8}$/u.test(v.settings.hairPattern))) ||
       (v.settings.preserveFeatures !== undefined &&
         typeof v.settings.preserveFeatures !== "boolean") ||
+      (v.settings.rowPhase !== undefined && v.settings.rowPhase !== "auto" && v.settings.rowPhase !== "off" &&
+        (!Number.isInteger(v.settings.rowPhase) || Number(v.settings.rowPhase) < 0 || Number(v.settings.rowPhase) > 16)) ||
       (v.settings.structureDetail !== undefined &&
         (!Number.isFinite(v.settings.structureDetail) ||
           v.settings.structureDetail < 0 ||

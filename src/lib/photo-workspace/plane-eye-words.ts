@@ -114,7 +114,8 @@ export function compilePlaneEyes(
     for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (data[(y * c.width + x) * 4 + 3] > 80) ink.push({ x: x - 3, y: y - 4 });
     const value = { text, width, height: PITCH, ink }; rasterCache.set(text, value); return value;
   };
-  for (const eye of features.eyes) { planEye(eye); planBrow(eye); }
+  for (const eye of features.eyes) planEye(eye);
+  for (const eye of features.eyes) planBrow(eye);
   result.targetGuide=targetGuide.toDataURL('image/png');
   result.notes.push(`Native eye/brow planning took ${Math.round(performance.now() - started)} ms.`);
   return result;
@@ -128,23 +129,33 @@ export function compilePlaneEyes(
     if(ids.some(id=>!frame.pose.landmarks[id]))return;
     const polygon=ids.map(id=>toNative(frame.pose.landmarks[id]));
     const arch=fitted.map(toNative);
-    const left=Math.floor(Math.min(...polygon.map(p=>p.x))),right=Math.ceil(Math.max(...polygon.map(p=>p.x)));
+    let left=Math.floor(Math.min(...polygon.map(p=>p.x))),right=Math.ceil(Math.max(...polygon.map(p=>p.x)));
     const top=Math.floor(Math.min(...polygon.map(p=>p.y))),bottom=Math.ceil(Math.max(...polygon.map(p=>p.y)));
     if(right-left<8||left<0||right>nativeW)return;
     const mass:{x:number;y:number}[]=[];
     for(let y=top;y<=bottom;y++)for(let x=left;x<=right;x++)if(inPolygon({x,y},polygon)&&dark(x/sx+region.x,y/sy+region.y))mass.push({x,y});
     if(mass.length<5)return;
+    // Landmarks enclose paper around the brow. Its observed mass, rather than
+    // that padded polygon, determines the entry and taper of the native band.
+    left=Math.min(...mass.map(p=>p.x));right=Math.max(...mass.map(p=>p.x))+1;
     const dist=nearestSquared;
-    const marks=["'",'｀','､','‐','￣','_','ﾆ','二','彡','ﾐ','ミ','ｼ','ｯ'];
-    type Run={text:string;pen:number;cost:number;ink:{x:number;y:number}[]};
-    let best:{run:Run;row:number;score:number;coverage:number}|undefined;
+    // The brow's continuous ridge/body owns the read. Isolated hair flecks
+    // cannot substitute for that band merely by covering dark source pixels.
+    const marks=["'",'｀','､','‐','￣','_','ｰ','=','ﾆ','二','三'];
+    type BrowPart={text:string;x:number;row:number};
+    type Run={parts:BrowPart[];pen:number;cost:number;ink:{x:number;y:number}[]};
+    let best:{run:Run;score:number;coverage:number}|undefined;
     const midY=mass.reduce((sum,p)=>sum+p.y,0)/mass.length;
-    for(const row of [Math.floor(midY/PITCH)-1,Math.floor(midY/PITCH),Math.floor(midY/PITCH)+1]){
-      if(row<0||(row+1)*PITCH>nativeH)continue;
-      const states=new Map<number,Run[]>();states.set(left,[{text:'',pen:left,cost:0,ink:[]}]);
+    const nativeRows=[Math.floor(midY/PITCH)-1,Math.floor(midY/PITCH),Math.floor(midY/PITCH)+1].filter(row=>row>=0&&(row+1)*PITCH<=nativeH);
+    // A sloping brow can cross a baseline: jointly construct its entry, body
+    // and taper on neighboring rows. One forced full-width row cannot express
+    // that arch, even when individual glyphs fit its dark pixels.
+    for(const rowSet of [...nativeRows.map(row=>[row]),nativeRows]){
+      const states=new Map<number,Run[]>();states.set(left,[{parts:[],pen:left,cost:0,ink:[]}]);
       for(let pen=left;pen<=right;pen++)for(const run of states.get(pen)??[]){
-        for(const mark of marks){
+        for(const row of rowSet)for(const mark of marks){
           const r=raster(mark),next=pen+r.width;if(next>right+2||!r.ink.length)continue;
+          if(result.words.some(w=>w.role==='eye-form'&&w.row===row&&w.x<next&&w.x+measure(w.text)>pen))continue;
           const ink=r.ink.map(p=>({x:pen+p.x,y:row*PITCH+p.y}));
           if(ink.some(p=>p.y<top-2||p.y>bottom+2))continue;
           const local=mass.filter(p=>p.x>=pen-1&&p.x<=next+1);if(!local.length)continue;
@@ -152,7 +163,15 @@ export function compilePlaneEyes(
           const cover=local.reduce((sum,p)=>sum+dist(p,ink),0)/local.length;
           const meanY=ink.reduce((sum,p)=>sum+p.y,0)/ink.length;
           const nearArch=arch.reduce((best,p)=>Math.abs(p.x-(pen+next)/2)<Math.abs(best.x-(pen+next)/2)?p:best,arch[0]);
-          const nextRun={text:run.text+mark,pen:next,cost:run.cost+(spill*1.2+cover*.9+Math.min(9,(meanY-nearArch.y)**2)*.12)*r.width,ink:[...run.ink,...ink]};
+          const border=(points:XY[],edge:'left'|'right')=>{
+            const x=edge==='left'?Math.min(...points.map(p=>p.x)):Math.max(...points.map(p=>p.x));
+            return points.filter(p=>Math.abs(p.x-x)<1.1);
+          };
+          const join=run.ink.length?Math.min(...border(run.ink,'right').flatMap(a=>border(ink,'left').map(b=>Math.max(0,Math.hypot(a.x-b.x,a.y-b.y)-3)**2))):0;
+          const previous=run.parts.at(-1),parts=run.parts.map(p=>({...p}));
+          if(previous?.row===row)parts[parts.length-1].text+=mark;
+          else parts.push({text:mark,x:pen,row});
+          const nextRun={parts,pen:next,cost:run.cost+(spill*1.2+cover*.9+Math.min(9,(meanY-nearArch.y)**2)*.12)*r.width+join*2,ink:[...run.ink,...ink]};
           const list=[...(states.get(next)??[]),nextRun].sort((a,b)=>a.cost-b.cost).slice(0,3);states.set(next,list);
         }
       }
@@ -161,18 +180,15 @@ export function compilePlaneEyes(
         const spill=run.ink.filter(p=>dist(p,mass)>4).length/run.ink.length;
         if(coverage<.45||spill>.25)continue;
         const score=run.cost/Math.max(1,pen-left)+(1-coverage)*3;
-        if(!best||score<best.score)best={run,row,score,coverage};
+        if(!best||score<best.score)best={run,score,coverage};
       }
     }
     if(!best){result.notes.push(`${eye.owner}.brow: native arch/mass unresolved; source-derived brow remains with encoder.`);return;}
     const chosen=best;
-    // Never replace an eye-owned footprint with a brow word; the paper corridor
-    // between the separately posed brow ridge and aperture is protected.
-    if(result.words.some(word=>word.owner===eye.owner&&word.row===chosen.row&&word.role==='eye-form'))return;
-    result.words.push({x:left,row:chosen.row,text:chosen.run.text,owner:eye.owner,role:'brow-form',score:chosen.score,evidence:`Visible posed brow ridge plus actual dark brow pixels; coverage ${chosen.coverage.toFixed(2)}.`});
-    const x=Math.max(0,Math.floor(Math.min(...chosen.run.ink.map(p=>p.x))-1)),y=Math.max(0,Math.floor(Math.min(...chosen.run.ink.map(p=>p.y))-1));
-    result.reservedRects.push({x,y,width:Math.ceil(Math.max(...chosen.run.ink.map(p=>p.x))-x+2),height:Math.ceil(Math.max(...chosen.run.ink.map(p=>p.y))-y+2),owner:eye.owner});
-    result.notes.push(`${eye.owner}.brow: source-mass word planned at row ${chosen.row}, native UI inspection required.`);
+    for(const part of chosen.run.parts)result.words.push({...part,owner:eye.owner,role:'brow-form',score:chosen.score,evidence:`Visible posed brow ridge plus actual dark brow pixels; jointly planned arch across native rows, coverage ${chosen.coverage.toFixed(2)}.`});
+    const x=Math.max(0,Math.min(left,Math.floor(Math.min(...chosen.run.ink.map(p=>p.x))-1))),y=Math.max(0,Math.min(top,Math.floor(Math.min(...chosen.run.ink.map(p=>p.y))-1)));
+    result.reservedRects.push({x,y,width:Math.ceil(Math.max(right,...chosen.run.ink.map(p=>p.x))-x+2),height:Math.ceil(Math.max(bottom,...chosen.run.ink.map(p=>p.y))-y+2),owner:eye.owner});
+    result.notes.push(`${eye.owner}.brow: source-mass arch planned at rows ${[...new Set(chosen.run.parts.map(p=>p.row))].join('/')}, native UI inspection required.`);
   }
 
   function planEye(eye: PlaneEyeFeature) {
