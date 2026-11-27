@@ -1,0 +1,2051 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { composeNativeWords } from "@/lib/photo-workspace/native-composition";
+import { PlanesMeshPanel } from "@/components/PlanesMeshPanel";
+import { normalizeNativeSpacing } from "@/lib/photo-workspace/native-spacing";
+import { rowPhaseRect, compareRowPhases, type RowAlignment, type RowPhaseChoice } from "@/lib/photo-workspace/native-row-layout";
+import {
+  mergeMasks,
+  analyzeFigure,
+  workingPhoto,
+  originalCrop,
+  boundedRect,
+  cropCanvas,
+  portraitRect,
+  cropPhoto,
+  cutoutPhoto,
+  faceGuides,
+  loadImage,
+  newCanvas,
+  objectMask,
+  planeFrame,
+  studioPhotoProject,
+  suggestFigures,
+  validatePhotoProject,
+  type Figure,
+  type PhotoProject,
+  type Rect,
+} from "@/lib/photo-workspace/core";
+const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "/drawloom";
+const readFile = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+type View =
+  | "cutout"
+  | "photo"
+  | "features"
+  | "planes"
+  | "values"
+  | "edges"
+  | "text"
+  | "hair"
+  | "input"
+  | "material"
+  | "plane-study"
+  | "structure";
+export default function PhotoWorkspace() {
+  const [project, setProject] = useState<PhotoProject | null>(null),
+    [photo, setPhoto] = useState<HTMLImageElement | null>(null),
+    [view, setView] = useState<View>("cutout"),
+    [busy, setBusy] = useState(false),
+    [status, setStatus] = useState(
+      "Upload a photo. Crop each person before tracing.",
+    ),
+    [error, setError] = useState("");
+  const [sourceRotation, setSourceRotation] = useState(0),
+    [workspaceURL, setWorkspaceURL] = useState(''),
+    [lastExport, setLastExport] = useState<{url:string;name:string} | null>(null),
+    [meshOpen, setMeshOpen] = useState(false);
+  const [mode, setMode] = useState<"select" | "erase" | "restore" | "pin">(
+      "select",
+    ),
+    [brush, setBrush] = useState(24),
+    [rows, setRows] = useState(40),
+    [edge, setEdge] = useState(28),
+    [traceMode, setTraceMode] = useState<
+      "planes" | "edges" | "values" | "prepared-lines"
+    >("planes"),
+    [vertex, setVertex] = useState(""),
+    [fontReady, setFontReady] = useState(false),
+    [native, setNative] = useState(false),
+    [embedded, setEmbedded] = useState(false),
+    [portrait, setPortrait] = useState(true),
+    [edgeStrength, setEdgeStrength] = useState(1.2);
+  const sourceRef = useRef<HTMLCanvasElement>(null),
+    cropRef = useRef<HTMLCanvasElement>(null),
+    textRef = useRef<HTMLCanvasElement>(null),
+    cropDrag = useRef<{ x: number; y: number } | null>(null),
+    maskRef = useRef<HTMLCanvasElement | null>(null),
+    paint = useRef(false),
+    undo = useRef<Record<string, string[]>>({}),
+    epoch = useRef(0);
+  const figure = project?.figures.find((f) => f.id === project.selected),
+    current = useRef<Figure | undefined>(figure);
+  current.current = figure;
+  function save(blob: Blob, name: string) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result), a = document.createElement('a');
+      setLastExport({url,name}); a.href=url; a.download=name; a.click();
+    };
+    reader.onerror = () => setError('The export could not be prepared.');
+    reader.readAsDataURL(blob);
+  }
+  const update = (id: string, patch: Partial<Figure>) =>
+    setProject((p) =>
+      p
+        ? {
+            ...p,
+            figures: p.figures.map((f) =>
+              f.id === id ? { ...f, ...patch,
+                ...(Object.hasOwn(patch, 'traceRect') && !patch.traceRect ? { rowAlignment: undefined } : {}) } : f,
+            ),
+          }
+        : p,
+    );
+  async function run(action: () => Promise<void>) {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await action();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  useEffect(() => {
+    setEmbedded(window.parent !== window);
+    const font = new FontFace("Saitamaar", `url(${base}/fonts/Saitamaar.ttf)`);
+    font
+      .load()
+      .then((f) => {
+        document.fonts.add(f);
+        setFontReady(true);
+      })
+      .catch(() => setError("Required Saitamaar font failed to load."));
+  }, []);
+  async function restoreProject(text: string) {
+    if (text.length > 40 * 1024 * 1024) throw Error('Choose a workspace under 40 MB.');
+    const saved = validatePhotoProject(JSON.parse(text)), image = await loadImage(saved.photo);
+    if (image.naturalWidth * image.naturalHeight > 25000000) throw Error('Photo exceeds 25 megapixels.');
+    for (const f of saved.figures) {
+      const rect = boundedRect(f.rect, image.naturalWidth, image.naturalHeight);
+      if ((['x','y','width','height'] as const).some(key => rect[key] !== f.rect[key]))
+        throw Error('A saved crop does not fit its original image. The project was not changed.');
+    }
+    epoch.current++; undo.current = {};
+    setPhoto(image);
+    if (saved.settings) {
+      setRows(saved.settings.rows); setPortrait(saved.settings.portrait);
+      setEdgeStrength(saved.settings.edgeStrength); setTraceMode(saved.settings.traceMode);
+    }
+    setProject(saved);
+    setStatus(`Reopened ${saved.figures.length} figures, masks and plane corrections.`);
+  }
+  async function open(
+    file: File | undefined,
+    kind: "photo" | "project" | "packet",
+  ) {
+    if (!file) return;
+    await run(async () => {
+      if (file.size > 40 * 1024 * 1024)
+        throw Error("Choose a file under 40 MB.");
+      epoch.current++;
+      undo.current = {};
+      if (kind === "project") {
+        await restoreProject(await file.text());
+      } else {
+        let data: string;
+        if (kind === "packet") {
+          const packet = JSON.parse(await file.text());
+          const layer =
+            packet.schema === "drawloom.underdrawing.v1" &&
+            Array.isArray(packet.layers)
+              ? packet.layers.find(
+                  (layer: { kind?: string; category?: string; png?: string }) =>
+                    layer.kind === "photo" && layer.category === "source",
+                )
+              : null;
+          if (
+            !layer ||
+            typeof layer.png !== "string" ||
+            !/^data:image\/png;base64,/.test(layer.png)
+          )
+            throw Error(
+              "Choose a Drawloom underdrawing packet containing its original Photo source layer.",
+            );
+          data = layer.png;
+        } else {
+          if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
+            throw Error("Choose JPEG, PNG or WebP.");
+          data = await readFile(file);
+        }
+        const original = await loadImage(data),
+          changed =
+            sourceRotation !== 0 ||
+            Math.max(original.naturalWidth, original.naturalHeight) > 2400,
+          working = changed ? workingPhoto(original, sourceRotation) : null,
+          workingData = working
+            ? working.toDataURL(
+                kind === "packet" || file.type === "image/png"
+                  ? "image/png"
+                  : "image/jpeg",
+                0.96,
+              )
+            : data,
+          image = working ? await loadImage(workingData) : original;
+        setPhoto(image);
+        setStatus("Finding the foreground faces…");
+        let figures: Figure[] = [];
+        try {
+          figures = await suggestFigures(image);
+        } catch {
+          figures = [
+            {
+              id: crypto.randomUUID(),
+              name: "Figure 1",
+              rect: {
+                x: 0,
+                y: 0,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+              },
+            },
+          ];
+        }
+        setProject({
+          schema: "drawloom.photo-workspace.v1",
+          name: file.name,
+          photo: workingData,
+          originalPhoto: changed ? data : undefined,
+          originalRotation: sourceRotation,
+          figures,
+          selected: figures[0].id,
+          settings: {
+            ...project?.settings,
+            rows,
+            portrait,
+            edgeStrength,
+            traceMode,
+          },
+        });
+        setStatus(
+          `${figures.length} figure crops proposed. Adjust each rectangle, then prepare the selected person.`,
+        );
+      }
+    });
+  }
+  useEffect(() => {
+    const c = sourceRef.current;
+    if (!c || !photo || !project) return;
+    c.width = photo.naturalWidth;
+    c.height = photo.naturalHeight;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(photo, 0, 0);
+    for (const f of project.figures) {
+      ctx.strokeStyle = f.id === project.selected ? "#ffe063" : "#a8e5ec";
+      ctx.lineWidth = f.id === project.selected ? 4 : 2;
+      ctx.strokeRect(f.rect.x, f.rect.y, f.rect.width, f.rect.height);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = "22px system-ui";
+      ctx.fillText(f.name, f.rect.x + 6, f.rect.y + 26);
+    }
+  }, [photo, project]);
+  useEffect(() => {
+    const c = cropRef.current;
+    if (!c || !photo || !figure) return;
+    const id = ++epoch.current;
+    const crop = cropPhoto(photo, figure.rect);
+    c.width = crop.width;
+    c.height = crop.height;
+    maskRef.current = null;
+    (async () => {
+      let shown = await cutoutPhoto(
+        crop,
+        view === "photo" ? undefined : figure.mask,
+        true,
+      );
+      if (figure.mask) {
+        const m = newCanvas(crop.width, crop.height);
+        m.getContext("2d")!.drawImage(
+          await loadImage(figure.mask),
+          0,
+          0,
+          m.width,
+          m.height,
+        );
+        if (id === epoch.current) maskRef.current = m;
+      }
+      if (["features", "planes", "values", "edges"].includes(view)) {
+        const guide = faceGuides(
+          shown,
+          figure,
+          view as "features" | "planes" | "values" | "edges",
+          edge,
+        );
+        if (["values", "edges"].includes(view)) shown = guide;
+        else shown.getContext("2d")!.drawImage(guide, 0, 0);
+      }
+      if (view === "plane-study" && figure.planeGuide) {
+        shown = newCanvas(crop.width, crop.height);
+        shown
+          .getContext("2d")!
+          .drawImage(
+            await loadImage(figure.planeGuide),
+            0,
+            0,
+            shown.width,
+            shown.height,
+          );
+      }
+      if (view === "structure" && figure.structureGuide) {
+        shown = newCanvas(crop.width, crop.height);
+        shown
+          .getContext("2d")!
+          .drawImage(
+            await loadImage(figure.structureGuide),
+            0,
+            0,
+            shown.width,
+            shown.height,
+          );
+      }
+      if (view === "material" && figure.appearanceMask) {
+        shown = newCanvas(crop.width, crop.height);
+        const ctx = shown.getContext("2d")!;
+        ctx.drawImage(
+          await loadImage(figure.appearanceMask),
+          0,
+          0,
+          shown.width,
+          shown.height,
+        );
+        ctx.globalCompositeOperation = "source-in";
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, shown.width, shown.height);
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, shown.width, shown.height);
+      }
+      if (view === "hair" && figure.hairMask) {
+        const mask = await mergeMasks(crop.width, crop.height, [
+          figure.hairMask,
+          figure.facialHairMask,
+        ]);
+        shown = newCanvas(crop.width, crop.height);
+        const m = shown.getContext("2d")!;
+        m.drawImage(mask, 0, 0, shown.width, shown.height);
+        m.globalCompositeOperation = "source-in";
+        m.fillStyle = "black";
+        m.fillRect(0, 0, shown.width, shown.height);
+        m.globalCompositeOperation = "destination-over";
+        m.fillStyle = "white";
+        m.fillRect(0, 0, shown.width, shown.height);
+      }
+      if (view === "input" && figure.preparedInput && figure.traceRect) {
+        shown = newCanvas(crop.width, crop.height);
+        const m = shown.getContext("2d")!;
+        m.fillStyle = "white";
+        m.fillRect(0, 0, shown.width, shown.height);
+        const r = figure.traceRect;
+        m.drawImage(
+          await loadImage(figure.preparedInput),
+          r.x,
+          r.y,
+          r.width,
+          r.height,
+        );
+      }
+      if (id !== epoch.current) return;
+      if (
+        portrait &&
+        figure.pose &&
+        ["plane-study", "structure", "hair", "input", "material"].includes(view)
+      ) {
+        const framed = cropCanvas(
+          shown,
+          figure.traceRect ?? portraitRect(figure),
+        );
+        c.width = framed.width;
+        c.height = framed.height;
+        c.getContext("2d")!.drawImage(framed, 0, 0);
+        return;
+      }
+      c.getContext("2d")!.drawImage(shown, 0, 0);
+      if (mode === "select" && figure.seed) {
+        const ctx = c.getContext("2d")!;
+        ctx.strokeStyle = "#d75516";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(figure.seed.x, figure.seed.y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    })().catch((e) => setError(e.message));
+  }, [photo, figure, view, mode, edge, portrait]);
+  useEffect(() => {
+    if (!figure?.text || !fontReady || !textRef.current) return;
+    const c = textRef.current,
+      ctx = c.getContext("2d")!;
+    ctx.font = "16px Saitamaar";
+    const lines = figure.text.split("\n");
+    c.width = Math.max(
+      64,
+      figure.traceLayout?.width ?? 0,
+      ...lines.map((line) => Math.ceil(ctx.measureText(line).width)),
+    );
+    c.height = Math.max(64, figure.traceLayout?.height ?? 0, lines.length * 17);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "black";
+    ctx.font = "16px Saitamaar";
+    ctx.textBaseline = "alphabetic";
+    lines.forEach((line, i) =>
+      ctx.fillText(line, 0, i * 17 + (1122 / 1280) * 16),
+    );
+  }, [figure?.text, figure?.traceLayout, fontReady]);
+  function alterRect(patch: Partial<Rect>) {
+    if (!figure || !photo) return;
+    update(figure.id, {
+      rect: boundedRect(
+        { ...figure.rect, ...patch },
+        photo.naturalWidth,
+        photo.naturalHeight,
+      ),
+      mask: undefined,
+      hairMask: undefined,
+      facialHairMask: undefined,
+      appearanceMask: undefined,
+      pose: undefined,
+      pins: undefined,
+      surfaceEdits: undefined,
+      planeGuide: undefined,
+      structureGuide: undefined,
+      structureRecords: undefined,
+      structureSummary: undefined,
+      text: undefined,
+      rawText: undefined,
+      traceRect: undefined,
+      lineGuide: undefined,
+      preparedInput: undefined,
+      traceModel: undefined,
+      warnings: undefined,
+      traceLayout: undefined,
+    });
+  }
+  const at = (event: React.PointerEvent<HTMLCanvasElement>) => {
+    const c = event.currentTarget,
+      r = c.getBoundingClientRect();
+    return {
+      x: Math.max(
+        0,
+        Math.min(c.width, ((event.clientX - r.left) * c.width) / r.width),
+      ),
+      y: Math.max(
+        0,
+        Math.min(c.height, ((event.clientY - r.top) * c.height) / r.height),
+      ),
+    };
+  };
+  async function prepare(f: Figure) {
+    if (!photo) return f;
+    const crop = cropPhoto(photo, f.rect);
+    setStatus(`Separating ${f.name} with the selected-object model…`);
+    const seed = f.seed ?? { x: crop.width * 0.5, y: crop.height * 0.48 },
+      mask = await objectMask(crop, seed);
+    let pose = f.pose;
+    try {
+      pose = await analyzeFigure(
+        await cutoutPhoto(crop, mask.toDataURL("image/png"), true),
+      );
+    } catch {}
+    const next = {
+      ...f,
+      seed,
+      mask: mask.toDataURL("image/png"),
+      hairMask: undefined,
+      pose,
+      text: undefined,
+      rawText: undefined,
+      traceRect: undefined,
+      lineGuide: undefined,
+      preparedInput: undefined,
+      traceModel: undefined,
+      warnings: undefined,
+      traceLayout: undefined,
+    };
+    update(f.id, next);
+    setView("cutout");
+    return next;
+  }
+  async function trace(f: Figure) {
+    if (!photo) return;
+    const full = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true);
+    let region = portrait
+        ? portraitRect(f)
+        : { x: 0, y: 0, width: full.width, height: full.height };
+    if (portrait && f.mask && f.pose) {
+      const mask = await loadImage(f.mask),
+        mc = newCanvas(full.width, full.height),
+        cx = mc.getContext("2d")!;
+      cx.drawImage(mask, 0, 0, mc.width, mc.height);
+      const pixels = cx.getImageData(0, 0, mc.width, mc.height).data;
+      let top = region.y;
+      for (let y = 0; y < region.y; y++) {
+        let count = 0;
+        for (
+          let x = Math.max(0, Math.floor(f.pose.bbox.cx - f.pose.bbox.size));
+          x < Math.min(mc.width, f.pose.bbox.cx + f.pose.bbox.size);
+          x++
+        )
+          if (pixels[(y * mc.width + x) * 4 + 3] > 128) count++;
+        if (count > 4) {
+          top = Math.max(0, y - Math.ceil(f.pose.bbox.size * 0.06));
+          break;
+        }
+      }
+      region.height += region.y - top;
+      region.y = top;
+    }
+    const traceWidth = Math.max(128, Math.min(640, Math.round((rows * 17 * region.width) / region.height)));
+    let traceRows = Math.max(8, Math.min(90, Math.round(((traceWidth / region.width) * region.height) / 17)));
+    const metric = document.createElement("canvas").getContext("2d")!;
+    metric.font = "16px Saitamaar";
+    let eyePlan: import("@/lib/photo-workspace/plane-eye-words").PlaneEyeWordPlan | undefined;
+    let rowAlignment: RowAlignment | undefined;
+    if (traceMode === 'planes' && (project?.settings?.preserveFeatures ?? true)) {
+      const { compilePlaneEyes } = await import('@/lib/photo-workspace/plane-eye-words');
+      const frame = planeFrame(f), measure = (t: string) => Math.round(metric.measureText(t).width);
+      const mode = project?.settings?.rowPhase ?? 'auto';
+      if (mode === 'off') eyePlan = compilePlaneEyes(full, frame, region, traceWidth, traceRows * 17, measure);
+      else {
+        const baseRect = { ...region }, contentRows = Math.min(89, traceRows);
+        const plans = new Map<number, typeof eyePlan>();
+        const candidates: RowPhaseChoice[] = [];
+        const tryPhase = async (phase: number) => {
+          if (plans.has(phase)) return;
+          setStatus(`Aligning ${f.name}'s whole face with native rows: ${phase} px…`);
+          await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+          const plan = compilePlaneEyes(full, frame, rowPhaseRect(baseRect, contentRows, phase), traceWidth, (contentRows + 1) * 17, measure);
+          plans.set(phase, plan);
+          const eyes = new Map(plan.words.filter(w => w.role === 'eye-form').map(w => [w.owner, w.score]));
+          const brows = new Set(plan.words.filter(w => w.role === 'brow-form').map(w => w.owner)).size;
+          candidates.push({ phase, eyes: eyes.size, brows, score: eyes.size ? [...eyes.values()].reduce((a,b) => a+b,0)/eyes.size : 100 });
+        };
+        for (const phase of mode === 'auto' ? [0,3,6,9,12,15,16] : [mode]) await tryPhase(phase);
+        candidates.sort(compareRowPhases);
+        if (mode === 'auto') {
+          const coarse = candidates[0].phase;
+          for (const phase of [coarse-1, coarse+1]) if (phase >= 0 && phase <= 16) await tryPhase(phase);
+          candidates.sort(compareRowPhases);
+        }
+        const chosen = candidates[0];
+        rowAlignment = { phase: chosen.phase, baseRect, contentRows, candidates };
+        region = rowPhaseRect(baseRect, contentRows, chosen.phase);
+        traceRows = contentRows + 1;
+        eyePlan = plans.get(chosen.phase)!;
+        eyePlan.notes.unshift(`Whole composition aligned by ${chosen.phase} px. One row of paper preserves the original frame and scale. ${candidates.length} geometric alternatives compared; this is not a visual quality verdict.`);
+      }
+    }
+    const cut = cropCanvas(full, region);
+    const paper = cut.getContext('2d')!;
+    paper.globalCompositeOperation = 'destination-over'; paper.fillStyle = 'white';
+    paper.fillRect(0, 0, cut.width, cut.height); paper.globalCompositeOperation = 'source-over';
+    setStatus(`Loading learned native-text filter for ${f.name}…`);
+    let hair = f.hairMask;
+    if (traceMode === "planes" || (project?.settings?.hairTone ?? 1) > 0) {
+      if (traceMode === "planes") planeFrame(f);
+      setStatus(`Resolving foreground hair over ${f.name}'s fitted head…`);
+      const { hairMask } = await import("@/lib/photo-workspace/hair-tone");
+      hair ??= await hairMask(full, region);
+    }
+    const { tracePhoto } = await import("@/lib/photo-workspace/model-trace");
+    let input = cut,
+      lineGuide: string | undefined,
+      planeGuide: string | undefined,
+      structureGuide: string | undefined,
+      structureSummary: string[] | undefined,
+      structureRecords: unknown,
+      planeStudy:
+        import("@/lib/photo-workspace/plane-structure").PlaneStudy | undefined;
+    if (traceMode === "planes") {
+      if (!f.pose)
+        throw Error(
+          "Fit the head forms and planes before selecting portrait lines.",
+        );
+      setStatus(
+        `Fitting ${f.name}'s head planes and selecting visible form boundaries…`,
+      );
+      const { buildPlaneStudy } =
+        await import("@/lib/photo-workspace/plane-structure");
+      const study = (planeStudy = buildPlaneStudy(full, f, region, {
+        hairMask: hair ? await loadImage(hair) : undefined,
+        detail: project?.settings?.structureDetail ?? 0.55,
+        lightBands: project?.settings?.planeBands ?? 5,
+      }));
+      planeGuide = study.planesCanvas.toDataURL("image/png");
+      structureGuide = study.selectedLinesCanvas.toDataURL("image/png");
+      structureSummary = study.summary;
+      structureRecords = {
+        paths: study.paths,
+        planes: study.planes,
+        decisions: study.decisions,
+        light: study.light,
+        registration: study.registration,
+        eyes: study.eyes,
+        shadowRegions: study.shadowRegions,
+        appearanceRegions: study.appearanceRegions,
+      };
+      // The fitted head owns its structure. Photo contours are only proposals for
+      // the visible hair/clothing outside that ownership mask, and run afterwards.
+      const { photoEdges } = await import("@/lib/photo-workspace/photo-edges");
+      const outside = await photoEdges(cut, {
+        maxSide: 768,
+        strength: edgeStrength,
+        onProgress: (message) => setStatus(message),
+      });
+      input = newCanvas(outside.width, outside.height);
+      const c = input.getContext("2d")!;
+      c.drawImage(outside, 0, 0);
+      c.globalCompositeOperation = "destination-out";
+      c.drawImage(
+        cropCanvas(study.faceMaskCanvas, region),
+        0,
+        0,
+        input.width,
+        input.height,
+      );
+      c.globalCompositeOperation = "multiply";
+      c.drawImage(
+        cropCanvas(study.selectedLinesCanvas, region),
+        0,
+        0,
+        input.width,
+        input.height,
+      );
+      c.globalCompositeOperation = "source-over";
+      lineGuide = input.toDataURL("image/png");
+    }
+    if (traceMode === "edges") {
+      const { photoEdges } = await import("@/lib/photo-workspace/photo-edges");
+      input = await photoEdges(cut, {
+        maxSide: 768,
+        strength: edgeStrength,
+        onProgress: (message) => setStatus(message),
+      });
+      lineGuide = input.toDataURL("image/png");
+    }
+    if (eyePlan) {
+      const c = input.getContext("2d")!;
+      c.fillStyle = "white";
+      for (const r of eyePlan.reservedRects)
+        c.fillRect(
+          (r.x / traceWidth) * input.width,
+          (r.y / (traceRows * 17)) * input.height,
+          (r.width / traceWidth) * input.width,
+          (r.height / (traceRows * 17)) * input.height,
+        );
+    }
+    let salient: HTMLCanvasElement | undefined;
+    if (
+      traceMode !== "planes" &&
+      (project?.settings?.preserveFeatures ?? true) &&
+      f.pose
+    ) {
+      const { faceInk } = await import("@/lib/photo-workspace/face-ink");
+      salient = faceInk(full, f.pose, region, traceWidth, traceRows * 18);
+    }
+    const result = await tracePhoto(input, {
+      width: traceWidth,
+      rows: traceRows,
+      postThinInk: salient,
+      mode:
+        traceMode === "edges" || traceMode === "planes"
+          ? "prepared-lines"
+          : traceMode,
+      contrast: 1,
+      onProgress: (message: string) => setStatus(message),
+    });
+    const normalized = normalizeNativeSpacing(result.text, (text) =>
+      Math.round(metric.measureText(text).width),
+    );
+    const outlineText = eyePlan
+      ? composeNativeWords(
+          normalized.text,
+          eyePlan.words,
+          eyePlan.reservedRects,
+          (t) => Math.round(metric.measureText(t).width),
+        )
+      : normalized.text;
+    let finalText = outlineText;
+    const shadowMasks = planeStudy?.shadowBands.map((b) => ({
+      band: b.band,
+      dataUrl: b.maskCanvas.toDataURL("image/png"),
+    }));
+    if (shadowMasks?.length) {
+      const { addBoundedTone } =
+        await import("@/lib/photo-workspace/hair-tone");
+      for (const band of shadowMasks)
+        finalText = addBoundedTone({
+          text: finalText,
+          measure: (t) => Math.round(metric.measureText(t).width),
+          mask: await loadImage(band.dataUrl),
+          source: full,
+          region,
+          guideWidth: result.guideWidth,
+          guideHeight: result.guideHeight,
+          amount:
+            (project?.settings?.planeTone ?? 0.3) *
+            (band.band === 2 ? 1 : 0.65),
+          pattern: band.band === 2 ? ";:" : ":",
+          maxLuminance: 1.01,
+        });
+    }
+    const amount = project?.settings?.hairTone ?? 1;
+    if (amount > 0) {
+      setStatus(`Adding bounded hair shadow for ${f.name}…`);
+      const { hairMask, addHairTone } =
+        await import("@/lib/photo-workspace/hair-tone");
+      hair ??= await hairMask(full, region);
+      finalText = addHairTone({
+        text: finalText,
+        measure: (text) => Math.round(metric.measureText(text).width),
+        mask: await mergeMasks(full.width, full.height, [
+          hair,
+          planeStudy?.facialHairMaskCanvas.toDataURL("image/png"),
+        ]),
+        source: full,
+        region,
+        guideWidth: result.guideWidth,
+        guideHeight: result.guideHeight,
+        amount,
+        pattern: project?.settings?.hairPattern ?? "i:;",
+      });
+    }
+    update(f.id, {
+      planeGuide,
+      structureGuide,
+      structureSummary,
+      structureRecords,
+      eyePlan,
+      rowAlignment,
+      shadowMasks,
+      rawText: result.text,
+      preparedInput: result.preparedInput,
+      outlineText,
+      hairMask: hair,
+      facialHairMask: planeStudy?.facialHairMaskCanvas.toDataURL("image/png"),
+      appearanceMask: planeStudy?.appearanceMaskCanvas.toDataURL("image/png"),
+      text: finalText,
+      traceModel:
+        (traceMode === "planes"
+          ? "Fitted head planes → selected form structure → "
+          : traceMode === "edges"
+            ? "TEED photo edges → "
+            : "") + result.model,
+      traceRect: region,
+      lineGuide,
+      traceLayout: {
+        width: Math.max(
+          result.width,
+          ...finalText
+            .split("\n")
+            .map((line) => Math.ceil(metric.measureText(line).width)),
+        ),
+        height: result.height,
+        guideWidth: result.guideWidth,
+        guideHeight: result.guideHeight,
+      },
+      warnings: [
+        ...(structureSummary ?? []),
+        ...(eyePlan?.notes ?? []),
+        ...result.warnings.filter((w) => !w.includes("half spaces")),
+        `Native gaps normalized on ${normalized.changed} rows; maximum ink-word shift ${normalized.maxShift}px. Raw model text and unshaded outline remain in the workspace. Hair field preserves every outline word position.`,
+      ],
+    });
+    setView("text");
+    setStatus(
+      `${f.name}: ${result.rows} native rows. Compare the complete face, hair and clothing with the source.`,
+    );
+  }
+  function startPaint(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (
+      !figure ||
+      busy ||
+      ["plane-study", "structure", "hair", "input", "material"].includes(view)
+    )
+      return;
+    const p = at(event);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    if (mode === "select") {
+      update(figure.id, {
+        seed: p,
+        mask: undefined,
+        hairMask: undefined,
+        text: undefined,
+        rawText: undefined,
+        traceRect: undefined,
+        lineGuide: undefined,
+        preparedInput: undefined,
+        traceModel: undefined,
+        warnings: undefined,
+        traceLayout: undefined,
+      });
+      return;
+    }
+    if (mode === "pin") {
+      if (!figure.pose) return;
+      const frame = planeFrame(figure),
+        vertices = Object.values(frame.vertices).filter(
+          (v) => v.visibility === "visible",
+        ),
+        nearest = vertices.sort(
+          (a, b) =>
+            Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y),
+        )[0];
+      if (nearest) {
+        setVertex(nearest.id);
+        update(figure.id, { pins: { ...figure.pins, [nearest.id]: p } });
+      }
+      return;
+    }
+    if (!maskRef.current) {
+      const mask = newCanvas(figure.rect.width, figure.rect.height);
+      mask.getContext("2d")!.fillStyle = "white";
+      mask.getContext("2d")!.fillRect(0, 0, mask.width, mask.height);
+      maskRef.current = mask;
+    }
+    undo.current[figure.id] = [
+      ...(undo.current[figure.id] ?? []),
+      figure.mask ?? "",
+    ].slice(-24);
+    paint.current = true;
+    brushPoint(p);
+  }
+  function brushPoint(p: { x: number; y: number }) {
+    const m = maskRef.current,
+      c = cropRef.current;
+    if (!m || !c || !photo || !current.current) return;
+    const ctx = m.getContext("2d")!;
+    ctx.globalCompositeOperation =
+      mode === "erase" ? "destination-out" : "source-over";
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, brush, 0, Math.PI * 2);
+    ctx.fill();
+    const cc = c.getContext("2d")!;
+    cc.clearRect(0, 0, c.width, c.height);
+    cc.drawImage(cropPhoto(photo, current.current.rect), 0, 0);
+    cc.globalCompositeOperation = "destination-in";
+    cc.drawImage(m, 0, 0);
+    cc.globalCompositeOperation = "destination-over";
+    cc.fillStyle = "white";
+    cc.fillRect(0, 0, c.width, c.height);
+    cc.globalCompositeOperation = "source-over";
+  }
+  async function exportFramedStudy(kind: "planeGuide" | "structureGuide") {
+    if (!figure?.[kind]) return;
+    const image = await loadImage(figure[kind]!),
+      source = newCanvas(image.naturalWidth, image.naturalHeight);
+    source.getContext("2d")!.drawImage(image, 0, 0);
+    const framed = cropCanvas(source, figure.traceRect ?? portraitRect(figure));
+    framed.toBlob(
+      (blob) => blob && save(blob, `${figure.name}-${kind}-framed.png`),
+    );
+  }
+  async function exportImage(which: "crop" | "cutout" | "trace") {
+    if (!photo || !figure) return;
+    let c: HTMLCanvasElement;
+    if (which === "trace") {
+      if (!figure.text || !textRef.current)
+        throw Error("Run the learned filter first.");
+      c = textRef.current;
+    } else {
+      c =
+        which === "crop" && project?.originalPhoto
+          ? originalCrop(
+              await loadImage(project.originalPhoto),
+              figure.rect,
+              photo.naturalWidth,
+              project.originalRotation ?? 0,
+            )
+          : cropPhoto(photo, figure.rect);
+      if (which === "cutout") c = await cutoutPhoto(c, figure.mask);
+    }
+    c.toBlob((blob) => blob && save(blob, `${figure.name}-${which}.png`));
+  }
+  async function comparison() {
+    if (!photo || !project) return;
+    const retained = project.figures.filter((f) => f.text && f.traceLayout);
+    if (!retained.length) throw Error("Generate a portrait first.");
+    const cardWidth =
+        Math.max(...retained.map((f) => f.traceLayout!.width)) + 24,
+      cardHeight =
+        Math.max(...retained.map((f) => f.traceLayout!.height)) + 370,
+      board = newCanvas(cardWidth * retained.length, cardHeight),
+      ctx = board.getContext("2d")!;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, board.width, board.height);
+    for (let i = 0; i < retained.length; i++) {
+      const f = retained[i],
+        cut = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true),
+        region = f.traceRect ?? {
+          x: 0,
+          y: 0,
+          width: cut.width,
+          height: cut.height,
+        },
+        source = cropCanvas(cut, region),
+        scale = Math.min((cardWidth - 24) / source.width, 300 / source.height),
+        left = i * cardWidth + 12;
+      ctx.fillStyle = "#222";
+      ctx.font = "18px system-ui";
+      ctx.fillText(f.name, left, 24);
+      ctx.drawImage(
+        source,
+        left + (cardWidth - 24 - source.width * scale) / 2,
+        40,
+        source.width * scale,
+        source.height * scale,
+      );
+      ctx.fillStyle = "black";
+      ctx.font = "16px Saitamaar";
+      ctx.textBaseline = "alphabetic";
+      f.text!.split("\n").forEach((line, row) =>
+        ctx.fillText(line, left, 360 + row * 17 + (1122 / 1280) * 16),
+      );
+    }
+    board.toBlob(
+      (blob) => blob && save(blob, "portrait-filter-comparison.png"),
+    );
+  }
+  async function previewStructure() {
+    if (!photo || !figure) return;
+    const f = figure.pose && figure.mask ? figure : await prepare(figure);
+    const source = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true),
+      region = portrait
+        ? portraitRect(f)
+        : { x: 0, y: 0, width: source.width, height: source.height };
+    planeFrame(f);
+    const { hairMask } = await import("@/lib/photo-workspace/hair-tone");
+    const hair = f.hairMask ?? (await hairMask(source, region));
+    const { buildPlaneStudy } =
+      await import("@/lib/photo-workspace/plane-structure");
+    const study = buildPlaneStudy(source, f, region, {
+      hairMask: await loadImage(hair),
+      detail: project?.settings?.structureDetail ?? 0.55,
+      lightBands: project?.settings?.planeBands ?? 5,
+    });
+    update(f.id, {
+      hairMask: hair,
+      facialHairMask: study.facialHairMaskCanvas.toDataURL("image/png"),
+      appearanceMask: study.appearanceMaskCanvas.toDataURL("image/png"),
+      planeGuide: study.planesCanvas.toDataURL("image/png"),
+      structureGuide: study.selectedLinesCanvas.toDataURL("image/png"),
+      structureSummary: study.summary,
+      structureRecords: {
+        paths: study.paths,
+        planes: study.planes,
+        decisions: study.decisions,
+        light: study.light,
+        registration: study.registration,
+      },
+    });
+    setView("plane-study");
+    setStatus(
+      "Fitted plane values and selected structure are ready to inspect before native text generation.",
+    );
+  }
+  async function rebuildHair() {
+    if (!photo || !project) return;
+    const { hairMask } = await import("@/lib/photo-workspace/hair-tone");
+    for (const f of project.figures) {
+      setStatus(`Rebuilding head-framed hair mask for ${f.name}…`);
+      const source = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true);
+      update(f.id, {
+        hairMask: await hairMask(source, f.traceRect ?? portraitRect(f)),
+      });
+    }
+    setView("hair");
+    setStatus(
+      "Head-framed hair masks rebuilt. Inspect the mask, then Apply tone to all.",
+    );
+  }
+  async function refreshHair() {
+    if (!photo || !project) return;
+    const { hairMask, addHairTone, addBoundedTone } =
+      await import("@/lib/photo-workspace/hair-tone");
+    const metric = document.createElement("canvas").getContext("2d")!;
+    metric.font = "16px Saitamaar";
+    for (const f of project.figures) {
+      if (!f.outlineText || !f.traceRect || !f.traceLayout) continue;
+      const source = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true),
+        mask =
+          f.hairMask ??
+          (await hairMask(source, f.traceRect ?? portraitRect(f)));
+      let text = f.outlineText;
+      for (const band of f.shadowMasks ?? [])
+        text = addBoundedTone({
+          text,
+          measure: (t) => Math.round(metric.measureText(t).width),
+          mask: await loadImage(band.dataUrl),
+          source,
+          region: f.traceRect,
+          guideWidth: f.traceLayout.guideWidth,
+          guideHeight: f.traceLayout.guideHeight,
+          amount:
+            (project.settings?.planeTone ?? 0.3) * (band.band === 2 ? 1 : 0.65),
+          pattern: band.band === 2 ? ";:" : ":",
+          maxLuminance: 1.01,
+        });
+      text = addHairTone({
+        text,
+        measure: (t) => Math.round(metric.measureText(t).width),
+        mask: await mergeMasks(source.width, source.height, [
+          mask,
+          f.facialHairMask,
+        ]),
+        source,
+        region: f.traceRect,
+        guideWidth: f.traceLayout.guideWidth,
+        guideHeight: f.traceLayout.guideHeight,
+        amount: project.settings?.hairTone ?? 1,
+        pattern: project.settings?.hairPattern ?? "i:;",
+      });
+      update(f.id, {
+        text,
+        hairMask: mask,
+        traceLayout: {
+          ...f.traceLayout,
+          width: Math.max(
+            f.traceLayout.guideWidth,
+            ...text
+              .split("\n")
+              .map((line) => Math.ceil(metric.measureText(line).width)),
+          ),
+        },
+      });
+    }
+    setStatus(
+      "Plane and hair tone updated for every retained portrait; constructed words remain fixed.",
+    );
+  }
+  async function exportStudio(send = false) {
+    if (!photo || !figure || !project) return;
+    const doc = await studioPhotoProject(photo, figure, project.name, rows);
+    if (send && window.parent !== window) {
+      const target = new URL(document.referrer).origin;
+      window.parent.postMessage(
+        { type: "drawloom.photo-project", project: doc },
+        target,
+      );
+      setStatus("Prepared photo project sent to Studio.");
+    } else
+      save(
+        new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }),
+        `${figure.name}.studio.json`,
+      );
+  }
+  let vertices: { id: string; label: string; x: number; y: number }[] = [];
+  if (figure?.pose)
+    try {
+      vertices = Object.values(planeFrame(figure).vertices).filter(
+        (v) => v.visibility === "visible",
+      );
+    } catch {}
+  const chosenVertex = vertices.find((v) => v.id === vertex),
+    pin = chosenVertex && (figure?.pins?.[vertex] ?? chosenVertex);
+  return (
+    <main className="photo-workspace">
+      <style>{`
+ .photo-workspace{background:#1b2024;color:#edf1f2;min-height:100vh;padding:20px;font:14px system-ui}.photo-workspace h1{font-size:25px;margin:0 0 6px}.photo-workspace h2{font-size:17px;margin:14px 0 8px}.photo-workspace p{color:#bac5ca;margin:8px 0}.photo-workspace button,.photo-workspace .file,.photo-workspace select{padding:8px 10px;border:1px solid #637078;border-radius:5px;background:#2b343a;color:#fff;cursor:pointer}.photo-workspace button:disabled{opacity:.35;cursor:default}.photo-workspace button[aria-pressed=true]{background:#28584c;border-color:#81dbbc}.photo-workspace input[type=file]{position:absolute;width:1px;height:1px;opacity:0}.photo-workspace input[type=number]{width:74px;background:#fff;color:#111;padding:5px}.photo-workspace .actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:12px 0}.photo-workspace .columns{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr) minmax(300px,1fr);gap:16px}.photo-workspace .paper{background:#fff;overflow:auto;max-height:76vh;min-height:250px}.photo-workspace canvas{display:block;max-width:100%;height:auto}.photo-workspace .native canvas{max-width:none}.photo-workspace .viewport{background:#101517;padding:8px;border:1px solid #4c5962;border-radius:5px}.photo-workspace textarea{font:16px/17px Saitamaar;white-space:pre;background:#fff;color:#000;width:100%;height:160px;overflow:auto}.photo-workspace .muted{font-size:12px;color:#b1c0c7}.photo-workspace [role=alert]{color:#ffd0b2}.photo-workspace label{display:inline-flex;gap:6px;align-items:center}.photo-workspace canvas{touch-action:none}.photo-workspace progress{width:100%}@media(max-width:1050px){.photo-workspace .columns{grid-template-columns:1fr 1fr}.photo-workspace .result{grid-column:1/-1}}@media(max-width:650px){.photo-workspace .columns{grid-template-columns:1fr}}
+ `}</style>
+      <h1>Photo → forms & planes → native text</h1>
+      <p>
+        Crop and isolate the person, fit the head forms and planes, then select
+        structure and articulate native text. Large imports use a 2400 px
+        working copy; the original stays in the workspace for full-resolution
+        crop export.
+      </p>
+      <div className="actions">
+        <label>
+          Source orientation
+          <select
+            aria-label="Source photo orientation"
+            disabled={busy}
+            value={sourceRotation}
+            onChange={(e) => setSourceRotation(Number(e.target.value))}
+          >
+            <option value="0">As supplied</option>
+            <option value="1">Rotate right 90° on import</option>
+            <option value="2">Rotate 180° on import</option>
+            <option value="3">Rotate left 90° on import</option>
+          </select>
+        </label>
+        <label className="file">
+          Upload photo
+          <input
+            type="file"
+            aria-label="Upload source photo"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={busy}
+            onChange={(e) => {
+              void open(e.target.files?.[0], "photo");
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <label className="file">
+          Import capture photo
+          <input
+            type="file"
+            aria-label="Import Drawloom capture photo"
+            accept=".json"
+            disabled={busy}
+            onChange={(e) => {
+              void open(e.target.files?.[0], "packet");
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <label className="file">
+          Reopen workspace
+          <input
+            type="file"
+            aria-label="Reopen photo workspace"
+            accept=".json"
+            disabled={busy}
+            onChange={(e) => {
+              void open(e.target.files?.[0], "project");
+              e.target.value = "";
+            }}
+          />
+        </label>
+        <label>Workspace link
+          <input type="url" aria-label="Saved workspace URL" value={workspaceURL} disabled={busy}
+            placeholder="https://…/photo-workspace.json" onChange={e => setWorkspaceURL(e.target.value)} />
+        </label>
+        <button disabled={busy || !workspaceURL.trim()} onClick={() => void run(async () => {
+          const url = new URL(workspaceURL);
+          if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password)
+            throw Error('Choose an HTTP or HTTPS workspace link without embedded credentials.');
+          const response = await fetch(url, { credentials: 'omit' });
+          if (!response.ok) throw Error(`Workspace link returned ${response.status}.`);
+          if (Number(response.headers.get('content-length')) > 40 * 1024 * 1024)
+            throw Error('Choose a workspace under 40 MB.');
+          await restoreProject(await response.text());
+        })}>Open workspace link</button>
+        {lastExport && <a href={lastExport.url} download={lastExport.name}>Download {lastExport.name}</a>}
+        <button
+          disabled={!project || busy}
+          onClick={() =>
+            save(
+              new Blob(
+                [
+                  JSON.stringify({
+                    ...project,
+                    settings: {
+                      ...project?.settings,
+                      rows,
+                      portrait,
+                      edgeStrength,
+                      traceMode,
+                      hairTone: project?.settings?.hairTone ?? 1,
+                      hairPattern: project?.settings?.hairPattern ?? "i:;",
+                      preserveFeatures:
+                        project?.settings?.preserveFeatures ?? true,
+                    },
+                  }),
+                ],
+                { type: "application/json" },
+              ),
+              "photo-workspace.json",
+            )
+          }
+        >
+          Save workspace
+        </button>
+        <button
+          disabled={!project || busy}
+          onClick={() =>
+            void run(async () => {
+              for (const f of project!.figures) await prepare(f);
+              setStatus(
+                "All selected figure crops prepared. Inspect each mask, then run its filter.",
+              );
+            })
+          }
+        >
+          Prepare all figures
+        </button>
+        <button
+          disabled={!project || busy || !fontReady}
+          onClick={() =>
+            void run(async () => {
+              for (const f of project!.figures) {
+                const ready =
+                  traceMode === "prepared-lines"
+                    ? f
+                    : f.mask && (f.pose || traceMode !== "planes")
+                      ? f
+                      : await prepare(f);
+                await trace(ready);
+              }
+              setStatus(
+                "All figures processed by the same learned filter. Compare each complete portrait with its source.",
+              );
+            })
+          }
+        >
+          Generate all portraits
+        </button>
+        <button
+          disabled={!project?.figures.some((f) => f.text) || busy}
+          onClick={() => void run(comparison)}
+        >
+          Export comparison sheet
+        </button>
+      </div>
+      <div role="status" aria-live="polite">
+        {busy ? "Working · " : ""}
+        {status}
+      </div>
+      {error && <p role="alert">{error}</p>}
+      <div className="actions">
+        {project?.figures.map((f) => (
+          <button
+            key={f.id}
+            disabled={busy}
+            aria-pressed={f.id === figure?.id}
+            onClick={() => {
+              setProject({ ...project, selected: f.id });
+              setVertex("");
+            }}
+          >
+            {f.name}
+            {f.mask ? " · cutout" : ""}
+            {f.text ? " · text" : ""}
+          </button>
+        ))}
+        <button
+          disabled={!photo || busy}
+          onClick={() => {
+            const id = crypto.randomUUID();
+            setProject((p) =>
+              p
+                ? {
+                    ...p,
+                    selected: id,
+                    figures: [
+                      ...p.figures,
+                      {
+                        id,
+                        name: `Figure ${p.figures.length + 1}`,
+                        rect: {
+                          x: 0,
+                          y: 0,
+                          width: photo!.naturalWidth,
+                          height: photo!.naturalHeight,
+                        },
+                      },
+                    ],
+                  }
+                : p,
+            );
+          }}
+        >
+          Add manual crop
+        </button>
+      </div>
+      <div className="columns">
+        <section className="viewport">
+          <h2>1 · Crop the individual</h2>
+          <p className="muted">
+            Drag a rectangle on the original photo. Changing a crop clears its
+            old mask, analysis and text.
+          </p>
+          <div className="paper">
+            <canvas
+              ref={sourceRef}
+              aria-label="Original photo crop editor"
+              onPointerDown={(e) => {
+                if (busy) return;
+                cropDrag.current = at(e);
+                e.currentTarget.setPointerCapture(e.pointerId);
+              }}
+              onPointerUp={(e) => {
+                const a = cropDrag.current;
+                cropDrag.current = null;
+                if (!a) return;
+                const b = at(e);
+                if (Math.abs(a.x - b.x) > 8 && Math.abs(a.y - b.y) > 8)
+                  alterRect({
+                    x: Math.min(a.x, b.x),
+                    y: Math.min(a.y, b.y),
+                    width: Math.abs(a.x - b.x),
+                    height: Math.abs(a.y - b.y),
+                  });
+              }}
+            />
+          </div>
+          <div className="actions">
+            {figure &&
+              (["x", "y", "width", "height"] as const).map((key) => (
+                <label key={key}>
+                  {key}
+                  <input
+                    type="number"
+                    aria-label={`Crop ${key}`}
+                    value={figure.rect[key]}
+                    disabled={busy}
+                    onChange={(e) =>
+                      alterRect({ [key]: Number(e.target.value) })
+                    }
+                  />
+                </label>
+              ))}
+          </div>
+          <div className="actions">
+            <button
+              disabled={!figure || busy}
+              onClick={() => void run(() => exportImage("crop"))}
+            >
+              Export original crop
+            </button>
+          </div>
+        </section>
+        <section className="viewport">
+          <h2>2 · Fit forms before selecting lines</h2>
+          <div className="actions">
+            <select
+              aria-label="Photo study view"
+              value={view === "text" ? "cutout" : view}
+              onChange={(e) => setView(e.target.value as View)}
+            >
+              <option value="photo">Original crop</option>
+              <option value="cutout">Subject cutout</option>
+              <option value="features">Facial feature anchors</option>
+              <option value="planes">Head planes</option>
+              <option value="values">Four-value study</option>
+              <option value="edges">Contour study</option>
+              <option value="plane-study">Fitted plane values</option>
+              <option value="structure">Plane-selected lines</option>
+              <option value="material">Foreground material evidence</option>
+              <option value="hair">Hair and facial hair mask</option>
+              <option value="input">Exact filter input</option>
+            </select>
+            <button
+              disabled={!figure || busy}
+              onClick={() =>
+                void run(async () => {
+                  await prepare(figure!);
+                  setStatus(
+                    "Cutout ready. Check edges and use erase/restore where people overlap.",
+                  );
+                })
+              }
+            >
+              Isolate selected person
+            </button>
+          </div>
+          <div className="paper">
+            <canvas
+              ref={cropRef}
+              aria-label="Selected person mask and planes editor"
+              onPointerDown={startPaint}
+              onPointerMove={(e) => {
+                if (paint.current) brushPoint(at(e));
+              }}
+              onPointerUp={() => {
+                if (paint.current && figure && maskRef.current) {
+                  paint.current = false;
+                  update(figure.id, {
+                    mask: maskRef.current.toDataURL("image/png"),
+                    hairMask: undefined,
+                    text: undefined,
+                    rawText: undefined,
+                    traceRect: undefined,
+                    lineGuide: undefined,
+                    preparedInput: undefined,
+                    traceModel: undefined,
+                    warnings: undefined,
+                    traceLayout: undefined,
+                  });
+                }
+              }}
+            />
+          </div>
+          <div className="actions">
+            <button
+              disabled={!figure || busy}
+              onClick={() => void run(previewStructure)}
+            >
+              Fit planes & select structure
+            </button>
+            <label>
+              Secondary structure
+              <input
+                type="range"
+                aria-label="Secondary plane structure"
+                min="0"
+                max="1"
+                step="0.05"
+                value={project?.settings?.structureDetail ?? 0.55}
+                disabled={!project || busy}
+                onChange={(e) =>
+                  setProject((p) =>
+                    p
+                      ? {
+                          ...p,
+                          settings: {
+                            ...p.settings,
+                            rows,
+                            portrait,
+                            edgeStrength,
+                            traceMode,
+                            structureDetail: Number(e.target.value),
+                          },
+                        }
+                      : p,
+                  )
+                }
+              />
+            </label>
+            <label>
+              Light bands
+              <input
+                type="number"
+                aria-label="Plane light bands"
+                min="3"
+                max="9"
+                value={project?.settings?.planeBands ?? 5}
+                disabled={!project || busy}
+                onChange={(e) =>
+                  setProject((p) =>
+                    p
+                      ? {
+                          ...p,
+                          settings: {
+                            ...p.settings,
+                            rows,
+                            portrait,
+                            edgeStrength,
+                            traceMode,
+                            planeBands: Math.max(
+                              3,
+                              Math.min(9, Number(e.target.value)),
+                            ),
+                          },
+                        }
+                      : p,
+                  )
+                }
+              />
+            </label>
+          </div>
+          {figure?.pose && (
+            <details
+              open={meshOpen}
+              onToggle={(e) => setMeshOpen(e.currentTarget.open)}
+            >
+              <summary>Fit and inspect 3D head planes</summary>
+              <p className="muted">
+                Orbit the fitted form. Drag a vertex on the surface to change
+                the geometry used by the plane-first filter. Single-view depth
+                is an estimate.
+              </p>
+              {meshOpen && (
+                <PlanesMeshPanel
+                  frame={planeFrame(figure)}
+                  selected={vertex}
+                  normals={false}
+                  onSelect={setVertex}
+                  onFace={() => {}}
+                  onMove={(id, point) => {
+                    update(figure.id, {
+                      surfaceEdits: { ...figure.surfaceEdits, [id]: point },
+                    });
+                    setStatus(
+                      "Head surface changed. Generate again to select lines from the revised planes.",
+                    );
+                  }}
+                />
+              )}
+            </details>
+          )}
+          <div className="actions">
+            {(
+              [
+                ["select", "Pick person"],
+                ["erase", "Erase mask"],
+                ["restore", "Restore mask"],
+                ["pin", "Pin planes"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                disabled={busy || !figure || (key === "pin" && !figure.pose)}
+                aria-pressed={mode === key}
+                onClick={() => {
+                  setMode(key);
+                  setView(key === "pin" ? "planes" : "cutout");
+                }}
+              >
+                {label}
+              </button>
+            ))}
+            <label>
+              Brush
+              <input
+                type="range"
+                aria-label="Mask brush radius"
+                min="4"
+                max="80"
+                value={brush}
+                onChange={(e) => setBrush(Number(e.target.value))}
+              />
+            </label>
+            <button
+              disabled={!figure || busy}
+              onClick={() => {
+                if (!figure) return;
+                const old = undo.current[figure.id]?.pop();
+                if (old !== undefined)
+                  update(figure.id, {
+                    mask: old || undefined,
+                    hairMask: undefined,
+                    text: undefined,
+                    rawText: undefined,
+                    traceRect: undefined,
+                    lineGuide: undefined,
+                    preparedInput: undefined,
+                    traceModel: undefined,
+                    warnings: undefined,
+                    traceLayout: undefined,
+                  });
+              }}
+            >
+              Undo mask stroke
+            </button>
+          </div>
+          <div className="actions">
+            <button
+              disabled={!figure || busy}
+              onClick={() =>
+                void run(async () => {
+                  update(figure!.id, {
+                    pose: await analyzeFigure(cropPhoto(photo!, figure!.rect)),
+                  });
+                  setView("planes");
+                  setStatus(
+                    "Single-photo estimated planes. Drag a point to correct it; depth is not validated anatomy.",
+                  );
+                })
+              }
+            >
+              Analyze face & planes
+            </button>
+            <button
+              disabled={!figure?.mask || busy}
+              onClick={() => void run(() => exportImage("cutout"))}
+            >
+              Export transparent cutout
+            </button>
+          </div>
+          {figure?.pose && (
+            <details>
+              <summary>Plane point corrections</summary>
+              <select
+                aria-label="Plane vertex"
+                value={vertex}
+                onChange={(e) => setVertex(e.target.value)}
+              >
+                <option value="">Choose a visible vertex</option>
+                {vertices.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.id} · {v.label}
+                  </option>
+                ))}
+              </select>
+              {pin && (
+                <div className="actions">
+                  {(["x", "y"] as const).map((key) => (
+                    <label key={key}>
+                      {key}
+                      <input
+                        type="number"
+                        aria-label={`Plane vertex ${key}`}
+                        value={Math.round(pin[key])}
+                        onChange={(e) =>
+                          update(figure.id, {
+                            pins: {
+                              ...figure.pins,
+                              [vertex]: {
+                                ...pin,
+                                [key]: Number(e.target.value),
+                              },
+                            },
+                          })
+                        }
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() =>
+                  update(figure.id, { pins: {}, surfaceEdits: {} })
+                }
+              >
+                Reset plane corrections
+              </button>
+              <p className="muted">
+                Single-view model estimates. Corrected points and guides persist
+                in the workspace.
+              </p>
+            </details>
+          )}
+        </section>
+        <section className="viewport result">
+          <h2>3 · Structure → native text</h2>
+          <div className="actions">
+            <label>
+              Rows
+              <input
+                type="number"
+                aria-label="Native output rows"
+                disabled={busy}
+                min="24"
+                max="90"
+                value={rows}
+                onChange={(e) =>
+                  setRows(Math.max(24, Math.min(90, Number(e.target.value))))
+                }
+              />
+            </label>
+            <select
+              aria-label="Filter source treatment"
+              disabled={busy}
+              value={traceMode}
+              onChange={(e) => setTraceMode(e.target.value as typeof traceMode)}
+            >
+              <option value="planes">Planes → selected structure</option>
+              <option value="edges">Photo contours only (comparison)</option>
+              <option value="values">Photo values</option>
+              <option value="prepared-lines">Already prepared line art</option>
+            </select>
+            <button
+              disabled={!figure || busy || !fontReady}
+              onClick={() =>
+                void run(async () => {
+                  const f =
+                    traceMode === "prepared-lines"
+                      ? figure!
+                      : figure!.mask && (figure!.pose || traceMode !== "planes")
+                        ? figure!
+                        : await prepare(figure!);
+                  await trace(f);
+                })
+              }
+            >
+              Generate AA text
+            </button>
+          </div>
+          <div className="actions">
+            <label>
+              Face row alignment
+              <select aria-label="Face row alignment" disabled={busy || !project || traceMode !== 'planes' || !(project.settings?.preserveFeatures ?? true)}
+                value={project?.settings?.rowPhase ?? 'auto'}
+                onChange={e => setProject(p => p ? { ...p, settings: { ...p.settings, rows, portrait, edgeStrength, traceMode,
+                  rowPhase: e.target.value === 'auto' || e.target.value === 'off' ? e.target.value : Number(e.target.value) } } : p)}>
+                <option value="auto">Fit the whole face to text rows</option>
+                <option value="off">Original frame (comparison)</option>
+                {Array.from({length:17}, (_,phase) => <option key={phase} value={phase}>{phase} px paper above</option>)}
+              </select>
+            </label>
+          </div>
+          {figure?.rowAlignment && <details>
+            <summary>Compare face row alignments</summary>
+            <p>Current: {figure.rowAlignment.phase} px. The whole portrait moves together; one extra row preserves its framing and scale. Regenerate after choosing another phase. Geometry scores help compare fits; inspect the complete art.</p>
+            <div className="actions">{figure.rowAlignment.candidates.map(c => <button key={c.phase} disabled={busy}
+              onClick={() => setProject(p => p ? {...p, settings:{...p.settings, rows, portrait, edgeStrength, traceMode, rowPhase:c.phase}} : p)}>
+              {c.phase} px · {c.eyes} eyes · {c.brows} brows · {c.score.toFixed(2)}
+            </button>)}</div>
+          </details>}
+          <div className="actions">
+            <label>
+              <input
+                type="checkbox"
+                aria-label="Frame face and shoulders"
+                disabled={busy}
+                checked={portrait}
+                onChange={(e) => setPortrait(e.target.checked)}
+              />
+              Face & shoulders
+            </label>
+            <label>
+              Edge strength
+              <input
+                type="range"
+                aria-label="Learned edge strength"
+                disabled={busy}
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={edgeStrength}
+                onChange={(e) => setEdgeStrength(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <label className="actions">
+            Plane shadow tone
+            <input
+              type="range"
+              aria-label="Plane shadow tone"
+              disabled={busy || !project}
+              min="0"
+              max="1"
+              step="0.05"
+              value={project?.settings?.planeTone ?? 0.3}
+              onChange={(e) =>
+                setProject((p) =>
+                  p
+                    ? {
+                        ...p,
+                        settings: {
+                          ...p.settings,
+                          rows,
+                          portrait,
+                          edgeStrength,
+                          traceMode,
+                          planeTone: Number(e.target.value),
+                        },
+                      }
+                    : p,
+                )
+              }
+            />
+          </label>
+          <label className="actions">
+            Hair shadow detail
+            <input
+              type="range"
+              aria-label="Hair shadow detail"
+              disabled={busy}
+              min="0"
+              max="1"
+              step="0.05"
+              value={project?.settings?.hairTone ?? 1}
+              onChange={(e) =>
+                setProject((p) =>
+                  p
+                    ? {
+                        ...p,
+                        settings: {
+                          ...p.settings,
+                          rows,
+                          portrait,
+                          edgeStrength,
+                          traceMode,
+                          hairTone: Number(e.target.value),
+                        },
+                      }
+                    : p,
+                )
+              }
+            />
+          </label>
+          <label className="actions">
+            <input
+              type="checkbox"
+              aria-label={
+                traceMode === "planes"
+                  ? "Construct eyes from fitted forms"
+                  : "Preserve eye and brow photo ink"
+              }
+              disabled={busy}
+              checked={project?.settings?.preserveFeatures ?? true}
+              onChange={(e) =>
+                setProject((p) =>
+                  p
+                    ? {
+                        ...p,
+                        settings: {
+                          ...p.settings,
+                          rows,
+                          portrait,
+                          edgeStrength,
+                          traceMode,
+                          preserveFeatures: e.target.checked,
+                        },
+                      }
+                    : p,
+                )
+              }
+            />
+            {traceMode === "planes"
+              ? "Construct eyes from fitted forms"
+              : "Preserve dark eye & brow detail"}
+          </label>
+          <label>
+            Hair vocabulary
+            <select
+              aria-label="Hair tone vocabulary"
+              disabled={busy}
+              value={project?.settings?.hairPattern ?? "i:;"}
+              onChange={(e) =>
+                setProject((p) =>
+                  p
+                    ? {
+                        ...p,
+                        settings: {
+                          ...p.settings,
+                          rows,
+                          portrait,
+                          edgeStrength,
+                          traceMode,
+                          hairPattern: e.target.value,
+                        },
+                      }
+                    : p,
+                )
+              }
+            >
+              <option value="flow">Follow source hair flow</option>
+              <option value=":;">Sparse :; field</option>
+              <option value=":">Dot columns</option>
+              <option value="ﾐ">Short hatch courses</option>
+              <option value="i:;">Hair stem and dot field</option>
+              <option value=";:">Paired shadow field</option>
+            </select>
+          </label>
+          <button
+            disabled={busy || !project}
+            onClick={() => void run(rebuildHair)}
+          >
+            Rebuild hair masks
+          </button>
+          <button
+            disabled={busy || !project?.figures.some((f) => f.outlineText)}
+            onClick={() => void run(refreshHair)}
+          >
+            Apply tone to all
+          </button>
+          <p className="muted">
+            Fit the head forms and planes first. Visible boundaries, overlaps
+            and plane values select the head structure before native text is
+            articulated. Single-photo depth is estimated.
+          </p>
+          <div className={`paper ${native ? "native" : ""}`}>
+            <canvas
+              ref={textRef}
+              aria-label="Learned native text preview"
+              style={{ display: figure?.text ? "block" : "none" }}
+            />
+          </div>
+          {figure?.text && (
+            <>
+              <div className="actions">
+                <button
+                  aria-pressed={native}
+                  onClick={() => setNative(!native)}
+                >
+                  {native ? "Fit text preview" : "Native size"}
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    save(
+                      new Blob([figure.text!], {
+                        type: "text/plain;charset=utf-8",
+                      }),
+                      `${figure.name}.txt`,
+                    )
+                  }
+                >
+                  Export native TXT
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() => void exportImage("trace")}
+                >
+                  Export native PNG
+                </button>
+                {figure.planeGuide && (
+                  <>
+                    <button
+                      disabled={busy}
+                      onClick={async () =>
+                        save(
+                          await (await fetch(figure.planeGuide!)).blob(),
+                          `${figure.name}-plane-study.png`,
+                        )
+                      }
+                    >
+                      Export plane study
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void exportFramedStudy("planeGuide")}
+                    >
+                      Export framed planes
+                    </button>
+                  </>
+                )}
+                {figure.structureGuide && (
+                  <>
+                    <button
+                      disabled={busy}
+                      onClick={async () =>
+                        save(
+                          await (await fetch(figure.structureGuide!)).blob(),
+                          `${figure.name}-plane-structure.png`,
+                        )
+                      }
+                    >
+                      Export selected structure
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => void exportFramedStudy("structureGuide")}
+                    >
+                      Export framed structure
+                    </button>
+                  </>
+                )}
+                {figure.appearanceMask && (
+                  <button
+                    disabled={busy}
+                    onClick={async () =>
+                      save(
+                        await (await fetch(figure.appearanceMask!)).blob(),
+                        `${figure.name}-appearance-mask.png`,
+                      )
+                    }
+                  >
+                    Export material evidence
+                  </button>
+                )}
+                {figure.facialHairMask && (
+                  <button
+                    disabled={busy}
+                    onClick={async () =>
+                      save(
+                        await (await fetch(figure.facialHairMask!)).blob(),
+                        `${figure.name}-facial-hair-mask.png`,
+                      )
+                    }
+                  >
+                    Export facial hair mask
+                  </button>
+                )}
+                {figure.lineGuide && (
+                  <button
+                    disabled={busy}
+                    onClick={async () =>
+                      save(
+                        await (await fetch(figure.lineGuide!)).blob(),
+                        `${figure.name}-learned-guide.png`,
+                      )
+                    }
+                  >
+                    Export learned guide
+                  </button>
+                )}
+                {figure.preparedInput && (
+                  <button
+                    disabled={busy}
+                    onClick={async () =>
+                      save(
+                        await (await fetch(figure.preparedInput!)).blob(),
+                        `${figure.name}-model-input.png`,
+                      )
+                    }
+                  >
+                    Export model input
+                  </button>
+                )}
+              </div>
+              {figure.eyePlan?.targetGuide && (
+                <details>
+                  <summary>Inspect eye construction and row phases</summary>
+                  <p className="muted">
+                    Blue lids, grey iris and black pupil show the fitted source
+                    target. Green shows accepted native passages; red shows the
+                    closest rejected passage. The grid is the actual native row
+                    pitch.
+                  </p>
+                  {/* Diagnostic source and glyph targets stay read-only. */}
+                  <img
+                    src={figure.eyePlan.targetGuide}
+                    alt="Fitted eye targets and native row phases"
+                    style={{ maxWidth: "100%", background: "white" }}
+                  />
+                  <button
+                    disabled={busy}
+                    onClick={async () =>
+                      save(
+                        await (
+                          await fetch(figure.eyePlan!.targetGuide!)
+                        ).blob(),
+                        `${figure.name}-eye-construction.png`,
+                      )
+                    }
+                  >
+                    Export eye construction
+                  </button>
+                </details>
+              )}
+              <details>
+                <summary>Selectable native text & model</summary>
+                <p>{figure.traceModel}</p>
+                {figure.structureSummary?.map((text, i) => (
+                  <p className="muted" key={i}>
+                    {text}
+                  </p>
+                ))}
+                <textarea
+                  aria-label="Generated native text"
+                  readOnly
+                  value={figure.text}
+                />
+                {figure.warnings?.map((warning, i) => (
+                  <p className="muted" key={i}>
+                    {warning}
+                  </p>
+                ))}
+              </details>
+            </>
+          )}
+          <div className="actions">
+            <button
+              disabled={!figure || busy}
+              onClick={() => void run(() => exportStudio())}
+            >
+              Export Studio project
+            </button>
+            {embedded && (
+              <button
+                disabled={!figure || busy}
+                onClick={() => void run(() => exportStudio(true))}
+              >
+                Create project in Studio
+              </button>
+            )}
+          </div>
+          <p className="muted">
+            The Studio project includes registered source, cutout, value,
+            contour and plane guides, plus editable native text. Use Studio’s
+            References and Tracing views for vocabulary, folds, hair and feature
+            corrections.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}

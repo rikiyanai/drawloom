@@ -1,0 +1,276 @@
+diff --git a/src/components/PhotoWorkspace.tsx b/src/components/PhotoWorkspace.tsx
+index 7e0c4db..273412a 100644
+--- a/src/components/PhotoWorkspace.tsx
++++ b/src/components/PhotoWorkspace.tsx
+@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
+ import { composeNativeWords } from "@/lib/photo-workspace/native-composition";
+ import { PlanesMeshPanel } from "@/components/PlanesMeshPanel";
+ import { normalizeNativeSpacing } from "@/lib/photo-workspace/native-spacing";
++import { rowPhaseRect, compareRowPhases, type RowAlignment, type RowPhaseChoice } from "@/lib/photo-workspace/native-row-layout";
+ import {
+   mergeMasks,
+   analyzeFigure,
+@@ -26,14 +27,6 @@ import {
+   type Rect,
+ } from "@/lib/photo-workspace/core";
+ const base = process.env.NEXT_PUBLIC_BASE_PATH ?? "/drawloom";
+-function save(blob: Blob, name: string) {
+-  const url = URL.createObjectURL(blob),
+-    a = document.createElement("a");
+-  a.href = url;
+-  a.download = name;
+-  a.click();
+-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+-}
+ const readFile = (file: File) =>
+   new Promise<string>((resolve, reject) => {
+     const r = new FileReader();
+@@ -64,6 +57,8 @@ export default function PhotoWorkspace() {
+     ),
+     [error, setError] = useState("");
+   const [sourceRotation, setSourceRotation] = useState(0),
++    [workspaceURL, setWorkspaceURL] = useState(''),
++    [lastExport, setLastExport] = useState<{url:string;name:string} | null>(null),
+     [meshOpen, setMeshOpen] = useState(false);
+   const [mode, setMode] = useState<"select" | "erase" | "restore" | "pin">(
+       "select",
+@@ -91,13 +86,23 @@ export default function PhotoWorkspace() {
+   const figure = project?.figures.find((f) => f.id === project.selected),
+     current = useRef<Figure | undefined>(figure);
+   current.current = figure;
++  function save(blob: Blob, name: string) {
++    const reader = new FileReader();
++    reader.onload = () => {
++      const url = String(reader.result), a = document.createElement('a');
++      setLastExport({url,name}); a.href=url; a.download=name; a.click();
++    };
++    reader.onerror = () => setError('The export could not be prepared.');
++    reader.readAsDataURL(blob);
++  }
+   const update = (id: string, patch: Partial<Figure>) =>
+     setProject((p) =>
+       p
+         ? {
+             ...p,
+             figures: p.figures.map((f) =>
+-              f.id === id ? { ...f, ...patch } : f,
++              f.id === id ? { ...f, ...patch,
++                ...(Object.hasOwn(patch, 'traceRect') && !patch.traceRect ? { rowAlignment: undefined } : {}) } : f,
+             ),
+           }
+         : p,
+@@ -125,6 +130,24 @@ export default function PhotoWorkspace() {
+       })
+       .catch(() => setError("Required Saitamaar font failed to load."));
+   }, []);
++  async function restoreProject(text: string) {
++    if (text.length > 40 * 1024 * 1024) throw Error('Choose a workspace under 40 MB.');
++    const saved = validatePhotoProject(JSON.parse(text)), image = await loadImage(saved.photo);
++    if (image.naturalWidth * image.naturalHeight > 25000000) throw Error('Photo exceeds 25 megapixels.');
++    for (const f of saved.figures) {
++      const rect = boundedRect(f.rect, image.naturalWidth, image.naturalHeight);
++      if ((['x','y','width','height'] as const).some(key => rect[key] !== f.rect[key]))
++        throw Error('A saved crop does not fit its original image. The project was not changed.');
++    }
++    epoch.current++; undo.current = {};
++    setPhoto(image);
++    if (saved.settings) {
++      setRows(saved.settings.rows); setPortrait(saved.settings.portrait);
++      setEdgeStrength(saved.settings.edgeStrength); setTraceMode(saved.settings.traceMode);
++    }
++    setProject(saved);
++    setStatus(`Reopened ${saved.figures.length} figures, masks and plane corrections.`);
++  }
+   async function open(
+     file: File | undefined,
+     kind: "photo" | "project" | "packet",
+@@ -136,36 +159,7 @@ export default function PhotoWorkspace() {
+       epoch.current++;
+       undo.current = {};
+       if (kind === "project") {
+-        const saved = validatePhotoProject(JSON.parse(await file.text())),
+-          image = await loadImage(saved.photo);
+-        if (image.naturalWidth * image.naturalHeight > 25000000)
+-          throw Error("Photo exceeds 25 megapixels.");
+-        for (const f of saved.figures) {
+-          const rect = boundedRect(
+-            f.rect,
+-            image.naturalWidth,
+-            image.naturalHeight,
+-          );
+-          if (
+-            (["x", "y", "width", "height"] as const).some(
+-              (key) => rect[key] !== f.rect[key],
+-            )
+-          )
+-            throw Error(
+-              "A saved crop does not fit its original image. The project was not changed.",
+-            );
+-        }
+-        setPhoto(image);
+-        if (saved.settings) {
+-          setRows(saved.settings.rows);
+-          setPortrait(saved.settings.portrait);
+-          setEdgeStrength(saved.settings.edgeStrength);
+-          setTraceMode(saved.settings.traceMode);
+-        }
+-        setProject(saved);
+-        setStatus(
+-          `Reopened ${saved.figures.length} figures, masks and plane corrections.`,
+-        );
++        await restoreProject(await file.text());
+       } else {
+         let data: string;
+         if (kind === "packet") {
+@@ -491,8 +485,8 @@ export default function PhotoWorkspace() {
+   }
+   async function trace(f: Figure) {
+     if (!photo) return;
+-    const full = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true),
+-      region = portrait
++    const full = await cutoutPhoto(cropPhoto(photo, f.rect), f.mask, true);
++    let region = portrait
+         ? portraitRect(f)
+         : { x: 0, y: 0, width: full.width, height: full.height };
+     if (portrait && f.mask && f.pose) {
+@@ -518,7 +512,50 @@ export default function PhotoWorkspace() {
+       region.height += region.y - top;
+       region.y = top;
+     }
++    const traceWidth = Math.max(128, Math.min(640, Math.round((rows * 17 * region.width) / region.height)));
++    let traceRows = Math.max(8, Math.min(90, Math.round(((traceWidth / region.width) * region.height) / 17)));
++    const metric = document.createElement("canvas").getContext("2d")!;
++    metric.font = "16px Saitamaar";
++    let eyePlan: import("@/lib/photo-workspace/plane-eye-words").PlaneEyeWordPlan | undefined;
++    let rowAlignment: RowAlignment | undefined;
++    if (traceMode === 'planes' && (project?.settings?.preserveFeatures ?? true)) {
++      const { compilePlaneEyes } = await import('@/lib/photo-workspace/plane-eye-words');
++      const frame = planeFrame(f), measure = (t: string) => Math.round(metric.measureText(t).width);
++      const mode = project?.settings?.rowPhase ?? 'auto';
++      if (mode === 'off') eyePlan = compilePlaneEyes(full, frame, region, traceWidth, traceRows * 17, measure);
++      else {
++        const baseRect = { ...region }, contentRows = Math.min(89, traceRows);
++        const plans = new Map<number, typeof eyePlan>();
++        const candidates: RowPhaseChoice[] = [];
++        const tryPhase = async (phase: number) => {
++          if (plans.has(phase)) return;
++          setStatus(`Aligning ${f.name}'s whole face with native rows: ${phase} px…`);
++          await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
++          const plan = compilePlaneEyes(full, frame, rowPhaseRect(baseRect, contentRows, phase), traceWidth, (contentRows + 1) * 17, measure);
++          plans.set(phase, plan);
++          const eyes = new Map(plan.words.filter(w => w.role === 'eye-form').map(w => [w.owner, w.score]));
++          const brows = new Set(plan.words.filter(w => w.role === 'brow-form').map(w => w.owner)).size;
++          candidates.push({ phase, eyes: eyes.size, brows, score: eyes.size ? [...eyes.values()].reduce((a,b) => a+b,0)/eyes.size : 100 });
++        };
++        for (const phase of mode === 'auto' ? [0,3,6,9,12,15,16] : [mode]) await tryPhase(phase);
++        candidates.sort(compareRowPhases);
++        if (mode === 'auto') {
++          const coarse = candidates[0].phase;
++          for (const phase of [coarse-1, coarse+1]) if (phase >= 0 && phase <= 16) await tryPhase(phase);
++          candidates.sort(compareRowPhases);
++        }
++        const chosen = candidates[0];
++        rowAlignment = { phase: chosen.phase, baseRect, contentRows, candidates };
++        region = rowPhaseRect(baseRect, contentRows, chosen.phase);
++        traceRows = contentRows + 1;
++        eyePlan = plans.get(chosen.phase)!;
++        eyePlan.notes.unshift(`Whole composition aligned by ${chosen.phase} px. One row of paper preserves the original frame and scale. ${candidates.length} geometric alternatives compared; this is not a visual quality verdict.`);
++      }
++    }
+     const cut = cropCanvas(full, region);
++    const paper = cut.getContext('2d')!;
++    paper.globalCompositeOperation = 'destination-over'; paper.fillStyle = 'white';
++    paper.fillRect(0, 0, cut.width, cut.height); paper.globalCompositeOperation = 'source-over';
+     setStatus(`Loading learned native-text filter for ${f.name}…`);
+     let hair = f.hairMask;
+     if (traceMode === "planes" || (project?.settings?.hairTone ?? 1) > 0) {
+@@ -603,30 +640,7 @@ export default function PhotoWorkspace() {
+       });
+       lineGuide = input.toDataURL("image/png");
+     }
+-    const traceWidth = Math.max(
+-        128,
+-        Math.min(640, Math.round((rows * 17 * cut.width) / cut.height)),
+-      ),
+-      traceRows = Math.max(
+-        8,
+-        Math.min(90, Math.round(((traceWidth / cut.width) * cut.height) / 17)),
+-      );
+-    const metric = document.createElement("canvas").getContext("2d")!;
+-    metric.font = "16px Saitamaar";
+-    let eyePlan:
+-      | import("@/lib/photo-workspace/plane-eye-words").PlaneEyeWordPlan
+-      | undefined;
+-    if (planeStudy && (project?.settings?.preserveFeatures ?? true)) {
+-      const { compilePlaneEyes } =
+-        await import("@/lib/photo-workspace/plane-eye-words");
+-      eyePlan = compilePlaneEyes(
+-        full,
+-        planeFrame(f),
+-        region,
+-        traceWidth,
+-        traceRows * 17,
+-        (t) => Math.round(metric.measureText(t).width),
+-      );
++    if (eyePlan) {
+       const c = input.getContext("2d")!;
+       c.fillStyle = "white";
+       for (const r of eyePlan.reservedRects)
+@@ -719,6 +733,7 @@ export default function PhotoWorkspace() {
+       structureSummary,
+       structureRecords,
+       eyePlan,
++      rowAlignment,
+       shadowMasks,
+       rawText: result.text,
+       preparedInput: result.preparedInput,
+@@ -1111,6 +1126,21 @@ export default function PhotoWorkspace() {
+             }}
+           />
+         </label>
++        <label>Workspace link
++          <input type="url" aria-label="Saved workspace URL" value={workspaceURL} disabled={busy}
++            placeholder="https://…/photo-workspace.json" onChange={e => setWorkspaceURL(e.target.value)} />
++        </label>
++        <button disabled={busy || !workspaceURL.trim()} onClick={() => void run(async () => {
++          const url = new URL(workspaceURL);
++          if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password)
++            throw Error('Choose an HTTP or HTTPS workspace link without embedded credentials.');
++          const response = await fetch(url, { credentials: 'omit' });
++          if (!response.ok) throw Error(`Workspace link returned ${response.status}.`);
++          if (Number(response.headers.get('content-length')) > 40 * 1024 * 1024)
++            throw Error('Choose a workspace under 40 MB.');
++          await restoreProject(await response.text());
++        })}>Open workspace link</button>
++        {lastExport && <a href={lastExport.url} download={lastExport.name}>Download {lastExport.name}</a>}
+         <button
+           disabled={!project || busy}
+           onClick={() =>
+@@ -1626,6 +1656,27 @@ export default function PhotoWorkspace() {
+               Generate AA text
+             </button>
+           </div>
++          <div className="actions">
++            <label>
++              Face row alignment
++              <select aria-label="Face row alignment" disabled={busy || !project || traceMode !== 'planes' || !(project.settings?.preserveFeatures ?? true)}
++                value={project?.settings?.rowPhase ?? 'auto'}
++                onChange={e => setProject(p => p ? { ...p, settings: { ...p.settings, rows, portrait, edgeStrength, traceMode,
++                  rowPhase: e.target.value === 'auto' || e.target.value === 'off' ? e.target.value : Number(e.target.value) } } : p)}>
++                <option value="auto">Fit the whole face to text rows</option>
++                <option value="off">Original frame (comparison)</option>
++                {Array.from({length:17}, (_,phase) => <option key={phase} value={phase}>{phase} px paper above</option>)}
++              </select>
++            </label>
++          </div>
++          {figure?.rowAlignment && <details>
++            <summary>Compare face row alignments</summary>
++            <p>Current: {figure.rowAlignment.phase} px. The whole portrait moves together; one extra row preserves its framing and scale. Regenerate after choosing another phase. Geometry scores help compare fits; inspect the complete art.</p>
++            <div className="actions">{figure.rowAlignment.candidates.map(c => <button key={c.phase} disabled={busy}
++              onClick={() => setProject(p => p ? {...p, settings:{...p.settings, rows, portrait, edgeStrength, traceMode, rowPhase:c.phase}} : p)}>
++              {c.phase} px · {c.eyes} eyes · {c.brows} brows · {c.score.toFixed(2)}
++            </button>)}</div>
++          </details>}
+           <div className="actions">
+             <label>
+               <input
