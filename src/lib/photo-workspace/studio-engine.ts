@@ -2,7 +2,7 @@ import { analyzeFigure, planeFrame, newCanvas, objectMask, cutoutPhoto, portrait
 import { buildPlaneStudy } from './plane-structure';
 import { hairMask } from './hair-tone';
 
-export const STUDIO_ENGINE_VERSION = 'drawloom.studio-photo.v1';
+export const STUDIO_ENGINE_VERSION = 'drawloom.studio-photo.v2-eye-contours.5';
 type Progress = (message:string)=>void;
 
 export async function pickPhotoPerson(source:HTMLCanvasElement,point:{x:number;y:number},progress:Progress=()=>{}) {
@@ -61,5 +61,5 @@ export async function traceFittedPhoto(fit:Awaited<ReturnType<typeof fitPhotoGui
   const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(Error('Hair mask could not be decoded.'));image.src=fit.hair;});
   m.drawImage(image,0,0);m.drawImage(study.facialHairMaskCanvas,0,0);
   text=addHairTone({text,measure,mask,source,region,guideWidth:width,guideHeight:nativeHeight,amount:1,pattern:'flow'});
-  return{text,model:result.model,notes:[...study.summary,...eyePlan.notes,...result.warnings],qualification:'Editable photo trace draft; not AAHub-quality acceptance.'};
+  return{text,model:result.model,constructionGuides:eyePlan.targetGuide?[{image:eyePlan.targetGuide,name:'Fitted eyes and native rows',width,height:nativeHeight,x:left,y:top}]:[],notes:[...study.summary,...eyePlan.notes,...result.warnings],qualification:'Editable photo trace draft; not AAHub-quality acceptance.'};
 }

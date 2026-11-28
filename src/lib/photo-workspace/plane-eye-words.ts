@@ -2,6 +2,7 @@ import type { PlanesFrame } from '../planes/solve';
 import { inPolygon } from '../planes/geometry';
 import type { Rect } from './core';
 import { eyeFeatures, type EyeOwner, type PlaneEyeFeature } from './plane-eye-features';
+import { eyeContourSupport, eyeFootprintExcess } from './eye-contour-support';
 
 export type PlaneEyeWord = {
   x: number; row: number; text: string; role: 'eye-form' | 'brow-form'; owner: EyeOwner;
@@ -60,7 +61,8 @@ function nearestSquared(p:XY, points:XY[]):number {
 // Form alternatives include compact x-height crossings for low row phases,
 // not only full-height kana/discs. Every candidate faces the same geometry,
 // pupil, contact and protected-paper checks.
-const IRIS_CORES=['ﾜ','ｏ','o','O','采','示','a','e','h','m','w','W','N','ﾃ','ｷ','ｼ','ﾐ'];
+const IRIS_CORES=['yﾌ','ﾜ','ｏ','o','O','ﾓ','ﾏ','ｦ','ﾃ','ｷ','ｼ','ﾐ','y','f','ﾚ','ｪ'];
+const COMPACT_IRIS_CORES=['__','_',"'",'､','‐','ｰ'];
 const FONT = '16px Saitamaar';
 const BASELINE = 1122 / 1280 * 16;
 const PITCH = 17;
@@ -71,12 +73,17 @@ const makeCanvas = (width: number, height: number) => {
 /** A small compositional vocabulary: entry / occluded disc / return. Each
  * complete word is evaluated as one owner against the posed opening. No
  * identity selects a word and no glyph is stretched, clipped or moved alone. */
-function grammar(open: boolean): string[] {
+function grammar(open: boolean, cores: string[] = IRIS_CORES): string[] {
   if (!open) return ['ー', '一', '⌒', '‐', '､_', 'ｰ', '､ｰ', 'ー､'];
   const words = new Set<string>();
-  for (const iris of IRIS_CORES) {
+  for (const iris of cores) {
+    if(cores===COMPACT_IRIS_CORES){words.add(iris);continue;}
     for(const [entry,exit] of [['',''],['ｨ','ｧ'],["'","'"],['､','､']])words.add(entry+iris+exit);
   }
+  // Whole entry / pupil / return constructions observed in the portrait
+  // vocabulary. They still face the fitted aperture, photo and paper checks;
+  // neither the subject nor a face identity chooses a phrase.
+  if(cores===IRIS_CORES)for (const word of ["_,r'(yﾌr､", "r'(yﾌ､", "ｨ'でﾚヽ", ",r'ｨｪヽ", "ｨ'ﾃヽ"]) words.add(word);
   return [...words];
 }
 
@@ -215,6 +222,8 @@ export function compilePlaneEyes(
       }
     }
     const visibleHeight = (gaze?.visibleBounds?.height ?? 0) / region.height * nativeH;
+    const minimumCoreHeight=Math.min(...IRIS_CORES.map(text=>{const ys=raster(text).ink.map(p=>p.y);return Math.max(...ys)-Math.min(...ys)+1;}));
+    const irisCores=visibleHeight<minimumCoreHeight?COMPACT_IRIS_CORES:IRIS_CORES;
     const showIris = eye.open && eye.blink < .55 && visibleIris.length > 0 && visibleHeight >= 2 && sampled >= 3 && darkSamples / sampled > .12;
     const blinkSupportedLidOnly=!showIris&&eye.blink>.30&&eye.apertureRatio<.15;
     if (eye.open && !showIris && !blinkSupportedLidOnly) { result.notes.push(`${eye.owner}: unresolved open iris; fitted disc lacks sufficient visible dark-photo support. Lids remain with the general encoder.`); return; }
@@ -223,6 +232,7 @@ export function compilePlaneEyes(
     if (!points.length) return;
     const left = Math.min(...aperture.map(p => p.x)), right = Math.max(...aperture.map(p => p.x));
     const top = Math.min(...aperture.map(p => p.y)), bottom = Math.max(...aperture.map(p => p.y));
+    result.notes.push(`${eye.owner}: native aperture ${left.toFixed(2)},${top.toFixed(2)}–${right.toFixed(2)},${bottom.toFixed(2)}; visible iris height ${visibleHeight.toFixed(2)}px; smallest full core ${minimumCoreHeight}px; ${irisCores===COMPACT_IRIS_CORES?'compact partial-iris':'full iris'} vocabulary.`);
     const padding = 3;
     const target = makeCanvas(Math.ceil(right - left) + 2 * padding + 1, Math.ceil(bottom - top) + 2 * padding + 1);
     const tc = target.getContext('2d', { willReadFrequently: true })!;
@@ -259,7 +269,7 @@ export function compilePlaneEyes(
     const maximumPupilOffset=Math.min(3,(gaze?.radiusPx??0)*sx*.35);
     const pupilAnchorX=center.x+Math.max(-maximumPupilOffset,Math.min(maximumPupilOffset,photoPupil.x-center.x));
 
-    const candidates = new Set(grammar(showIris));
+    const candidates = new Set(grammar(showIris,irisCores));
     const upperNative = upper.flatMap(path=>path.points.map(toNative)).sort((a,b)=>a.x-b.x);
     const lowerNative = eye.paths.filter(path=>path.role==='lower-lid').flatMap(path=>path.points.map(toNative)).sort((a,b)=>a.x-b.x);
     const upperContacts=upperNative.filter(p=>inPolygon(p,ring)&&p.y<=center.y);
@@ -274,7 +284,7 @@ export function compilePlaneEyes(
       type State={text:string;pen:number;cost:number;last?:{x:number;y:number}};
       const states:State[][]=Array.from({length:width+4},()=>[]);states[0]=[{text:'',pen:0,cost:0}];
       for(let pen=0;pen<=width;pen++) for(const state of states[pen].sort((a,b)=>a.cost-b.cost).slice(0,4)) {
-        for(const mark of ['‐','￣',"'",'｀','､','_','ｰ','~','ノ','ヽ']) {
+        for(const mark of ['‐','￣',"'",'｀','､','_','ｰ','~','ノ','ヽ','⌒']) {
           const r=raster(mark),advance=Math.round(measure(mark)),next=pen+advance;if(!advance||next>width+2||!r.ink.length)continue;
           const ink=r.ink.map(p=>({x:start+pen+p.x,y:row*PITCH+p.y}));
           const local=curve.filter(p=>p.x>=start+pen-1&&p.x<=start+next+1);if(!local.length)continue;
@@ -295,22 +305,25 @@ export function compilePlaneEyes(
     type Part = { r: Raster; x: number; row: number; irisText?:string; irisOffset?:number; wholeIris?:boolean };
     type Choice = { parts: Part[]; score: number; ink: { x: number; y: number }[]; lidCoverage: number; irisCoverage: number; whiteSpill: number; pupilCoverage:number; contactCoverage:number; upperCoverage:number; lowerCoverage:number };
     let best: Choice | undefined, closest: Choice | undefined;
+    let closestFootprint: {parts:Part[];ink:XY[];excess:number} | undefined;
     let rejectedFootprint=0,rejectedSemantic=0;
     const consider = (parts: Part[]) => {
       if (parts.some(({r,x,row}) => x < 0 || row < 0 || x + r.width > nativeW || (row + 1) * PITCH > nativeH)) return;
       const ink = parts.flatMap(({r,x,row}) => r.ink.map(p => ({x:p.x+x,y:p.y+row*PITCH})));
-      if (ink.some(p => p.x < left - 4 || p.x > right + 4 || p.y < top - 4 || p.y > bottom + 4)) {rejectedFootprint++;return;}
+      const excess=eyeFootprintExcess(ink,{left,right,top,bottom});
+      if(excess>0){if(!closestFootprint||excess<closestFootprint.excess)closestFootprint={parts,ink,excess};rejectedFootprint++;return;}
       const lidCoverage = lidWanted.filter(p => distanceTo(p, ink) <= 6.25).length / Math.max(1,lidWanted.length);
       const irisCoverage = showIris ? irisWanted.filter(p => distanceTo(p, ink) <= 3.1).length / irisWanted.length : 1;
       const upperCoverage=upperNative.filter(p=>distanceTo(p,ink)<=6.25).length/Math.max(1,upperNative.length);
       const lowerCoverage=showIris&&lowerNative.length?lowerNative.filter(p=>distanceTo(p,ink)<=6.25).length/lowerNative.length:1;
+      const upperSupport=eyeContourSupport(upperNative,ink);
       const white = ink.filter(p => inPolygon(p, aperture) && distanceTo(p,lidWanted) > 2.25);
       const whiteSpill = showIris ? white.filter(p => distanceTo(p,irisWanted) > 3.1).length / Math.max(1,white.length) : 0;
       // Semantic role constraints replace an arbitrary aggregate-score cutoff.
       // Keep the globally bounded footprint and protect visible sclera.
       const irisInk:XY[]=[];
       if(showIris)for(const part of parts){
-        const token=part.irisText??IRIS_CORES.find(mark=>part.r.text.includes(mark));
+        const token=part.irisText??irisCores.find(mark=>part.r.text.includes(mark));
         if(part.wholeIris){for(const p of part.r.ink)irisInk.push({x:part.x+p.x,y:part.row*PITCH+p.y});continue;}
         if(!token)continue;
         const offset=part.irisOffset??measure(part.r.text.slice(0,part.r.text.indexOf(token)));
@@ -328,7 +341,7 @@ export function compilePlaneEyes(
       const score = (upperLoss+lowerLoss)*.8 + Math.max(upperLoss,lowerLoss)*.4 + irisLoss + pupilLoss*1.4 + spill*.7 + whiteSpill*10 + (parts.length-1)*.15;
       const choice={parts,score,ink,lidCoverage,irisCoverage,whiteSpill,pupilCoverage,contactCoverage,upperCoverage,lowerCoverage};
       if(!closest||score<closest.score)closest=choice;
-      if (lidCoverage < (showIris ? .30 : .60) || irisCoverage < .40 || whiteSpill > .30 || pupilCoverage < .35 || contactCoverage < .30 || upperCoverage < .40 || lowerCoverage < .35) {rejectedSemantic++;return;}
+      if (!upperSupport.corners || upperSupport.longestGap > Math.max(6,(right-left)*.18) || upperSupport.coverage < .65 || lidCoverage < (showIris ? .30 : .60) || irisCoverage < .40 || whiteSpill > .30 || pupilCoverage < .35 || contactCoverage < .30 || upperCoverage < .40 || lowerCoverage < .35) {rejectedSemantic++;return;}
       if (!best || score < best.score) best = choice;
     };
     if(!showIris){
@@ -345,7 +358,7 @@ export function compilePlaneEyes(
     }
     for (const text of candidates) {
       const r = raster(text); if (!r.ink.length || r.width > right-left+8) continue;
-      const token = showIris ? IRIS_CORES.find(mark=>text.includes(mark)) : undefined;
+      const token = showIris ? irisCores.find(mark=>text.includes(mark)) : undefined;
       const anchor = token ? raster(token) : r;
       const prefixWidth = token ? measure(text.slice(0,text.indexOf(token))) : 0;
       const anchorX = prefixWidth + anchor.ink.reduce((sum,p)=>sum+p.x,0)/anchor.ink.length;
@@ -360,7 +373,7 @@ export function compilePlaneEyes(
           for(const a of prefix) for(const b of suffix) {
             const whole=raster(a+text+b),groupX=x-measure(a);
             if(Math.abs(groupX-left)>3&&a)continue;
-            consider([{r:whole,x:groupX,row}]);
+            consider([{r:whole,x:groupX,row,irisText:token,irisOffset:measure(a)}]);
             // The opening's lower return can cross the next native row even
             // when its entire visible iris fits on this row. Own that return
             // as a pure contour; do not invent a second iris fragment.
@@ -369,7 +382,7 @@ export function compilePlaneEyes(
               for(const passage of curveBridge(left,right,lowerRow,'lower')){
                 const lower=raster(passage);
                 if(!lower.ink.length||lower.width<(right-left)*.80)continue;
-                consider([{r:whole,x:groupX,row},{r:lower,x:Math.round(left),row:lowerRow}]);
+                consider([{r:whole,x:groupX,row,irisText:token,irisOffset:measure(a)},{r:lower,x:Math.round(left),row:lowerRow}]);
               }
             }
           }
@@ -381,7 +394,7 @@ export function compilePlaneEyes(
     if (showIris && bottom-top >= 9) {
       const upperPoints = upper.flatMap(path=>path.points.map(toNative));
       const upperY = upperPoints.reduce((sum,p)=>sum+p.y,0)/upperPoints.length;
-      for (const token of IRIS_CORES) {
+      for (const token of irisCores) {
         const disc = raster(token), ax=disc.ink.reduce((sum,p)=>sum+p.x,0)/disc.ink.length, ay=disc.ink.reduce((sum,p)=>sum+p.y,0)/disc.ink.length;
         const discRow = Math.round((center.y-ay)/PITCH);
         for (const mark of ['‐','￣',"'"]) {
@@ -390,7 +403,7 @@ export function compilePlaneEyes(
           if (lidRow===discRow || Math.abs(lidRow-discRow)!==1) continue;
           for (const passage of curveBridge(left,right,lidRow)) {
             const curved=raster(passage);if(!curved.ink.length)continue;
-            for (const phase of [-1,0,1]) consider([{r:disc,x:Math.round(pupilAnchorX-ax+phase),row:discRow},{r:curved,x:Math.round(left),row:lidRow}]);
+            for (const phase of [-1,0,1]) consider([{r:disc,x:Math.round(pupilAnchorX-ax+phase),row:discRow,irisText:token,irisOffset:0},{r:curved,x:Math.round(left),row:lidRow}]);
           }
         }
       }
@@ -402,7 +415,7 @@ export function compilePlaneEyes(
       const irisTop=Math.min(...irisWanted.map(p=>p.y)),irisBottom=Math.max(...irisWanted.map(p=>p.y));
       const firstRow=Math.floor(irisTop/PITCH),secondRow=firstRow+1;
       if(irisBottom>=secondRow*PITCH-1){
-        for(const topText of ['f','ｦ','ｮ','ﾛ','θ','ｿ','ﾘ','e','a','h','m','w','ﾃ','ｷ','ﾐ'])for(const bottomText of ["'",'｀','､','‐','ｰ','i',',']){
+        for(const topText of ['f','y','ｦ','ｮ','ﾛ','θ','ｿ','ﾘ','ﾃ','ｷ','ﾐ'])for(const bottomText of ["'",'｀','､','‐','ｰ','i',',']){
           const a=raster(topText),b=raster(bottomText);if(!a.ink.length||!b.ink.length)continue;
           const ax=a.ink.reduce((sum,p)=>sum+p.x,0)/a.ink.length,bx=b.ink.reduce((sum,p)=>sum+p.x,0)/b.ink.length;
           for(const phase of [-1,0,1]){
@@ -427,7 +440,8 @@ export function compilePlaneEyes(
     guide.fillStyle='#666';for(const p of irisWanted)guide.fillRect(p.x,p.y,1,1);
     guide.fillStyle='black';for(const p of pupilWanted)guide.fillRect(p.x,p.y,1,1);
     guide.strokeStyle='#bbb';for(let row=Math.floor((top-5)/PITCH);row<=(bottom+5)/PITCH;row++){guide.beginPath();guide.moveTo(left-5,row*PITCH);guide.lineTo(right+5,row*PITCH);guide.stroke();}
-    const witness=best??closest;if(witness){guide.globalAlpha=.55;guide.fillStyle=best?'#00852c':'#d02c28';for(const p of witness.ink)guide.fillRect(p.x,p.y,1,1);guide.globalAlpha=1;}
+    const witness=best??closest??closestFootprint;if(witness){guide.globalAlpha=.55;guide.fillStyle=best?'#00852c':'#d02c28';for(const p of witness.ink)guide.fillRect(p.x,p.y,1,1);guide.globalAlpha=1;}
+    if(!closest&&closestFootprint)result.notes.push(`${eye.owner}: nearest bounded-footprint candidate ${closestFootprint.parts.map(part=>JSON.stringify(part.r.text)+'@'+part.row+':'+part.x).join(' + ')} exceeds the native aperture margin by ${closestFootprint.excess.toFixed(2)}px; ink bounds ${Math.min(...closestFootprint.ink.map(p=>p.x)).toFixed(2)},${Math.min(...closestFootprint.ink.map(p=>p.y)).toFixed(2)}–${Math.max(...closestFootprint.ink.map(p=>p.x)).toFixed(2)},${Math.max(...closestFootprint.ink.map(p=>p.y)).toFixed(2)}.`);
     result.notes.push(`${eye.owner}: iris centre phase ${(center.y%PITCH).toFixed(2)}px; ${rejectedFootprint} footprint and ${rejectedSemantic} semantic rejections; pupil offset ${(pupilAnchorX-center.x).toFixed(2)}px; closest words ${closest?.parts.map(part=>JSON.stringify(part.r.text)+'@'+part.row+':'+part.x).join(' + ')??'none'}; closest ${closest?.score.toFixed(2)??'none'} [upper ${closest?.upperCoverage.toFixed(2)??'-'}, lower ${closest?.lowerCoverage.toFixed(2)??'-'}, lid ${closest?.lidCoverage.toFixed(2)??'-'}, iris ${closest?.irisCoverage.toFixed(2)??'-'}, pupil ${closest?.pupilCoverage.toFixed(2)??'-'}, contact ${closest?.contactCoverage.toFixed(2)??'-'}, white ${closest?.whiteSpill.toFixed(2)??'-'}], accepted ${best?.score.toFixed(2)??'none'}. Target guide: blue lids/grey iris/black pupil; green accepted or red rejected native ink.`);
     if (!best) { result.notes.push(`${eye.owner}: unresolved native pose witness: no complete one/two-row group preserves lid coverage, dark iris support and protected sclera.`); return; }
     for (const {r,x,row} of best.parts) result.words.push({x,row,text:r.text,role:'eye-form',owner:eye.owner,score:best.score,
